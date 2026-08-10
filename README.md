@@ -27,3 +27,5 @@ Teachers can build printable worksheets by dragging reusable components onto a p
 ## Status
 
 Currently in active development.
+
+GitHub sync verified.
