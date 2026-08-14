@@ -3,6 +3,7 @@ import type { RefObject, PointerEvent as ReactPointerEvent } from 'react';
 import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
 import { QuestionComponent } from './QuestionComponent';
+import { AnswerLinesComponent } from './AnswerLinesComponent';
 
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
@@ -20,6 +21,10 @@ type WorksheetCanvasProps = {
   onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerEnd: () => void;
   onTextChange: (id: string, text: string) => void;
+  onUpdateComponent: (
+    id: string,
+    changes: Partial<WorksheetComponent>
+  ) => void;
 };
 
 export function WorksheetCanvas({
@@ -32,6 +37,7 @@ export function WorksheetCanvas({
   onPointerMove,
   onPointerEnd,
   onTextChange,
+  onUpdateComponent,
 }: WorksheetCanvasProps) {
   return (
     <section className="min-w-0 overflow-auto bg-slate-200/70">
@@ -113,6 +119,21 @@ export function WorksheetCanvas({
     );
   }
 
+  if (component.type === 'answerLines') {
+    return (
+      <AnswerLinesComponent
+        key={component.id}
+        component={component}
+        isSelected={component.id === selectedComponentId}
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
+        onLineCountChange={(id, lineCount, height) =>
+          onUpdateComponent(id, { lineCount, height })
+        }
+      />
+    );
+  }
   return null;
 })}
 

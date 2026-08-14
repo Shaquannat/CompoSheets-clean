@@ -36,7 +36,11 @@ export function RightSidebar({
             </span>
 
             <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm font-semibold text-violet-800">
-            {selectedComponent.type === 'text' ? 'Text' : 'Question'}
+            {selectedComponent.type === 'text'
+  ? 'Text'
+  : selectedComponent.type === 'question'
+    ? 'Question'
+    : 'Answer Lines'}
             </div>
           </div>
 
@@ -60,6 +64,29 @@ export function RightSidebar({
               />
             </label>
           )}
+
+{selectedComponent.type === 'answerLines' && (
+  <label className="block">
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Line style
+    </span>
+
+    <select
+      value={selectedComponent.lineStyle}
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          lineStyle: event.target.value as
+  | 'standard'
+  | 'primary',
+        })
+      }
+      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+    >
+      <option value="standard">Standard</option>
+      <option value="primary">Primary handwriting</option>
+    </select>
+  </label>
+)}
 
           <label className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
             <span className="text-sm font-semibold text-slate-800">

@@ -71,6 +71,29 @@ function App() {
   
     setSelectedComponentId(newComponent.id);
   }
+  function addAnswerLinesComponent() {
+    const newComponent: AnswerLinesComponent = {
+      id: crypto.randomUUID(),
+      type: 'answerLines',
+      x: 64,
+      y: 64 + components.length * 60,
+      width: 500,
+      height: 40,
+      lineCount: 1,
+      lineSpacing: 40,
+      lineStyle: 'standard',
+      rotation: 0,
+      locked: false,
+      layer: components.length + 1,
+    };
+  
+    setComponents((currentComponents) => [
+      ...currentComponents,
+      newComponent,
+    ]);
+  
+    setSelectedComponentId(newComponent.id);
+  }
 
   function updateComponent(id: string, changes: Partial<WorksheetComponent>) {
     setComponents((currentComponents) =>
@@ -224,6 +247,17 @@ const maximumHeight = Math.max(
 const proposedWidth = resize.startWidth + changeInWidth;
 const proposedHeight = resize.startHeight + changeInHeight;
 
+if (component.type === 'answerLines') {
+  updateComponent(component.id, {
+    width: Math.min(
+      Math.max(proposedWidth, minimumWidth),
+      maximumWidth
+    ),
+  });
+
+  return;
+}
+
 updateComponent(component.id, {
   width: Math.min(
     Math.max(proposedWidth, minimumWidth),
@@ -258,6 +292,7 @@ updateComponent(component.id, {
       <Library
   onAddText={addTextComponent}
   onAddQuestion={addQuestionComponent}
+  onAddAnswerLines={addAnswerLinesComponent}
 />
 
         <WorksheetCanvas
@@ -269,6 +304,7 @@ updateComponent(component.id, {
           onPointerMove={handlePagePointerMove}
           onPointerEnd={stopPointerInteraction}
           onTextChange={(id, text) => updateComponent(id, { text })}
+          onUpdateComponent={updateComponent}
           onResizeStart={startResizing}
         />
 
