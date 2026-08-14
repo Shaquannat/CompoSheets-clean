@@ -9,6 +9,12 @@ type TextComponentProps = {
     event: ReactPointerEvent<HTMLButtonElement>,
     component: TextComponentType
   ) => void;
+
+  onResizeStart: (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    component: TextComponentType
+  ) => void;
+
   onTextChange?: (id: string, text: string) => void;
 };
 
@@ -17,6 +23,7 @@ export function TextComponent({
   isSelected,
   onSelect,
   onStartDragging,
+  onResizeStart,
   onTextChange,
 }: TextComponentProps) {
   return (
@@ -75,6 +82,22 @@ export function TextComponent({
       >
         {component.text}
       </div>
-    </div>
-  );
+      {isSelected && !component.locked && (
+  <button
+  type="button"
+  aria-label="Resize component"
+  title="Resize"
+  onPointerDown={(event) => onResizeStart(event, component)}
+  className="absolute flex h-4 w-4 cursor-se-resize items-center justify-center rounded-sm border border-violet-600 bg-white text-[10px] leading-none text-violet-600"
+  style={{
+    right: '-8px',
+    bottom: '-8px',
+    zIndex: 9999,
+  }}
+>
+  ↘
+  </button>
+)}
+</div>
+);
 }

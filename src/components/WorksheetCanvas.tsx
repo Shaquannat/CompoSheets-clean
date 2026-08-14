@@ -27,6 +27,7 @@ export function WorksheetCanvas({
   pageRef,
   onSelectComponent,
   onStartDragging,
+  onResizeStart,
   onPointerMove,
   onPointerEnd,
   onTextChange,
@@ -92,6 +93,7 @@ export function WorksheetCanvas({
                   isSelected={component.id === selectedComponentId}
                   onSelect={onSelectComponent}
                   onStartDragging={onStartDragging}
+                  onResizeStart={onResizeStart}
                   onTextChange={onTextChange}
                 />
               );
