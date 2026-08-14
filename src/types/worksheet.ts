@@ -1,4 +1,4 @@
-export type ComponentType = 'text';
+export type ComponentType = 'text' | 'question';
 
 export type BaseWorksheetComponent = {
   id: string;
@@ -18,7 +18,13 @@ export type TextComponent = BaseWorksheetComponent & {
   fontSize: number;
 };
 
-export type WorksheetComponent = TextComponent;
+export type QuestionComponent = BaseWorksheetComponent & {
+  type: 'question';
+  question: string;
+  fontSize: number;
+};
+
+export type WorksheetComponent = TextComponent | QuestionComponent;
 
 export type DragState = {
   componentId: string;
@@ -29,5 +35,7 @@ export type DragState = {
 export type ResizeState = {
   componentId: string;
   startX: number;
+  startY: number;
   startWidth: number;
+  startHeight: number;
 } | null;

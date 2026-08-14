@@ -2,6 +2,7 @@ import type { RefObject, PointerEvent as ReactPointerEvent } from 'react';
 
 import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
+import { QuestionComponent } from './QuestionComponent';
 
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
@@ -84,20 +85,36 @@ export function WorksheetCanvas({
               </span>
             </div>
             {components.map((component) => {
-              if (component.type !== 'text') return null;
+  if (component.type === 'text') {
+    return (
+      <TextComponent
+        key={component.id}
+        component={component}
+        isSelected={component.id === selectedComponentId}
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
+        onTextChange={onTextChange}
+      />
+    );
+  }
 
-              return (
-                <TextComponent
-                  key={component.id}
-                  component={component}
-                  isSelected={component.id === selectedComponentId}
-                  onSelect={onSelectComponent}
-                  onStartDragging={onStartDragging}
-                  onResizeStart={onResizeStart}
-                  onTextChange={onTextChange}
-                />
-              );
-            })}
+  if (component.type === 'question') {
+    return (
+      <QuestionComponent
+        key={component.id}
+        component={component}
+        isSelected={component.id === selectedComponentId}
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
+        onQuestionChange={(id, question) => onTextChange(id, question)}
+      />
+    );
+  }
+
+  return null;
+})}
 
             {components.length === 0 && (
               <div className="absolute inset-[48px] flex items-center justify-center">

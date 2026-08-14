@@ -8,6 +8,7 @@ import type {
   DragState,
   ResizeState,
   TextComponent,
+  QuestionComponent,
   WorksheetComponent,
 } from './types/worksheet';
 
@@ -46,6 +47,28 @@ function App() {
 
     setComponents((currentComponents) => [...currentComponents, newComponent]);
 
+    setSelectedComponentId(newComponent.id);
+  }
+  function addQuestionComponent() {
+    const newComponent: QuestionComponent = {
+      id: crypto.randomUUID(),
+      type: 'question',
+      question: 'Type your question here',
+      x: 64,
+      y: 64 + components.length * 60,
+      width: 500,
+      height: 48,
+      fontSize: 16,
+      rotation: 0,
+      locked: false,
+      layer: components.length + 1,
+    };
+  
+    setComponents((currentComponents) => [
+      ...currentComponents,
+      newComponent,
+    ]);
+  
     setSelectedComponentId(newComponent.id);
   }
 
@@ -232,7 +255,10 @@ updateComponent(component.id, {
       <TopBar />
 
       <main className="grid flex-1 grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_260px]">
-        <Library onAddText={addTextComponent} />
+      <Library
+  onAddText={addTextComponent}
+  onAddQuestion={addQuestionComponent}
+/>
 
         <WorksheetCanvas
           components={components}

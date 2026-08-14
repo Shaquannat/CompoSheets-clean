@@ -36,7 +36,7 @@ export function RightSidebar({
             </span>
 
             <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm font-semibold text-violet-800">
-              Text
+            {selectedComponent.type === 'text' ? 'Text' : 'Question'}
             </div>
           </div>
 

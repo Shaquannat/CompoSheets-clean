@@ -2,9 +2,10 @@ import { ToolButton } from './ToolButton';
 
 type LibraryProps = {
   onAddText: () => void;
+  onAddQuestion: () => void;
 };
 
-export function Library({ onAddText }: LibraryProps) {
+export function Library({ onAddText, onAddQuestion }: LibraryProps) {
   const componentTools = [
     { icon: 'T', label: 'Text' },
     { icon: 'Q', label: 'Question' },
@@ -31,7 +32,13 @@ export function Library({ onAddText }: LibraryProps) {
             key={tool.label}
             icon={tool.icon}
             label={tool.label}
-            onClick={tool.label === 'Text' ? onAddText : undefined}
+            onClick={
+              tool.label === 'Text'
+                ? onAddText
+                : tool.label === 'Question'
+                  ? onAddQuestion
+                  : undefined
+            }
           />
         ))}
       </div>
