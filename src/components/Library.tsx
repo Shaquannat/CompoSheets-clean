@@ -3,9 +3,14 @@ import { ToolButton } from './ToolButton';
 type LibraryProps = {
   onAddText: () => void;
   onAddQuestion: () => void;
+  onAddAnswerLines: () => void;
 };
 
-export function Library({ onAddText, onAddQuestion }: LibraryProps) {
+export function Library({
+  onAddText,
+  onAddQuestion,
+  onAddAnswerLines,
+}: LibraryProps) {
   const componentTools = [
     { icon: 'T', label: 'Text' },
     { icon: 'Q', label: 'Question' },
@@ -37,7 +42,9 @@ export function Library({ onAddText, onAddQuestion }: LibraryProps) {
                 ? onAddText
                 : tool.label === 'Question'
                   ? onAddQuestion
-                  : undefined
+                  : tool.label === 'Answer Lines'
+                    ? onAddAnswerLines
+                    : undefined
             }
           />
         ))}

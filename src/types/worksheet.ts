@@ -1,4 +1,4 @@
-export type ComponentType = 'text' | 'question';
+export type ComponentType = 'text' | 'question' | 'answerLines';
 
 export type BaseWorksheetComponent = {
   id: string;
@@ -24,7 +24,17 @@ export type QuestionComponent = BaseWorksheetComponent & {
   fontSize: number;
 };
 
-export type WorksheetComponent = TextComponent | QuestionComponent;
+export type AnswerLinesComponent = BaseWorksheetComponent & {
+  type: 'answerLines';
+  lineCount: number;
+  lineSpacing: number;
+  lineStyle: 'standard' | 'primary';
+};
+
+export type WorksheetComponent =
+  | TextComponent
+  | QuestionComponent
+  | AnswerLinesComponent;
 
 export type DragState = {
   componentId: string;
