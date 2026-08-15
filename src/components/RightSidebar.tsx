@@ -87,6 +87,49 @@ export function RightSidebar({
     </select>
   </label>
 )}
+{selectedComponent.type === 'checkbox' && (
+  <div className="space-y-4">
+    <div>
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        Layout
+      </label>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              layout: 'list',
+            })
+          }
+          className={`rounded-md border px-3 py-2 text-sm font-medium ${
+            selectedComponent.layout === 'list'
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          List
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              layout: 'inline',
+            })
+          }
+          className={`rounded-md border px-3 py-2 text-sm font-medium ${
+            selectedComponent.layout === 'inline'
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          Inline
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           <label className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
             <span className="text-sm font-semibold text-slate-800">

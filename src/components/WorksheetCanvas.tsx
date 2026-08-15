@@ -4,6 +4,7 @@ import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
 import { QuestionComponent } from './QuestionComponent';
 import { AnswerLinesComponent } from './AnswerLinesComponent';
+import { CheckboxComponent } from './CheckboxComponent';
 
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
@@ -131,6 +132,20 @@ export function WorksheetCanvas({
         onLineCountChange={(id, lineCount, height) =>
           onUpdateComponent(id, { lineCount, height })
         }
+      />
+    );
+  }
+
+  if (component.type === 'checkbox') {
+    return (
+      <CheckboxComponent
+        key={component.id}
+        component={component}
+        isSelected={component.id === selectedComponentId}
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
+        onUpdateComponent={onUpdateComponent}
       />
     );
   }

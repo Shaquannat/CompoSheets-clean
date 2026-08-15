@@ -4,12 +4,14 @@ type LibraryProps = {
   onAddText: () => void;
   onAddQuestion: () => void;
   onAddAnswerLines: () => void;
+  onAddCheckbox: () => void;
 };
 
 export function Library({
   onAddText,
   onAddQuestion,
   onAddAnswerLines,
+  onAddCheckbox,
 }: LibraryProps) {
   const componentTools = [
     { icon: 'T', label: 'Text' },
@@ -44,7 +46,9 @@ export function Library({
                   ? onAddQuestion
                   : tool.label === 'Answer Lines'
                     ? onAddAnswerLines
-                    : undefined
+                    : tool.label === 'Checkbox'
+                      ? onAddCheckbox
+                      : undefined
             }
           />
         ))}

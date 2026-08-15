@@ -1,4 +1,4 @@
-export type ComponentType = 'text' | 'question' | 'answerLines';
+export type ComponentType = 'text' | 'question' | 'answerLines' | 'checkbox';
 
 export type BaseWorksheetComponent = {
   id: string;
@@ -30,11 +30,26 @@ export type AnswerLinesComponent = BaseWorksheetComponent & {
   lineSpacing: number;
   lineStyle: 'standard' | 'primary';
 };
+export type CheckboxItem = {
+  id: string;
+  text: string;
+  checked: boolean;
+  showPlaceholder: boolean;
+};
 
+export type CheckboxComponent = BaseWorksheetComponent & {
+  type: 'checkbox';
+  items: CheckboxItem[];
+  layout: 'list' | 'inline';
+  fontSize: number;
+  bold: boolean;
+
+};
 export type WorksheetComponent =
   | TextComponent
   | QuestionComponent
-  | AnswerLinesComponent;
+  | AnswerLinesComponent
+  | CheckboxComponent;
 
 export type DragState = {
   componentId: string;

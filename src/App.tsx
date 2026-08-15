@@ -95,6 +95,35 @@ function App() {
     setSelectedComponentId(newComponent.id);
   }
 
+  function addCheckboxComponent() {
+    const newComponent: WorksheetComponent = {
+      id: crypto.randomUUID(),
+      type: 'checkbox',
+      x: 64,
+      y: 64 + components.length * 60,
+      width: 300,
+      height: 48,
+      rotation: 0,
+      locked: false,
+      layer: components.length,
+      items: [
+        {
+            id: crypto.randomUUID(),
+            text: '',
+            checked: false,
+            showPlaceholder: true,
+          },
+      ],
+      layout: 'list',
+      fontSize: 16,
+      bold: false,
+      markStyle: 'check',
+    };
+  
+    setComponents((current) => [...current, newComponent]);
+    setSelectedId(newComponent.id);
+  }
+
   function updateComponent(id: string, changes: Partial<WorksheetComponent>) {
     setComponents((currentComponents) =>
       currentComponents.map((component) =>
@@ -293,6 +322,7 @@ updateComponent(component.id, {
   onAddText={addTextComponent}
   onAddQuestion={addQuestionComponent}
   onAddAnswerLines={addAnswerLinesComponent}
+  onAddCheckbox={addCheckboxComponent}
 />
 
         <WorksheetCanvas
