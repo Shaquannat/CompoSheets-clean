@@ -40,7 +40,11 @@ export function RightSidebar({
   ? 'Text'
   : selectedComponent.type === 'question'
     ? 'Question'
-    : 'Answer Lines'}
+    : selectedComponent.type === 'answerLines'
+      ? 'Answer Lines'
+      : selectedComponent.type === 'checkbox'
+        ? 'Checkbox'
+        : selectedComponent.type}
             </div>
           </div>
 
@@ -88,13 +92,19 @@ export function RightSidebar({
   </label>
 )}
 {selectedComponent.type === 'checkbox' && (
-  <div className="space-y-4">
+  <div className="space-y-5">
     <div>
       <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
         Layout
       </label>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+  }}
+>
         <button
           type="button"
           onClick={() =>
@@ -128,6 +138,221 @@ export function RightSidebar({
         </button>
       </div>
     </div>
+    <div>
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+    Mark Style
+  </label>
+
+  <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+  }}
+>
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          markStyle: 'check',
+        })
+      }
+      className={`rounded-md border px-3 py-2 text-sm font-medium ${
+        selectedComponent.markStyle === 'check'
+          ? 'border-violet-500 bg-violet-50 text-violet-700'
+          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+      }`}
+    >
+      ✓
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          markStyle: 'x',
+        })
+      }
+      className={`rounded-md border px-3 py-2 text-sm font-medium ${
+        selectedComponent.markStyle === 'x'
+          ? 'border-violet-500 bg-violet-50 text-violet-700'
+          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+      }`}
+    >
+      ×
+    </button>
+  </div>
+</div>
+<div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '12px',
+    alignItems: 'end',
+  }}
+>
+  <div>
+    <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+      Font Size
+    </label>
+
+    <input
+      type="number"
+      min="8"
+      max="72"
+      value={selectedComponent.fontSize}
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          fontSize: Number(event.target.value),
+        })
+      }
+      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none"
+    />
+  </div>
+
+  <button
+  type="button"
+  onClick={() =>
+    onUpdateComponent(selectedComponent.id, {
+      bold: !selectedComponent.bold,
+    })
+  }
+  className={`w-full rounded-md border px-3 py-2 text-sm font-semibold ${
+    selectedComponent.bold
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+  Bold
+</button>
+</div>
+
+<div>
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+    Text Color
+  </label>
+
+  <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 92px',
+    gap: '8px',
+    alignItems: 'center',
+  }}
+>
+  <input
+    type="color"
+    value={selectedComponent.textColor}
+    onChange={(event) =>
+      onUpdateComponent(selectedComponent.id, {
+        textColor: event.target.value,
+      })
+    }
+    style={{
+      width: '100%',
+      height: '38px',
+      boxSizing: 'border-box',
+    }}
+    className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+    aria-label="Choose text color"
+  />
+
+  <input
+    type="text"
+    value={selectedComponent.textColor.toUpperCase()}
+    onChange={(event) => {
+      const value = event.target.value;
+
+      if (/^#[0-9A-Fa-f]{0,6}$/.test(value)) {
+        onUpdateComponent(selectedComponent.id, {
+          textColor: value,
+        });
+      }
+    }}
+    onBlur={(event) => {
+      const value = event.target.value;
+
+      if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        onUpdateComponent(selectedComponent.id, {
+          textColor: '#0F172A',
+        });
+      }
+    }}
+    maxLength={7}
+    style={{
+      width: '92px',
+      height: '38px',
+      boxSizing: 'border-box',
+    }}
+    className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+    aria-label="Text color hex value"
+  />
+</div>
+
+<div>
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+    Mark Color
+  </label>
+  
+  <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 92px',
+    gap: '8px',
+    alignItems: 'center',
+  }}
+>
+  <input
+    type="color"
+    value={selectedComponent.markColor}
+    onChange={(event) =>
+      onUpdateComponent(selectedComponent.id, {
+        markColor: event.target.value,
+      })
+    }
+    style={{
+      width: '100%',
+      height: '38px',
+      boxSizing: 'border-box',
+    }}
+    className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+    aria-label="Choose mark color"
+  />
+
+  <input
+    type="text"
+    value={selectedComponent.markColor.toUpperCase()}
+    onChange={(event) => {
+      const value = event.target.value;
+
+      if (/^#[0-9A-Fa-f]{0,6}$/.test(value)) {
+        onUpdateComponent(selectedComponent.id, {
+          markColor: value,
+        });
+      }
+    }}
+    onBlur={(event) => {
+      const value = event.target.value;
+
+      if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        onUpdateComponent(selectedComponent.id, {
+          markColor: '#0F172A',
+        });
+      }
+    }}
+    maxLength={7}
+    style={{
+      width: '92px',
+      height: '38px',
+      boxSizing: 'border-box',
+    }}
+    className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+    aria-label="Mark color hex value"
+  />
+</div>
+  </div>
+</div>
+
   </div>
 )}
 
@@ -148,6 +373,14 @@ export function RightSidebar({
             />
           </label>
 
+          <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+  }}
+>
+
           <button
             type="button"
             onClick={onDuplicate}
@@ -163,6 +396,8 @@ export function RightSidebar({
           >
             Delete
           </button>
+        </div>
+
         </div>
       ) : (
         <div className="space-y-5">

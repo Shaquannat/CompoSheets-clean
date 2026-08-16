@@ -34,6 +34,8 @@ export type CheckboxItem = {
   id: string;
   text: string;
   checked: boolean;
+  markStyle: 'check' | 'x';
+  markColor: string;
   showPlaceholder: boolean;
 };
 
@@ -43,6 +45,8 @@ export type CheckboxComponent = BaseWorksheetComponent & {
   layout: 'list' | 'inline';
   fontSize: number;
   bold: boolean;
+  textColor: string;
+markColor: string;
 
 };
 export type WorksheetComponent =

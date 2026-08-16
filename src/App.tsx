@@ -108,20 +108,27 @@ function App() {
       layer: components.length,
       items: [
         {
-            id: crypto.randomUUID(),
-            text: '',
-            checked: false,
-            showPlaceholder: true,
-          },
+          id: crypto.randomUUID(),
+          text: '',
+          checked: false,
+          markStyle: 'check',
+          markColor: '#0F172A',
+          showPlaceholder: true,
+        },
       ],
       layout: 'list',
       fontSize: 16,
       bold: false,
       markStyle: 'check',
+      textColor: '#0f172a',
+markColor: '#0f172a',
     };
   
     setComponents((current) => [...current, newComponent]);
-    setSelectedId(newComponent.id);
+    
+    requestAnimationFrame(() => {
+      setSelectedComponentId(newComponent.id);
+    });
   }
 
   function updateComponent(id: string, changes: Partial<WorksheetComponent>) {
@@ -276,7 +283,10 @@ const maximumHeight = Math.max(
 const proposedWidth = resize.startWidth + changeInWidth;
 const proposedHeight = resize.startHeight + changeInHeight;
 
-if (component.type === 'answerLines') {
+if (
+  component.type === 'answerLines' ||
+  component.type === 'checkbox'
+) {
   updateComponent(component.id, {
     width: Math.min(
       Math.max(proposedWidth, minimumWidth),

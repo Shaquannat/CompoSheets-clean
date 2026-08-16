@@ -1,318 +1,452 @@
 import {
-    useState,
-    type PointerEvent as ReactPointerEvent,
-  } from 'react';
+  useEffect,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
+
+import type {
+  CheckboxComponent as CheckboxComponentType,
+  CheckboxItem,
+} from '../types/worksheet';
+
+type CheckboxComponentProps = {
+  component: CheckboxComponentType;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onStartDragging: (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    component: CheckboxComponentType
+  ) => void;
+  onResizeStart: (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    component: CheckboxComponentType
+  ) => void;
+  onUpdateComponent: (
+    id: string,
+    changes: Partial<CheckboxComponentType>
+  ) => void;
+};
+
+export function CheckboxComponent({
+  component,
+  isSelected,
+  onSelect,
+  onStartDragging,
+  onResizeStart,
+  onUpdateComponent,
+}: CheckboxComponentProps) {
+  function updateItem(
+    itemId: string,
+    changes: Partial<CheckboxItem>
+  ) {
+    onUpdateComponent(component.id, {
+      items: component.items.map((item) =>
+        item.id === itemId
+          ? { ...item, ...changes }
+          : item
+      ),
+    });
+  }
+
+  function applyMark(item: CheckboxItem) {
+    const sameMark =
+      item.checked &&
+      item.markStyle === component.markStyle &&
+      item.markColor === component.markColor;
   
-  import type {
-    CheckboxComponent as CheckboxComponentType,
-    CheckboxItem,
-  } from '../types/worksheet';
+    const nextChecked = !sameMark;
   
-  type CheckboxComponentProps = {
-    component: CheckboxComponentType;
-    isSelected: boolean;
-    onSelect: (id: string) => void;
-    onStartDragging: (
-      event: ReactPointerEvent<HTMLButtonElement>,
-      component: CheckboxComponentType
-    ) => void;
-    onResizeStart: (
-      event: ReactPointerEvent<HTMLButtonElement>,
-      component: CheckboxComponentType
-    ) => void;
-    onUpdateComponent: (
-      id: string,
-      changes: Partial<CheckboxComponentType>
-    ) => void;
-  };
-  
-  export function CheckboxComponent({
-    component,
-    isSelected,
-    onSelect,
-    onStartDragging,
-    onResizeStart,
-    onUpdateComponent,
-  }: CheckboxComponentProps) {
-    const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
-  
-    function updateItem(
-      itemId: string,
-      changes: Partial<CheckboxItem>
-    ) {
-      onUpdateComponent(component.id, {
-        items: component.items.map((item) =>
-          item.id === itemId
-            ? { ...item, ...changes }
-            : item
-        ),
-      });
-    }
-  
-    function toggleChecked(item: CheckboxItem) {
-      updateItem(item.id, {
-        checked: !item.checked,
-      });
-    }
-  
-    function focusItem(itemId: string) {
-      requestAnimationFrame(() => {
-        const element = document.querySelector<HTMLElement>(
+    updateItem(item.id, {
+      checked: nextChecked,
+      markStyle: nextChecked
+        ? component.markStyle
+        : item.markStyle,
+      markColor: nextChecked
+        ? component.markColor
+        : item.markColor,
+    });
+  }
+
+  function resizeTextarea(
+    textarea: HTMLTextAreaElement
+  ) {
+    textarea.style.height = '0px';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }
+
+  function focusItem(
+    itemId: string,
+    caretPosition: 'start' | 'end' = 'end'
+  ) {
+    requestAnimationFrame(() => {
+      const textarea =
+        document.querySelector<HTMLTextAreaElement>(
           `[data-checkbox-item-id="${itemId}"]`
         );
-  
-        if (!element) return;
-  
-        element.focus();
-  
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        range.collapse(false);
-  
-        const selection = window.getSelection();
-  
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      });
-    }
-  
-    return (
-      <div
-        className="absolute"
-        style={{
-          left: component.x,
-          top: component.y,
-          width: component.width,
-          minHeight: component.height,
-          border: isSelected
-            ? '2px solid rgb(139 92 246)'
-            : '2px solid transparent',
-        }}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect(component.id);
-        }}
-      >
-        {isSelected && !component.locked && (
-          <button
-            type="button"
-            aria-label="Drag checkbox component"
-            title="Drag to move"
-            onPointerDown={(event) =>
-              onStartDragging(event, component)
-            }
-            className="flex h-7 w-7 cursor-move items-center justify-center rounded-full bg-violet-600 text-white"
-            style={{
-              position: 'absolute',
-              left: '-14px',
-              top: '-14px',
-              zIndex: 9999,
-            }}
-          >
-            ⋮⋮
-          </button>
-        )}
-  
-        <div
-          className={
-            component.layout === 'inline'
-              ? 'flex flex-wrap items-center gap-4'
-              : 'flex flex-col gap-3'
-          }
-        >
-          {component.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center gap-2"
-            >
-              <button
-                type="button"
-                aria-label={
-                  item.checked
-                    ? 'Clear checkbox mark'
-                    : 'Mark checkbox'
-                }
-                title={
-                  item.checked
-                    ? 'Click to clear'
-                    : component.markStyle === 'check'
-                      ? 'Click to check'
-                      : 'Click to mark with X'
-                }
-                onClick={(event) => {
-                  event.stopPropagation();
-                  toggleChecked(item);
-                }}
-                className="flex shrink-0 items-center justify-center border border-slate-700 bg-white"
-                style={{
-                  width: `${component.fontSize * 1.25}px`,
-                  height: `${component.fontSize * 1.25}px`,
-                  fontSize: `${component.fontSize}px`,
-                  lineHeight: 1,
-                }}
-              >
-                {item.checked
-                  ? component.markStyle === 'check'
-                    ? '✓'
-                    : '×'
-                  : ''}
-              </button>
-  
-              <div
-  contentEditable={!component.locked}
-  data-checkbox-item-id={item.id}
-  suppressContentEditableWarning
-  className="min-h-[24px] min-w-[72px] cursor-text outline-none"
-  style={{
-    fontSize: `${component.fontSize}px`,
-    fontWeight: component.bold ? 700 : 400,
-    color: focusedItemId === item.id
-  ? '#0f172a'
-  : item.showPlaceholder && !item.text
-    ? '#94a3b8'
-    : '#0f172a',
-  }}
-  onClick={(event) => {
-    event.stopPropagation();
-    onSelect(component.id);
-  }}
-  onFocus={(event) => {
-    setFocusedItemId(item.id);
-  
-    if (item.showPlaceholder && !item.text) {
-      event.currentTarget.textContent = '';
-    }
-  }}
-  onKeyDown={(event) => {
-    if (
-      event.key === 'ArrowDown' ||
-      event.key === 'ArrowUp'
-    ) {
-      const currentIndex = component.items.findIndex(
-        (currentItem) => currentItem.id === item.id
-      );
 
-      const targetIndex =
-        event.key === 'ArrowDown'
-          ? currentIndex + 1
-          : currentIndex - 1;
+      if (!textarea) return;
 
-      const targetItem = component.items[targetIndex];
+      textarea.focus();
 
-      if (targetItem) {
-        event.preventDefault();
-        focusItem(targetItem.id);
-      }
+      const position =
+        caretPosition === 'start'
+          ? 0
+          : textarea.value.length;
 
-      return;
-    }
+      textarea.setSelectionRange(position, position);
 
-    if (event.key === 'Enter') {
-      event.preventDefault();
-
-      const currentText =
-        event.currentTarget.textContent?.trim() ?? '';
-
-      const newItem: CheckboxItem = {
-        id: crypto.randomUUID(),
-        text: '',
-        checked: false,
-        showPlaceholder: true,
-      };
-
-      const currentIndex = component.items.findIndex(
-        (currentItem) => currentItem.id === item.id
-      );
-
-      const nextItems = component.items.map(
-        (currentItem) =>
-          currentItem.id === item.id
-            ? {
-                ...currentItem,
-                text: currentText,
-                showPlaceholder: false,
-              }
-            : currentItem
-      );
-
-      nextItems.splice(
-        currentIndex + 1,
-        0,
-        newItem
-      );
-
-      onUpdateComponent(component.id, {
-        items: nextItems,
-      });
-
-      focusItem(newItem.id);
-
-      return;
-    }
-
-    if (
-      event.key === 'Backspace' &&
-      (event.currentTarget.textContent?.trim() ?? '') === '' &&
-      component.items.length > 1
-    ) {
-      event.preventDefault();
-
-      const currentIndex = component.items.findIndex(
-        (currentItem) => currentItem.id === item.id
-      );
-
-      const focusTarget =
-        component.items[currentIndex - 1] ??
-        component.items[currentIndex + 1];
-
-      onUpdateComponent(component.id, {
-        items: component.items.filter(
-          (currentItem) => currentItem.id !== item.id
-        ),
-      });
-
-      if (focusTarget) {
-        focusItem(focusTarget.id);
-      }
-    }
-  }}
-  onBlur={(event) => {
-    const updatedText =
-      event.currentTarget.textContent?.trim() ?? '';
-
-    updateItem(item.id, {
-      text: updatedText,
-      showPlaceholder: false,
+      resizeTextarea(textarea);
     });
-  }}
->
-  {item.text || (item.showPlaceholder ? 'Option' : '')}
-</div>
-            </div>
-          ))}
-        </div>
-  
-        {isSelected && !component.locked && (
-          <button
-            type="button"
-            aria-label="Resize checkbox component"
-            title="Resize width"
-            onPointerDown={(event) =>
-              onResizeStart(event, component)
-            }
-            className="absolute flex h-7 w-7 cursor-ew-resize items-center justify-center rounded border border-slate-300 bg-white text-base font-medium shadow-sm hover:bg-slate-50"
-            style={{
-              right: '-14px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 9999,
-            }}
-          >
-            ↔
-          </button>
-        )}
-      </div>
-    );
   }
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const root = document.querySelector<HTMLElement>(
+        `[data-checkbox-component-id="${component.id}"]`
+      );
+
+      if (!root) return;
+
+      const textareas =
+        root.querySelectorAll<HTMLTextAreaElement>(
+          'textarea[data-checkbox-item-id]'
+        );
+
+      textareas.forEach((textarea) => {
+        resizeTextarea(textarea);
+      });
+    });
+  }, [
+    component.id,
+    component.width,
+    component.fontSize,
+    component.bold,
+    component.layout,
+    component.items,
+  ]);
+
+  return (
+    <div
+      data-checkbox-component-id={component.id}
+      className="absolute"
+      style={{
+        left: component.x,
+        top: component.y,
+        width: component.width,
+        minHeight: component.height,
+        border: isSelected
+          ? '2px solid rgb(139 92 246)'
+          : '2px solid transparent',
+      }}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect(component.id);
+      }}
+    >
+      {isSelected && !component.locked && (
+        <button
+          type="button"
+          aria-label="Drag checkbox component"
+          title="Drag to move"
+          onPointerDown={(event) =>
+            onStartDragging(event, component)
+          }
+          className="flex h-7 w-7 cursor-move items-center justify-center rounded-full bg-violet-600 text-white"
+          style={{
+            position: 'absolute',
+            left: '-14px',
+            top: '-14px',
+            zIndex: 9999,
+          }}
+        >
+          ⋮⋮
+        </button>
+      )}
+
+      <div
+        className={
+          component.layout === 'inline'
+            ? 'flex flex-wrap items-start gap-x-8 gap-y-4'
+            : 'flex flex-col gap-3'
+        }
+      >
+        {component.items.map((item) => (
+          <div
+            key={item.id}
+            className={
+              component.layout === 'inline'
+                ? 'flex max-w-full items-start gap-2'
+                : 'flex w-full items-start gap-2'
+            }
+          >
+            <button
+              type="button"
+              aria-label={
+                item.checked
+                  ? 'Clear checkbox mark'
+                  : 'Mark checkbox'
+              }
+              title={
+                item.checked
+                  ? 'Click to clear'
+                  : component.markStyle === 'check'
+                    ? 'Click to check'
+                    : 'Click to mark with X'
+              }
+              onClick={(event) => {
+                event.stopPropagation();
+                applyMark(item);
+              }}
+              className="flex shrink-0 items-center justify-center border border-slate-700 bg-white"
+              style={{
+                width: `${component.fontSize * 1.25}px`,
+                height: `${component.fontSize * 1.25}px`,
+                fontSize: `${component.fontSize}px`,
+                lineHeight: 1,
+                color: item.markColor,
+              }}
+            >
+              {item.checked
+                ? item.markStyle === 'check'
+                  ? '✓'
+                  : '×'
+                : ''}
+            </button>
+
+            <textarea
+              value={item.text}
+              placeholder={
+                item.showPlaceholder ? 'Option' : ''
+              }
+              disabled={component.locked}
+              rows={1}
+              wrap="soft"
+              data-checkbox-item-id={item.id}
+              className="min-w-0 resize-none overflow-hidden bg-transparent outline-none placeholder:text-slate-400 [resize:none]"
+              style={{
+                width:
+                  component.layout === 'inline'
+                    ? `${Math.min(
+                        Math.max(
+                          96,
+                          item.text.length *
+                            component.fontSize *
+                            0.65
+                        ),
+                        Math.max(
+                          96,
+                          component.width - 50
+                        )
+                      )}px`
+                    : '100%',
+                maxWidth: '100%',
+                fontSize: `${component.fontSize}px`,
+                fontWeight: component.bold ? 700 : 400,
+                lineHeight: 1.35,
+                color: component.textColor,
+                resize: 'none',
+              }}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                onSelect(component.id);
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelect(component.id);
+              }}
+              onFocus={(event) => {
+                if (item.showPlaceholder) {
+                  updateItem(item.id, {
+                    showPlaceholder: false,
+                  });
+                }
+
+                resizeTextarea(event.currentTarget);
+              }}
+              onChange={(event) => {
+                updateItem(item.id, {
+                  text: event.target.value,
+                  showPlaceholder: false,
+                });
+
+                resizeTextarea(event.currentTarget);
+              }}
+              onKeyDown={(event) => {
+                if (
+                  component.layout === 'list' &&
+                  (event.key === 'ArrowDown' ||
+                    event.key === 'ArrowUp')
+                ) {
+                  const currentIndex =
+                    component.items.findIndex(
+                      (currentItem) =>
+                        currentItem.id === item.id
+                    );
+
+                  const targetIndex =
+                    event.key === 'ArrowDown'
+                      ? currentIndex + 1
+                      : currentIndex - 1;
+
+                  const targetItem =
+                    component.items[targetIndex];
+
+                  if (targetItem) {
+                    event.preventDefault();
+                    focusItem(targetItem.id, 'end');
+                  }
+
+                  return;
+                }
+
+                if (
+                  component.layout === 'inline' &&
+                  (event.key === 'ArrowLeft' ||
+                    event.key === 'ArrowRight')
+                ) {
+                  const textarea = event.currentTarget;
+
+                  const caretStart =
+                    textarea.selectionStart ?? 0;
+
+                  const caretEnd =
+                    textarea.selectionEnd ?? 0;
+
+                  const movePrevious =
+                    event.key === 'ArrowLeft' &&
+                    caretStart === 0 &&
+                    caretEnd === 0;
+
+                  const moveNext =
+                    event.key === 'ArrowRight' &&
+                    caretStart ===
+                      textarea.value.length &&
+                    caretEnd === textarea.value.length;
+
+                  if (movePrevious || moveNext) {
+                    const currentIndex =
+                      component.items.findIndex(
+                        (currentItem) =>
+                          currentItem.id === item.id
+                      );
+
+                    const targetIndex = moveNext
+                      ? currentIndex + 1
+                      : currentIndex - 1;
+
+                    const targetItem =
+                      component.items[targetIndex];
+
+                    if (targetItem) {
+                      event.preventDefault();
+
+                      focusItem(
+                        targetItem.id,
+                        moveNext ? 'start' : 'end'
+                      );
+                    }
+                  }
+
+                  return;
+                }
+
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+
+                  const newItem: CheckboxItem = {
+                    id: crypto.randomUUID(),
+                    text: '',
+                    checked: false,
+                    markStyle: component.markStyle,
+                    markColor: component.markColor,
+                    showPlaceholder: true,
+                  };
+
+                  const currentIndex =
+                    component.items.findIndex(
+                      (currentItem) =>
+                        currentItem.id === item.id
+                    );
+
+                  const nextItems = [
+                    ...component.items,
+                  ];
+
+                  nextItems.splice(
+                    currentIndex + 1,
+                    0,
+                    newItem
+                  );
+
+                  onUpdateComponent(component.id, {
+                    items: nextItems,
+                  });
+
+                  focusItem(newItem.id, 'start');
+
+                  return;
+                }
+
+                if (
+                  event.key === 'Backspace' &&
+                  event.currentTarget.value === '' &&
+                  component.items.length > 1
+                ) {
+                  event.preventDefault();
+
+                  const currentIndex =
+                    component.items.findIndex(
+                      (currentItem) =>
+                        currentItem.id === item.id
+                    );
+
+                  const previousItem =
+                    component.items[currentIndex - 1];
+
+                  const nextItem =
+                    component.items[currentIndex + 1];
+
+                  const focusTarget =
+                    previousItem ?? nextItem;
+
+                  onUpdateComponent(component.id, {
+                    items: component.items.filter(
+                      (currentItem) =>
+                        currentItem.id !== item.id
+                    ),
+                  });
+
+                  if (focusTarget) {
+                    focusItem(
+                      focusTarget.id,
+                      previousItem ? 'end' : 'start'
+                    );
+                  }
+                }
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {isSelected && !component.locked && (
+        <button
+          type="button"
+          aria-label="Resize checkbox component"
+          title="Resize width"
+          onPointerDown={(event) =>
+            onResizeStart(event, component)
+          }
+          className="absolute flex h-7 w-7 cursor-ew-resize items-center justify-center rounded border border-slate-300 bg-white text-base font-medium shadow-sm hover:bg-slate-50"
+          style={{
+            right: '-14px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 9999,
+          }}
+        >
+          ↔
+        </button>
+      )}
+    </div>
+  );
+}
