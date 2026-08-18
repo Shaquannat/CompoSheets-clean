@@ -61,12 +61,15 @@ export function TextComponent({
         </button>
       )}
 
-      <div
-        contentEditable={isSelected && !component.locked}
+<div
+  contentEditable
+  data-placeholder="Type text"
         suppressContentEditableWarning
-        className="h-full w-full cursor-text px-2 py-1 outline-none"
+        className="text-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
         style={{
           fontSize: component.fontSize,
+          fontWeight: component.fontWeight,
+          color: component.textColor,
         }}
         onPointerDown={(event) => {
           if (isSelected) {
@@ -75,7 +78,7 @@ export function TextComponent({
         }}
         onBlur={(event) => {
           const updatedText =
-            event.currentTarget.textContent?.trim() || 'Untitled text';
+  event.currentTarget.textContent?.trim() || '';
 
           onTextChange?.(component.id, updatedText);
         }}

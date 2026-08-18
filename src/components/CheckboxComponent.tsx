@@ -217,7 +217,6 @@ export function CheckboxComponent({
               placeholder={
                 item.showPlaceholder ? 'Option' : ''
               }
-              disabled={component.locked}
               rows={1}
               wrap="soft"
               data-checkbox-item-id={item.id}

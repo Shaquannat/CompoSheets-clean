@@ -123,7 +123,7 @@ export function AnswerLinesComponent({
   );
 })}
 </div>
-      {isSelected && !component.locked && (
+{isSelected && (
   <div
     className="absolute flex gap-1"
     style={{

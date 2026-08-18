@@ -49,25 +49,97 @@ export function RightSidebar({
           </div>
 
           {selectedComponent.type === 'text' && (
-            <label className="block">
-              <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-                Font size
-              </span>
+  <div className="space-y-4">
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Font size
+      </span>
 
-              <input
-                type="number"
-                min="8"
-                max="72"
-                value={selectedComponent.fontSize}
-                onChange={(event) =>
-                  onUpdateComponent(selectedComponent.id, {
-                    fontSize: Number(event.target.value),
-                  })
-                }
-                className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200"
-              />
-            </label>
-          )}
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          type="number"
+          min="8"
+          max="72"
+          value={selectedComponent.fontSize}
+          onChange={(event) =>
+            onUpdateComponent(selectedComponent.id, {
+              fontSize: Number(event.target.value),
+            })
+          }
+          className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+        />
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              fontWeight:
+                selectedComponent.fontWeight === 'bold' ? 'normal' : 'bold',
+            })
+          }
+          className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+            selectedComponent.fontWeight === 'bold'
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          Bold
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Text color
+      </span>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={selectedComponent.textColor}
+          onChange={(event) =>
+            onUpdateComponent(selectedComponent.id, {
+              textColor: event.target.value,
+            })
+          }
+          className="h-10 flex-1 cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+          aria-label="Choose text color"
+        />
+
+<input
+  key={selectedComponent.textColor}
+  type="text"
+  defaultValue={selectedComponent.textColor.toUpperCase()}
+  maxLength={7}
+  style={{
+    width: '92px',
+    height: '38px',
+    boxSizing: 'border-box',
+  }}
+  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+  aria-label="Text color hex value"
+  onKeyDown={(event) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  }}
+  onBlur={(event) => {
+    const value = event.currentTarget.value.trim();
+
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      onUpdateComponent(selectedComponent.id, {
+        textColor: value,
+      });
+    } else {
+      event.currentTarget.value =
+        selectedComponent.textColor.toUpperCase();
+    }
+  }}
+/>
+      </div>
+    </div>
+  </div>
+)}
 
 {selectedComponent.type === 'answerLines' && (
   <label className="block">
@@ -390,12 +462,22 @@ export function RightSidebar({
           </button>
 
           <button
-            type="button"
-            onClick={onDelete}
-            className="min-h-11 w-full rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 hover:bg-red-100"
-          >
-            Delete
-          </button>
+  type="button"
+  onClick={onDelete}
+  disabled={selectedComponent.locked}
+  title={
+    selectedComponent.locked
+      ? 'Unlock component to delete'
+      : 'Delete component'
+  }
+  className={`min-h-11 w-full rounded-lg border px-4 text-sm font-semibold ${
+    selectedComponent.locked
+      ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+      : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+  }`}
+>
+  Delete
+</button>
         </div>
 
         </div>

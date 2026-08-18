@@ -16,6 +16,8 @@ export type TextComponent = BaseWorksheetComponent & {
   type: 'text';
   text: string;
   fontSize: number;
+  fontWeight: 'normal' | 'bold';
+textColor: string;
 };
 
 export type QuestionComponent = BaseWorksheetComponent & {
