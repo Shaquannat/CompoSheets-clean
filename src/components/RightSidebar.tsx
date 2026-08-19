@@ -157,6 +157,58 @@ export function RightSidebar({
           {selectedComponent.type === 'text' && (
   <div className="space-y-4">
     <div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Font family
+  </span>
+
+  <select
+    value={selectedComponent.fontFamily}
+    onChange={(event) => {
+      const newFontFamily = event.target.value;
+    
+      const hasSelection =
+        textSelection?.id === selectedComponent.id &&
+        textSelection.start !== textSelection.end;
+    
+      if (hasSelection) {
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+    
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          textSelection.start,
+          textSelection.end,
+          {
+            fontFamily: newFontFamily,
+          }
+        );
+    
+        onUpdateComponent(selectedComponent.id, {
+          richText: updatedRichText,
+        });
+    
+        return;
+      }
+    
+      onUpdateComponent(selectedComponent.id, {
+        fontFamily: newFontFamily,
+      });
+    }}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Courier New">Courier New</option>
+  </select>
+</div>
+<div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Font size
       </span>
@@ -487,7 +539,59 @@ export function RightSidebar({
 {selectedComponent.type === 'question' && (
   <div className="space-y-4">
 
-    <div>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Font family
+  </span>
+
+  <select
+    value={selectedComponent.fontFamily}
+    onChange={(event) => {
+      const newFontFamily = event.target.value;
+
+      const hasSelection =
+        questionSelection?.id === selectedComponent.id &&
+        questionSelection.start !== questionSelection.end;
+
+      if (hasSelection) {
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.question
+              ? [{ text: selectedComponent.question }]
+              : [];
+
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          questionSelection.start,
+          questionSelection.end,
+          {
+            fontFamily: newFontFamily,
+          }
+        );
+
+        onUpdateComponent(selectedComponent.id, {
+          richText: updatedRichText,
+        });
+
+        return;
+      }
+
+      onUpdateComponent(selectedComponent.id, {
+        fontFamily: newFontFamily,
+      });
+    }}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Courier New">Courier New</option>
+  </select>
+</div>
+<div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Font size
       </span>
@@ -929,6 +1033,72 @@ Underline
       ×
     </button>
   </div>
+</div>
+<div>
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+    Font Family
+  </label>
+
+  <select
+    value={selectedComponent.fontFamily}
+    onChange={(event) => {
+      const newFontFamily = event.target.value;
+
+      const hasSelection =
+        checkboxSelection?.componentId === selectedComponent.id &&
+        checkboxSelection.start !== checkboxSelection.end;
+
+      if (hasSelection) {
+        const selectedItem =
+          selectedComponent.items.find(
+            (item) => item.id === checkboxSelection.itemId
+          );
+
+        if (!selectedItem) return;
+
+        const baseSegments =
+          selectedItem.richText.length > 0
+            ? selectedItem.richText
+            : selectedItem.text
+              ? [{ text: selectedItem.text }]
+              : [];
+
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          checkboxSelection.start,
+          checkboxSelection.end,
+          {
+            fontFamily: newFontFamily,
+          }
+        );
+
+        onUpdateComponent(selectedComponent.id, {
+          items: selectedComponent.items.map((item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  richText: updatedRichText,
+                }
+              : item
+          ),
+        });
+
+        return;
+      }
+
+      onUpdateComponent(selectedComponent.id, {
+        fontFamily: newFontFamily,
+      });
+    }}
+    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+  >
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Courier New">Courier New</option>
+  </select>
 </div>
 <div
   style={{

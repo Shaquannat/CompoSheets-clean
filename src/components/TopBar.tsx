@@ -1,4 +1,12 @@
-export function TopBar() {
+type TopBarProps = {
+  onUndo: () => void;
+  onRedo: () => void;
+};
+
+export function TopBar({
+  onUndo,
+  onRedo,
+}: TopBarProps) {
   return (
     <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
       <div className="flex min-w-0 items-center gap-2">
@@ -18,6 +26,26 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
+      <button
+  type="button"
+  onClick={onUndo}
+  title="Undo"
+  aria-label="Undo"
+  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
+>
+  ↶
+</button>
+
+<button
+  type="button"
+  onClick={onRedo}
+  title="Redo"
+  aria-label="Redo"
+  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
+>
+  ↷
+</button>
+
         <span className="hidden text-xs text-slate-500 md:inline">
           Untitled worksheet
         </span>

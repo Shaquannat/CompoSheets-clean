@@ -128,6 +128,7 @@ onSelectionChange?.(component.id, nextRange);
         className="text-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
         style={{
           fontSize: component.fontSize,
+          fontFamily: component.fontFamily,
           fontWeight: component.fontWeight,
           fontStyle: component.italic ? 'italic' : 'normal',
           textDecoration: component.underline ? 'underline' : 'none',

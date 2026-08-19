@@ -122,6 +122,7 @@ onSelectionChange?.(component.id, nextRange);
           fontSize: component.fontSize,
           fontWeight: component.fontWeight,
           fontStyle: component.italic ? 'italic' : 'normal',
+          fontFamily: component.fontFamily,
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
         }}

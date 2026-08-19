@@ -30,6 +30,7 @@ export type TextComponent = BaseWorksheetComponent & {
   text: string;
   richText: RichTextSegment[];
   fontSize: number;
+  fontFamily: string;
   fontWeight: 'normal' | 'bold';
   italic: boolean;
   underline: boolean;
@@ -41,6 +42,7 @@ export type QuestionComponent = BaseWorksheetComponent & {
   question: string;
   richText: RichTextSegment[];
   fontSize: number;
+  fontFamily: string;
   fontWeight: 'normal' | 'bold';
   italic: boolean;
   underline: boolean;
@@ -68,6 +70,7 @@ export type CheckboxComponent = BaseWorksheetComponent & {
   items: CheckboxItem[];
   layout: 'list' | 'inline';
   fontSize: number;
+  fontFamily: string;
   bold: boolean;
   italic: boolean;
 underline: boolean;

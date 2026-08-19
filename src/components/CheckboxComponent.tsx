@@ -268,6 +268,7 @@ onSelectionChange,
     maxWidth: '100%',
     minHeight: `${component.fontSize * 1.35}px`,
     fontSize: `${component.fontSize}px`,
+    fontFamily: component.fontFamily,
     fontWeight: component.bold ? 700 : 400,
     fontStyle: component.italic ? 'italic' : 'normal',
     textDecoration: component.underline

@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -21,6 +22,8 @@ function App() {
   const pageRef = useRef<HTMLElement | null>(null);
   const dragState = useRef<DragState>(null);
   const resizeState = useRef<ResizeState>(null);
+  const undoStack = useRef<WorksheetComponent[][]>([]);
+const redoStack = useRef<WorksheetComponent[][]>([]);
   const [components, setComponents] = useState<WorksheetComponent[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
@@ -49,6 +52,14 @@ function App() {
     components.find((component) => component.id === selectedComponentId) ??
     null;
 
+    function saveHistory(currentComponents: WorksheetComponent[]) {
+      undoStack.current.push(
+        structuredClone(currentComponents)
+      );
+    
+      redoStack.current = [];
+    }
+
   function addTextComponent() {
     const newComponent: TextComponent = {
       id: crypto.randomUUID(),
@@ -60,6 +71,7 @@ function App() {
       width: 500,
       height: 48,
       fontSize: 16,
+      fontFamily: 'Arial',
       fontWeight: 'normal',
       italic: false,
       underline: false,
@@ -69,7 +81,11 @@ textColor: '#0F172A',
       layer: components.length + 1,
     };
 
-    setComponents((currentComponents) => [...currentComponents, newComponent]);
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+    
+      return [...currentComponents, newComponent];
+    });
 
     setSelectedComponentId(newComponent.id);
   }
@@ -84,6 +100,7 @@ textColor: '#0F172A',
       width: 500,
       height: 48,
       fontSize: 16,
+      fontFamily: 'Arial',
       fontWeight: 'normal',
 italic: false,
 underline: false,
@@ -93,10 +110,14 @@ textColor: '#0F172A',
       layer: components.length + 1,
     };
   
-    setComponents((currentComponents) => [
-      ...currentComponents,
-      newComponent,
-    ]);
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+    
+      return [
+        ...currentComponents,
+        newComponent,
+      ];
+    });
   
     setSelectedComponentId(newComponent.id);
   }
@@ -116,10 +137,14 @@ textColor: '#0F172A',
       layer: components.length + 1,
     };
   
-    setComponents((currentComponents) => [
-      ...currentComponents,
-      newComponent,
-    ]);
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+    
+      return [
+        ...currentComponents,
+        newComponent,
+      ];
+    });
   
     setSelectedComponentId(newComponent.id);
   }
@@ -148,6 +173,7 @@ textColor: '#0F172A',
       ],
       layout: 'list',
       fontSize: 16,
+      fontFamily: 'Arial',
       bold: false,
       italic: false,
 underline: false,
@@ -156,7 +182,11 @@ underline: false,
 markColor: '#0f172a',
     };
   
-    setComponents((current) => [...current, newComponent]);
+    setComponents((current) => {
+      saveHistory(current);
+    
+      return [...current, newComponent];
+    });
     
     requestAnimationFrame(() => {
       setSelectedComponentId(newComponent.id);
@@ -164,21 +194,25 @@ markColor: '#0f172a',
   }
 
   function updateComponent(id: string, changes: Partial<WorksheetComponent>) {
-    setComponents((currentComponents) =>
-      currentComponents.map((component) =>
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
+      return currentComponents.map((component) =>
         component.id === id ? { ...component, ...changes } : component
-      )
-    );
+      );
+    });
   }
 
   function deleteSelectedComponent() {
     if (!selectedComponentId) return;
 
-    setComponents((currentComponents) =>
-      currentComponents.filter(
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+    
+      return currentComponents.filter(
         (component) => component.id !== selectedComponentId
-      )
-    );
+      );
+    });
 
     setSelectedComponentId(null);
   }
@@ -195,13 +229,93 @@ markColor: '#0f172a',
       layer: components.length + 1,
     };
 
-    setComponents((currentComponents) => [
-      ...currentComponents,
-      duplicatedComponent,
-    ]);
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+    
+      return [
+        ...currentComponents,
+        duplicatedComponent,
+      ];
+    });
 
     setSelectedComponentId(duplicatedComponent.id);
   }
+
+  function undo() {
+    if (undoStack.current.length === 0) return;
+  
+    const previousState = undoStack.current.pop();
+  
+    if (!previousState) return;
+  
+    redoStack.current.push(
+      structuredClone(components)
+    );
+  
+    setComponents(
+      structuredClone(previousState)
+    );
+  
+    setSelectedComponentId(null);
+    setTextSelection(null);
+    setQuestionSelection(null);
+    setCheckboxSelection(null);
+  }
+
+  function redo() {
+    if (redoStack.current.length === 0) return;
+  
+    const nextState = redoStack.current.pop();
+  
+    if (!nextState) return;
+  
+    undoStack.current.push(
+      structuredClone(components)
+    );
+  
+    setComponents(
+      structuredClone(nextState)
+    );
+  
+    setSelectedComponentId(null);
+    setTextSelection(null);
+    setQuestionSelection(null);
+    setCheckboxSelection(null);
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const isModifierPressed =
+        event.ctrlKey || event.metaKey;
+  
+      if (!isModifierPressed) return;
+  
+      const key = event.key.toLowerCase();
+  
+      if (key === 'z') {
+        event.preventDefault();
+      
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      
+        return;
+      }
+      
+      if (key === 'y') {
+        event.preventDefault();
+        redo();
+      }
+    }
+  
+    window.addEventListener('keydown', handleKeyDown);
+  
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [components]);
 
   function startDragging(
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -358,7 +472,10 @@ updateComponent(component.id, {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-100">
-      <TopBar />
+      <TopBar
+  onUndo={undo}
+  onRedo={redo}
+/>
 
       <main className="grid flex-1 grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_260px]">
       <Library
