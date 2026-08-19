@@ -1,4 +1,7 @@
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { QuestionComponent as QuestionComponentType } from '../types/worksheet';
 
 type QuestionComponentProps = {
@@ -14,6 +17,10 @@ type QuestionComponentProps = {
     component: QuestionComponentType
   ) => void;
   onQuestionChange?: (id: string, question: string) => void;
+  onSelectionChange?: (
+    id: string,
+    range: { start: number; end: number } | null
+  ) => void;
 };
 
 export function QuestionComponent({
@@ -23,7 +30,54 @@ export function QuestionComponent({
   onStartDragging,
   onResizeStart,
   onQuestionChange,
+onSelectionChange,
 }: QuestionComponentProps) {
+  const [selectedRange, setSelectedRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
+  function captureSelection(element: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) {
+      setSelectedRange(null);
+onSelectionChange?.(component.id, null);
+return;
+    }
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !element.contains(range.startContainer) ||
+      !element.contains(range.endContainer)
+    ) {
+      setSelectedRange(null);
+onSelectionChange?.(component.id, null);
+return;
+    }
+  
+    const beforeSelection = range.cloneRange();
+    beforeSelection.selectNodeContents(element);
+    beforeSelection.setEnd(
+      range.startContainer,
+      range.startOffset
+    );
+  
+    const start = beforeSelection.toString().length;
+    const end = start + range.toString().length;
+  
+    const nextRange =
+  start !== end
+    ? {
+        start,
+        end,
+      }
+    : null;
+
+setSelectedRange(nextRange);
+onSelectionChange?.(component.id, nextRange);
+  }
+
   return (
     <div
       className="absolute"
@@ -60,25 +114,56 @@ export function QuestionComponent({
       )}
 
       <div
-        contentEditable={isSelected && !component.locked}
+        contentEditable
+        data-placeholder="Type your question here"
         suppressContentEditableWarning
-        className="h-full w-full cursor-text px-2 py-1 outline-none"
+        className="question-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
         style={{
           fontSize: component.fontSize,
+          fontWeight: component.fontWeight,
+          fontStyle: component.italic ? 'italic' : 'normal',
+          textDecoration: component.underline ? 'underline' : 'none',
+          color: component.textColor,
         }}
         onPointerDown={(event) => {
           if (isSelected) {
             event.stopPropagation();
           }
         }}
+
+        onMouseUp={(event) => {
+          captureSelection(event.currentTarget);
+        }}
+        
+        onKeyUp={(event) => {
+          captureSelection(event.currentTarget);
+        }}
+
         onBlur={(event) => {
           const updatedQuestion =
-            event.currentTarget.textContent?.trim() || 'Type your question here';
+          event.currentTarget.textContent?.trim() || '';
 
           onQuestionChange?.(component.id, updatedQuestion);
         }}
       >
-        {component.question}
+        {component.richText.length > 0
+  ? component.richText.map((segment, index) => (
+      <span
+        key={`${segment.text}-${index}`}
+        style={{
+          fontWeight: segment.style?.bold ? 700 : undefined,
+          fontStyle: segment.style?.italic ? 'italic' : undefined,
+          textDecoration: segment.style?.underline
+            ? 'underline'
+            : undefined,
+          color: segment.style?.color,
+          fontFamily: segment.style?.fontFamily,
+        }}
+      >
+        {segment.text}
+      </span>
+    ))
+  : component.question}
       </div>
 
       {isSelected && !component.locked && (

@@ -1,7 +1,110 @@
-import type { WorksheetComponent } from '../types/worksheet'
+import type {
+  WorksheetComponent,
+  RichTextSegment,
+  RichTextStyle,
+} from '../types/worksheet';
+
+function applyStyleToRange(
+  segments: RichTextSegment[],
+  start: number,
+  end: number,
+  styleChanges: RichTextStyle
+): RichTextSegment[] {
+  const result: RichTextSegment[] = [];
+  let position = 0;
+
+  for (const segment of segments) {
+    const segmentStart = position;
+    const segmentEnd = position + segment.text.length;
+
+    if (segmentEnd <= start || segmentStart >= end) {
+      result.push(segment);
+      position = segmentEnd;
+      continue;
+    }
+
+    const localStart = Math.max(0, start - segmentStart);
+    const localEnd = Math.min(segment.text.length, end - segmentStart);
+
+    if (localStart > 0) {
+      result.push({
+        text: segment.text.slice(0, localStart),
+        style: segment.style,
+      });
+    }
+
+    result.push({
+      text: segment.text.slice(localStart, localEnd),
+      style: {
+        ...segment.style,
+        ...styleChanges,
+      },
+    });
+
+    if (localEnd < segment.text.length) {
+      result.push({
+        text: segment.text.slice(localEnd),
+        style: segment.style,
+      });
+    }
+
+    position = segmentEnd;
+  }
+
+  return result;
+}
+
+function isRangeFullyStyled(
+  segments: RichTextSegment[],
+  start: number,
+  end: number,
+  styleKey: 'bold' | 'italic' | 'underline'
+): boolean {
+  let position = 0;
+  let foundSelectedText = false;
+
+  for (const segment of segments) {
+    const segmentStart = position;
+    const segmentEnd = position + segment.text.length;
+
+    const overlapsSelection =
+      segmentEnd > start && segmentStart < end;
+
+    if (overlapsSelection) {
+      foundSelectedText = true;
+
+      if (!segment.style?.[styleKey]) {
+        return false;
+      }
+    }
+
+    position = segmentEnd;
+  }
+
+  return foundSelectedText;
+}
 
 type RightSidebarProps = {
   selectedComponent: WorksheetComponent | null
+  textSelection: {
+    id: string;
+    start: number;
+    end: number;
+  } | null;
+
+  questionSelection: {
+    id: string;
+    start: number;
+    end: number;
+  } | null;
+
+  checkboxSelection: {
+    componentId: string;
+    itemId: string;
+    start: number;
+    end: number;
+  } | null;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>,
@@ -12,6 +115,9 @@ type RightSidebarProps = {
 
 export function RightSidebar({
   selectedComponent,
+  textSelection,
+  questionSelection,
+  checkboxSelection,
   onUpdateComponent,
   onDuplicate,
   onDelete,
@@ -71,20 +177,199 @@ export function RightSidebar({
 
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (hasSelection) {
+              const baseSegments =
+                selectedComponent.richText.length > 0
+                  ? selectedComponent.richText
+                  : selectedComponent.text
+                    ? [{ text: selectedComponent.text }]
+                    : [];
+          
+                    const selectedIsBold = isRangeFullyStyled(
+                      baseSegments,
+                      textSelection.start,
+                      textSelection.end,
+                      'bold'
+                    );
+                    
+                    const updatedRichText = applyStyleToRange(
+                      baseSegments,
+                      textSelection.start,
+                      textSelection.end,
+                      {
+                        bold: !selectedIsBold,
+                      }
+                    );
+          
+              onUpdateComponent(selectedComponent.id, {
+                richText: updatedRichText,
+              });
+          
+              return;
+            }
+          
             onUpdateComponent(selectedComponent.id, {
               fontWeight:
-                selectedComponent.fontWeight === 'bold' ? 'normal' : 'bold',
-            })
-          }
+                selectedComponent.fontWeight === 'bold'
+                  ? 'normal'
+                  : 'bold',
+            });
+          }}
           className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-            selectedComponent.fontWeight === 'bold'
+            (
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end
+                ? isRangeFullyStyled(
+                    selectedComponent.richText.length > 0
+                      ? selectedComponent.richText
+                      : selectedComponent.text
+                        ? [{ text: selectedComponent.text }]
+                        : [],
+                    textSelection.start,
+                    textSelection.end,
+                    'bold'
+                  )
+                : selectedComponent.fontWeight === 'bold'
+            )
               ? 'border-violet-500 bg-violet-50 text-violet-700'
               : 'border-slate-300 bg-white text-slate-700'
           }`}
         >
           Bold
         </button>
+        <button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+            const selectedIsItalic = isRangeFullyStyled(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              'italic'
+            );
+            
+            const updatedRichText = applyStyleToRange(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              {
+                italic: !selectedIsItalic,
+              }
+            );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      italic: !selectedComponent.italic,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [],
+            textSelection.start,
+            textSelection.end,
+            'italic'
+          )
+        : selectedComponent.italic
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+>
+  Italic
+</button>
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+      const selectedIsUnderlined = isRangeFullyStyled(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        'underline'
+      );
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        {
+          underline: !selectedIsUnderlined,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      underline: !selectedComponent.underline,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [],
+            textSelection.start,
+            textSelection.end,
+            'underline'
+          )
+        : selectedComponent.underline
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+>
+  Underline
+</button>
       </div>
     </div>
 
@@ -97,11 +382,41 @@ export function RightSidebar({
         <input
           type="color"
           value={selectedComponent.textColor}
-          onChange={(event) =>
+          onChange={(event) => {
+            const newColor = event.target.value;
+          
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (hasSelection) {
+              const baseSegments =
+                selectedComponent.richText.length > 0
+                  ? selectedComponent.richText
+                  : selectedComponent.text
+                    ? [{ text: selectedComponent.text }]
+                    : [];
+          
+              const updatedRichText = applyStyleToRange(
+                baseSegments,
+                textSelection.start,
+                textSelection.end,
+                {
+                  color: newColor,
+                }
+              );
+          
+              onUpdateComponent(selectedComponent.id, {
+                richText: updatedRichText,
+              });
+          
+              return;
+            }
+          
             onUpdateComponent(selectedComponent.id, {
-              textColor: event.target.value,
-            })
-          }
+              textColor: newColor,
+            });
+          }}
           className="h-10 flex-1 cursor-pointer rounded-md border border-slate-300 bg-white p-1"
           aria-label="Choose text color"
         />
@@ -125,8 +440,36 @@ export function RightSidebar({
   }}
   onBlur={(event) => {
     const value = event.currentTarget.value.trim();
-
+  
     if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      const hasSelection =
+        textSelection?.id === selectedComponent.id &&
+        textSelection.start !== textSelection.end;
+  
+      if (hasSelection) {
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+  
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          textSelection.start,
+          textSelection.end,
+          {
+            color: value,
+          }
+        );
+  
+        onUpdateComponent(selectedComponent.id, {
+          richText: updatedRichText,
+        });
+  
+        return;
+      }
+  
       onUpdateComponent(selectedComponent.id, {
         textColor: value,
       });
@@ -138,6 +481,338 @@ export function RightSidebar({
 />
       </div>
     </div>
+  </div>
+)}
+
+{selectedComponent.type === 'question' && (
+  <div className="space-y-4">
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Font size
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+      <input
+        type="number"
+        min="8"
+        max="72"
+        value={selectedComponent.fontSize}
+        onChange={(event) =>
+          onUpdateComponent(selectedComponent.id, {
+            fontSize: Number(event.target.value),
+          })
+        }
+        className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+      />
+
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      questionSelection?.id === selectedComponent.id &&
+      questionSelection.start !== questionSelection.end;
+
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.question
+            ? [{ text: selectedComponent.question }]
+            : [];
+
+      const selectedIsBold = isRangeFullyStyled(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        'bold'
+      );
+
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        {
+          bold: !selectedIsBold,
+        }
+      );
+
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      fontWeight:
+        selectedComponent.fontWeight === 'bold'
+          ? 'normal'
+          : 'bold',
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    selectedComponent.fontWeight === 'bold'
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+>
+  Bold
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      questionSelection?.id === selectedComponent.id &&
+      questionSelection.start !== questionSelection.end;
+
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.question
+            ? [{ text: selectedComponent.question }]
+            : [];
+
+      const selectedIsItalic = isRangeFullyStyled(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        'italic'
+      );
+
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        {
+          italic: !selectedIsItalic,
+        }
+      );
+
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      italic: !selectedComponent.italic,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      questionSelection?.id === selectedComponent.id &&
+      questionSelection.start !== questionSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.question
+                ? [{ text: selectedComponent.question }]
+                : [],
+            questionSelection.start,
+            questionSelection.end,
+            'italic'
+          )
+        : selectedComponent.italic
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+>
+  Italic
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      questionSelection?.id === selectedComponent.id &&
+      questionSelection.start !== questionSelection.end;
+
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.question
+            ? [{ text: selectedComponent.question }]
+            : [];
+
+      const selectedIsUnderlined = isRangeFullyStyled(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        'underline'
+      );
+
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        questionSelection.start,
+        questionSelection.end,
+        {
+          underline: !selectedIsUnderlined,
+        }
+      );
+
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      underline: !selectedComponent.underline,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      questionSelection?.id === selectedComponent.id &&
+      questionSelection.start !== questionSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.question
+                ? [{ text: selectedComponent.question }]
+                : [],
+            questionSelection.start,
+            questionSelection.end,
+            'underline'
+          )
+        : selectedComponent.underline
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+>
+Underline
+</button>
+</div>
+</div>
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Text color
+  </span>
+
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0, 1fr) 92px',
+      gap: '8px',
+      alignItems: 'center',
+    }}
+  >
+    <input
+      type="color"
+      value={selectedComponent.textColor}
+      onChange={(event) => {
+        const newColor = event.target.value;
+
+        const hasSelection =
+          questionSelection?.id === selectedComponent.id &&
+          questionSelection.start !== questionSelection.end;
+
+        if (hasSelection) {
+          const baseSegments =
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.question
+                ? [{ text: selectedComponent.question }]
+                : [];
+
+          const updatedRichText = applyStyleToRange(
+            baseSegments,
+            questionSelection.start,
+            questionSelection.end,
+            {
+              color: newColor,
+            }
+          );
+
+          onUpdateComponent(selectedComponent.id, {
+            richText: updatedRichText,
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          textColor: newColor,
+        });
+      }}
+      style={{
+        width: '100%',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+      aria-label="Choose question text color"
+    />
+
+    <input
+      key={selectedComponent.textColor}
+      type="text"
+      defaultValue={selectedComponent.textColor.toUpperCase()}
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Question text color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const value = event.currentTarget.value.trim();
+
+        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          const hasSelection =
+            questionSelection?.id === selectedComponent.id &&
+            questionSelection.start !== questionSelection.end;
+
+          if (hasSelection) {
+            const baseSegments =
+              selectedComponent.richText.length > 0
+                ? selectedComponent.richText
+                : selectedComponent.question
+                  ? [{ text: selectedComponent.question }]
+                  : [];
+
+            const updatedRichText = applyStyleToRange(
+              baseSegments,
+              questionSelection.start,
+              questionSelection.end,
+              {
+                color: value,
+              }
+            );
+
+            onUpdateComponent(selectedComponent.id, {
+              richText: updatedRichText,
+            });
+
+            return;
+          }
+
+          onUpdateComponent(selectedComponent.id, {
+            textColor: value,
+          });
+        } else {
+          event.currentTarget.value =
+            selectedComponent.textColor.toUpperCase();
+        }
+      }}
+    />
+  </div>
+</div>
+
   </div>
 )}
 
@@ -284,18 +959,282 @@ export function RightSidebar({
 
   <button
   type="button"
-  onClick={() =>
+  onClick={() => {
+    const hasSelection =
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end;
+  
+    if (hasSelection) {
+      const selectedItem =
+        selectedComponent.items.find(
+          (item) =>
+            item.id === checkboxSelection.itemId
+        );
+  
+      if (!selectedItem) return;
+  
+      const baseSegments =
+        selectedItem.richText.length > 0
+          ? selectedItem.richText
+          : selectedItem.text
+            ? [{ text: selectedItem.text }]
+            : [];
+  
+      const selectedIsBold = isRangeFullyStyled(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        'bold'
+      );
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        {
+          bold: !selectedIsBold,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        items: selectedComponent.items.map(
+          (item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  richText: updatedRichText,
+                }
+              : item
+        ),
+      });
+  
+      return;
+    }
+  
     onUpdateComponent(selectedComponent.id, {
       bold: !selectedComponent.bold,
-    })
-  }
+    });
+  }}
   className={`w-full rounded-md border px-3 py-2 text-sm font-semibold ${
-    selectedComponent.bold
+    (
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end
+        ? (() => {
+            const selectedItem =
+              selectedComponent.items.find(
+                (item) =>
+                  item.id === checkboxSelection.itemId
+              );
+  
+            if (!selectedItem) return false;
+  
+            const baseSegments =
+              selectedItem.richText.length > 0
+                ? selectedItem.richText
+                : selectedItem.text
+                  ? [{ text: selectedItem.text }]
+                  : [];
+  
+            return isRangeFullyStyled(
+              baseSegments,
+              checkboxSelection.start,
+              checkboxSelection.end,
+              'bold'
+            );
+          })()
+        : selectedComponent.bold
+    )
       ? 'border-violet-500 bg-violet-50 text-violet-700'
       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
   }`}
 >
   Bold
+</button>
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end;
+
+    if (hasSelection) {
+      const selectedItem =
+        selectedComponent.items.find(
+          (item) =>
+            item.id === checkboxSelection.itemId
+        );
+
+      if (!selectedItem) return;
+
+      const baseSegments =
+        selectedItem.richText.length > 0
+          ? selectedItem.richText
+          : selectedItem.text
+            ? [{ text: selectedItem.text }]
+            : [];
+
+      const selectedIsItalic = isRangeFullyStyled(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        'italic'
+      );
+
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        {
+          italic: !selectedIsItalic,
+        }
+      );
+
+      onUpdateComponent(selectedComponent.id, {
+        items: selectedComponent.items.map(
+          (item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  richText: updatedRichText,
+                }
+              : item
+        ),
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      italic: !selectedComponent.italic,
+    });
+  }}
+  className={`w-full rounded-md border px-3 py-2 text-sm font-semibold ${
+    (
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end
+        ? (() => {
+            const selectedItem =
+              selectedComponent.items.find(
+                (item) =>
+                  item.id === checkboxSelection.itemId
+              );
+
+            if (!selectedItem) return false;
+
+            const baseSegments =
+              selectedItem.richText.length > 0
+                ? selectedItem.richText
+                : selectedItem.text
+                  ? [{ text: selectedItem.text }]
+                  : [];
+
+            return isRangeFullyStyled(
+              baseSegments,
+              checkboxSelection.start,
+              checkboxSelection.end,
+              'italic'
+            );
+          })()
+        : selectedComponent.italic
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+  Italic
+</button>
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end;
+
+    if (hasSelection) {
+      const selectedItem =
+        selectedComponent.items.find(
+          (item) =>
+            item.id === checkboxSelection.itemId
+        );
+
+      if (!selectedItem) return;
+
+      const baseSegments =
+        selectedItem.richText.length > 0
+          ? selectedItem.richText
+          : selectedItem.text
+            ? [{ text: selectedItem.text }]
+            : [];
+
+      const selectedIsUnderlined = isRangeFullyStyled(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        'underline'
+      );
+
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        {
+          underline: !selectedIsUnderlined,
+        }
+      );
+
+      onUpdateComponent(selectedComponent.id, {
+        items: selectedComponent.items.map(
+          (item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  richText: updatedRichText,
+                }
+              : item
+        ),
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      underline: !selectedComponent.underline,
+    });
+  }}
+  className={`w-full rounded-md border px-3 py-2 text-sm font-semibold ${
+    (
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end
+        ? (() => {
+            const selectedItem =
+              selectedComponent.items.find(
+                (item) =>
+                  item.id === checkboxSelection.itemId
+              );
+
+            if (!selectedItem) return false;
+
+            const baseSegments =
+              selectedItem.richText.length > 0
+                ? selectedItem.richText
+                : selectedItem.text
+                  ? [{ text: selectedItem.text }]
+                  : [];
+
+            return isRangeFullyStyled(
+              baseSegments,
+              checkboxSelection.start,
+              checkboxSelection.end,
+              'underline'
+            );
+          })()
+        : selectedComponent.underline
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+  Underline
 </button>
 </div>
 
@@ -315,11 +1254,57 @@ export function RightSidebar({
   <input
     type="color"
     value={selectedComponent.textColor}
-    onChange={(event) =>
+    onChange={(event) => {
+      const newColor = event.target.value;
+    
+      const hasSelection =
+        checkboxSelection?.componentId === selectedComponent.id &&
+        checkboxSelection.start !== checkboxSelection.end;
+    
+      if (hasSelection) {
+        const selectedItem =
+          selectedComponent.items.find(
+            (item) =>
+              item.id === checkboxSelection.itemId
+          );
+    
+        if (!selectedItem) return;
+    
+        const baseSegments =
+          selectedItem.richText.length > 0
+            ? selectedItem.richText
+            : selectedItem.text
+              ? [{ text: selectedItem.text }]
+              : [];
+    
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          checkboxSelection.start,
+          checkboxSelection.end,
+          {
+            color: newColor,
+          }
+        );
+    
+        onUpdateComponent(selectedComponent.id, {
+          items: selectedComponent.items.map(
+            (item) =>
+              item.id === selectedItem.id
+                ? {
+                    ...item,
+                    richText: updatedRichText,
+                  }
+                : item
+          ),
+        });
+    
+        return;
+      }
+    
       onUpdateComponent(selectedComponent.id, {
-        textColor: event.target.value,
-      })
-    }
+        textColor: newColor,
+      });
+    }}
     style={{
       width: '100%',
       height: '38px',
@@ -329,36 +1314,81 @@ export function RightSidebar({
     aria-label="Choose text color"
   />
 
-  <input
-    type="text"
-    value={selectedComponent.textColor.toUpperCase()}
-    onChange={(event) => {
-      const value = event.target.value;
+<input
+  key={selectedComponent.textColor}
+  type="text"
+  defaultValue={selectedComponent.textColor.toUpperCase()}
+  maxLength={7}
+  style={{
+    width: '92px',
+    height: '38px',
+    boxSizing: 'border-box',
+  }}
+  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+  aria-label="Text color hex value"
+  onKeyDown={(event) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  }}
+  onBlur={(event) => {
+    const value = event.currentTarget.value.trim();
 
-      if (/^#[0-9A-Fa-f]{0,6}$/.test(value)) {
-        onUpdateComponent(selectedComponent.id, {
-          textColor: value,
-        });
-      }
-    }}
-    onBlur={(event) => {
-      const value = event.target.value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      const hasSelection =
+        checkboxSelection?.componentId === selectedComponent.id &&
+        checkboxSelection.start !== checkboxSelection.end;
 
-      if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      if (hasSelection) {
+        const selectedItem =
+          selectedComponent.items.find(
+            (item) =>
+              item.id === checkboxSelection.itemId
+          );
+
+        if (!selectedItem) return;
+
+        const baseSegments =
+          selectedItem.richText.length > 0
+            ? selectedItem.richText
+            : selectedItem.text
+              ? [{ text: selectedItem.text }]
+              : [];
+
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          checkboxSelection.start,
+          checkboxSelection.end,
+          {
+            color: value,
+          }
+        );
+
         onUpdateComponent(selectedComponent.id, {
-          textColor: '#0F172A',
+          items: selectedComponent.items.map(
+            (item) =>
+              item.id === selectedItem.id
+                ? {
+                    ...item,
+                    richText: updatedRichText,
+                  }
+                : item
+          ),
         });
+
+        return;
       }
-    }}
-    maxLength={7}
-    style={{
-      width: '92px',
-      height: '38px',
-      boxSizing: 'border-box',
-    }}
-    className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
-    aria-label="Text color hex value"
-  />
+
+      onUpdateComponent(selectedComponent.id, {
+        textColor: value,
+      });
+    } else {
+      event.currentTarget.value =
+        selectedComponent.textColor.toUpperCase();
+    }
+  }}
+/>
+    
 </div>
 
 <div>

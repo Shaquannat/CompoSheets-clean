@@ -22,6 +22,19 @@ type WorksheetCanvasProps = {
   onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerEnd: () => void;
   onTextChange: (id: string, text: string) => void;
+  onTextSelectionChange?: (
+    id: string,
+    range: { start: number; end: number } | null
+  ) => void;
+  onQuestionSelectionChange?: (
+    id: string,
+    range: { start: number; end: number } | null
+  ) => void;
+  onCheckboxSelectionChange?: (
+    componentId: string,
+    itemId: string,
+    range: { start: number; end: number } | null
+  ) => void;
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>
@@ -38,7 +51,10 @@ export function WorksheetCanvas({
   onPointerMove,
   onPointerEnd,
   onTextChange,
-  onUpdateComponent,
+  onTextSelectionChange,
+onQuestionSelectionChange,
+onCheckboxSelectionChange,
+onUpdateComponent,
 }: WorksheetCanvasProps) {
   return (
     <section className="min-w-0 overflow-auto bg-slate-200/70">
@@ -102,6 +118,7 @@ export function WorksheetCanvas({
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
         onTextChange={onTextChange}
+        onSelectionChange={onTextSelectionChange}
       />
     );
   }
@@ -115,7 +132,10 @@ export function WorksheetCanvas({
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
-        onQuestionChange={(id, question) => onTextChange(id, question)}
+        onQuestionChange={(id, question) =>
+          onUpdateComponent(id, { question })
+        }
+        onSelectionChange={onQuestionSelectionChange}
       />
     );
   }
@@ -145,6 +165,7 @@ export function WorksheetCanvas({
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
+        onSelectionChange={onCheckboxSelectionChange}
         onUpdateComponent={onUpdateComponent}
       />
     );

@@ -12,18 +12,39 @@ export type BaseWorksheetComponent = {
   layer: number;
 };
 
+export type RichTextStyle = {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  color?: string;
+  fontFamily?: string;
+};
+
+export type RichTextSegment = {
+  text: string;
+  style?: RichTextStyle;
+};
+
 export type TextComponent = BaseWorksheetComponent & {
   type: 'text';
   text: string;
+  richText: RichTextSegment[];
   fontSize: number;
   fontWeight: 'normal' | 'bold';
+  italic: boolean;
+  underline: boolean;
 textColor: string;
 };
 
 export type QuestionComponent = BaseWorksheetComponent & {
   type: 'question';
   question: string;
+  richText: RichTextSegment[];
   fontSize: number;
+  fontWeight: 'normal' | 'bold';
+  italic: boolean;
+  underline: boolean;
+  textColor: string;
 };
 
 export type AnswerLinesComponent = BaseWorksheetComponent & {
@@ -35,6 +56,7 @@ export type AnswerLinesComponent = BaseWorksheetComponent & {
 export type CheckboxItem = {
   id: string;
   text: string;
+  richText: RichTextSegment[];
   checked: boolean;
   markStyle: 'check' | 'x';
   markColor: string;
@@ -47,6 +69,8 @@ export type CheckboxComponent = BaseWorksheetComponent & {
   layout: 'list' | 'inline';
   fontSize: number;
   bold: boolean;
+  italic: boolean;
+underline: boolean;
   textColor: string;
 markColor: string;
 

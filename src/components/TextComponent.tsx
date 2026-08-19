@@ -1,4 +1,7 @@
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { TextComponent as TextComponentType } from '../types/worksheet';
 
 type TextComponentProps = {
@@ -16,6 +19,14 @@ type TextComponentProps = {
   ) => void;
 
   onTextChange?: (id: string, text: string) => void;
+  onSelectionChange?: (
+    id: string,
+    range: { start: number; end: number } | null
+  ) => void;
+  onUpdateComponent: (
+    id: string,
+    changes: Partial<TextComponentType>
+  ) => void;
 };
 
 export function TextComponent({
@@ -25,7 +36,56 @@ export function TextComponent({
   onStartDragging,
   onResizeStart,
   onTextChange,
+onSelectionChange,
+onUpdateComponent,
 }: TextComponentProps) {
+  const [selectedRange, setSelectedRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
+
+  function captureSelection(element: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) {
+      setSelectedRange(null);
+onSelectionChange?.(component.id, null);
+return;
+    }
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !element.contains(range.startContainer) ||
+      !element.contains(range.endContainer)
+    ) {
+      setSelectedRange(null);
+onSelectionChange?.(component.id, null);
+return;
+    }
+  
+    const beforeSelection = range.cloneRange();
+    beforeSelection.selectNodeContents(element);
+    beforeSelection.setEnd(
+      range.startContainer,
+      range.startOffset
+    );
+  
+    const start = beforeSelection.toString().length;
+    const end = start + range.toString().length;
+  
+    const nextRange =
+  start !== end
+    ? {
+        start,
+        end,
+      }
+    : null;
+
+setSelectedRange(nextRange);
+onSelectionChange?.(component.id, nextRange);
+  }
+
   return (
     <div
       className="absolute"
@@ -69,6 +129,8 @@ export function TextComponent({
         style={{
           fontSize: component.fontSize,
           fontWeight: component.fontWeight,
+          fontStyle: component.italic ? 'italic' : 'normal',
+          textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
         }}
         onPointerDown={(event) => {
@@ -76,14 +138,48 @@ export function TextComponent({
             event.stopPropagation();
           }
         }}
+        onMouseUp={(event) => {
+          captureSelection(event.currentTarget);
+        }}
+        onKeyUp={(event) => {
+          captureSelection(event.currentTarget);
+        }}
+
         onBlur={(event) => {
           const updatedText =
-  event.currentTarget.textContent?.trim() || '';
-
+            event.currentTarget.textContent?.trim() || '';
+        
           onTextChange?.(component.id, updatedText);
+        
+          onUpdateComponent(component.id, {
+            richText: updatedText
+              ? [
+                  {
+                    text: updatedText,
+                  },
+                ]
+              : [],
+          });
         }}
       >
-        {component.text}
+        {component.richText.length > 0
+  ? component.richText.map((segment, index) => (
+      <span
+        key={`${segment.text}-${index}`}
+        style={{
+          fontWeight: segment.style?.bold ? 700 : undefined,
+          fontStyle: segment.style?.italic ? 'italic' : undefined,
+          textDecoration: segment.style?.underline
+            ? 'underline'
+            : undefined,
+          color: segment.style?.color,
+          fontFamily: segment.style?.fontFamily,
+        }}
+      >
+        {segment.text}
+      </span>
+    ))
+  : component.text}
       </div>
       {isSelected && !component.locked && (
   <button

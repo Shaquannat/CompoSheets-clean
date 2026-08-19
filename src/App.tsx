@@ -26,6 +26,25 @@ function App() {
     null
   );
 
+  const [textSelection, setTextSelection] = useState<{
+    id: string;
+    start: number;
+    end: number;
+  } | null>(null);
+
+  const [questionSelection, setQuestionSelection] = useState<{
+    id: string;
+    start: number;
+    end: number;
+  } | null>(null);
+
+  const [checkboxSelection, setCheckboxSelection] = useState<{
+    componentId: string;
+    itemId: string;
+    start: number;
+    end: number;
+  } | null>(null);
+
   const selectedComponent =
     components.find((component) => component.id === selectedComponentId) ??
     null;
@@ -35,12 +54,15 @@ function App() {
       id: crypto.randomUUID(),
       type: 'text',
       text: '',
+      richText: [],
       x: 64,
       y: 64 + components.length * 60,
       width: 500,
       height: 48,
       fontSize: 16,
       fontWeight: 'normal',
+      italic: false,
+      underline: false,
 textColor: '#0F172A',
       rotation: 0,
       locked: false,
@@ -55,12 +77,17 @@ textColor: '#0F172A',
     const newComponent: QuestionComponent = {
       id: crypto.randomUUID(),
       type: 'question',
-      question: 'Type your question here',
+      question: '',
+      richText: [],
       x: 64,
       y: 64 + components.length * 60,
       width: 500,
       height: 48,
       fontSize: 16,
+      fontWeight: 'normal',
+italic: false,
+underline: false,
+textColor: '#0F172A',
       rotation: 0,
       locked: false,
       layer: components.length + 1,
@@ -112,6 +139,7 @@ textColor: '#0F172A',
         {
           id: crypto.randomUUID(),
           text: '',
+          richText: [],
           checked: false,
           markStyle: 'check',
           markColor: '#0F172A',
@@ -121,6 +149,8 @@ textColor: '#0F172A',
       layout: 'list',
       fontSize: 16,
       bold: false,
+      italic: false,
+underline: false,
       markStyle: 'check',
       textColor: '#0f172a',
 markColor: '#0f172a',
@@ -348,11 +378,52 @@ updateComponent(component.id, {
           onPointerEnd={stopPointerInteraction}
           onTextChange={(id, text) => updateComponent(id, { text })}
           onUpdateComponent={updateComponent}
+
+          onTextSelectionChange={(id, range) => {
+            setTextSelection(
+              range
+                ? {
+                    id,
+                    start: range.start,
+                    end: range.end,
+                  }
+                : null
+            );
+          }}
+
+          onQuestionSelectionChange={(id, range) => {
+            setQuestionSelection(
+              range
+                ? {
+                    id,
+                    start: range.start,
+                    end: range.end,
+                  }
+                : null
+            );
+          }}
+
+          onCheckboxSelectionChange={(componentId, itemId, range) => {
+            setCheckboxSelection(
+              range
+                ? {
+                    componentId,
+                    itemId,
+                    start: range.start,
+                    end: range.end,
+                  }
+                : null
+            );
+          }}
+
           onResizeStart={startResizing}
         />
 
 <RightSidebar
   selectedComponent={selectedComponent}
+  textSelection={textSelection}
+  questionSelection={questionSelection}
+  checkboxSelection={checkboxSelection}
   onUpdateComponent={updateComponent}
   onDuplicate={duplicateSelectedComponent}
   onDelete={deleteSelectedComponent}

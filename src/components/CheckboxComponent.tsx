@@ -1,6 +1,8 @@
 import {
   useEffect,
+  useRef,
   type PointerEvent as ReactPointerEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 
 import type {
@@ -24,6 +26,11 @@ type CheckboxComponentProps = {
     id: string,
     changes: Partial<CheckboxComponentType>
   ) => void;
+  onSelectionChange?: (
+    componentId: string,
+    itemId: string,
+    range: { start: number; end: number } | null
+  ) => void;
 };
 
 export function CheckboxComponent({
@@ -33,7 +40,14 @@ export function CheckboxComponent({
   onStartDragging,
   onResizeStart,
   onUpdateComponent,
+onSelectionChange,
 }: CheckboxComponentProps) {
+  const selectionRef = useRef<{
+    itemId: string;
+    start: number;
+    end: number;
+  } | null>(null);
+
   function updateItem(
     itemId: string,
     changes: Partial<CheckboxItem>
@@ -73,28 +87,45 @@ export function CheckboxComponent({
     textarea.style.height = `${textarea.scrollHeight}px`;
   }
 
+  function getEditableText(element: HTMLElement) {
+    return element.textContent ?? '';
+  }
+
   function focusItem(
     itemId: string,
     caretPosition: 'start' | 'end' = 'end'
   ) {
     requestAnimationFrame(() => {
-      const textarea =
-        document.querySelector<HTMLTextAreaElement>(
-          `[data-checkbox-item-id="${itemId}"]`
-        );
-
-      if (!textarea) return;
-
-      textarea.focus();
-
-      const position =
-        caretPosition === 'start'
-          ? 0
-          : textarea.value.length;
-
-      textarea.setSelectionRange(position, position);
-
-      resizeTextarea(textarea);
+      const element = document.querySelector<HTMLElement>(
+        `[data-checkbox-item-id="${itemId}"]`
+      );
+  
+      if (!element) return;
+  
+      element.focus();
+  
+      if (element instanceof HTMLTextAreaElement) {
+        const position =
+          caretPosition === 'start'
+            ? 0
+            : element.value.length;
+  
+        element.setSelectionRange(position, position);
+        resizeTextarea(element);
+  
+        return;
+      }
+  
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(caretPosition === 'start');
+  
+      const selection = window.getSelection();
+  
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
     });
   }
 
@@ -212,217 +243,327 @@ export function CheckboxComponent({
                 : ''}
             </button>
 
-            <textarea
-              value={item.text}
-              placeholder={
-                item.showPlaceholder ? 'Option' : ''
-              }
-              rows={1}
-              wrap="soft"
-              data-checkbox-item-id={item.id}
-              className="min-w-0 resize-none overflow-hidden bg-transparent outline-none placeholder:text-slate-400 [resize:none]"
-              style={{
-                width:
-                  component.layout === 'inline'
-                    ? `${Math.min(
-                        Math.max(
-                          96,
-                          item.text.length *
-                            component.fontSize *
-                            0.65
-                        ),
-                        Math.max(
-                          96,
-                          component.width - 50
-                        )
-                      )}px`
-                    : '100%',
-                maxWidth: '100%',
-                fontSize: `${component.fontSize}px`,
-                fontWeight: component.bold ? 700 : 400,
-                lineHeight: 1.35,
-                color: component.textColor,
-                resize: 'none',
-              }}
-              onPointerDown={(event) => {
-                event.stopPropagation();
-                onSelect(component.id);
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect(component.id);
-              }}
-              onFocus={(event) => {
-                if (item.showPlaceholder) {
-                  updateItem(item.id, {
-                    showPlaceholder: false,
-                  });
-                }
+            <div
+  contentEditable
+  suppressContentEditableWarning
+  data-checkbox-item-id={item.id}
+  data-placeholder={item.showPlaceholder ? 'Option' : ''}
+  className="checkbox-item-editor min-w-0 bg-transparent outline-none"
+  style={{
+    width:
+      component.layout === 'inline'
+        ? `${Math.min(
+            Math.max(
+              96,
+              item.text.length *
+                component.fontSize *
+                0.65
+            ),
+            Math.max(
+              96,
+              component.width - 50
+            )
+          )}px`
+        : '100%',
+    maxWidth: '100%',
+    minHeight: `${component.fontSize * 1.35}px`,
+    fontSize: `${component.fontSize}px`,
+    fontWeight: component.bold ? 700 : 400,
+    fontStyle: component.italic ? 'italic' : 'normal',
+    textDecoration: component.underline
+      ? 'underline'
+      : 'none',
+    lineHeight: 1.35,
+    color: component.textColor,
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'anywhere',
+  }}
+  onPointerDown={(event) => {
+    event.stopPropagation();
+    onSelect(component.id);
+  }}
+  onClick={(event) => {
+    event.stopPropagation();
+    onSelect(component.id);
+  }}
+  onMouseUp={(event) => {
+    const selection = window.getSelection();
 
-                resizeTextarea(event.currentTarget);
-              }}
-              onChange={(event) => {
-                updateItem(item.id, {
-                  text: event.target.value,
-                  showPlaceholder: false,
-                });
+    if (!selection || selection.rangeCount === 0) {
+      return;
+    }
 
-                resizeTextarea(event.currentTarget);
-              }}
-              onKeyDown={(event) => {
-                if (
-                  component.layout === 'list' &&
-                  (event.key === 'ArrowDown' ||
-                    event.key === 'ArrowUp')
-                ) {
-                  const currentIndex =
-                    component.items.findIndex(
-                      (currentItem) =>
-                        currentItem.id === item.id
-                    );
+    const range = selection.getRangeAt(0);
 
-                  const targetIndex =
-                    event.key === 'ArrowDown'
-                      ? currentIndex + 1
-                      : currentIndex - 1;
+    if (
+      !event.currentTarget.contains(range.startContainer) ||
+      !event.currentTarget.contains(range.endContainer)
+    ) {
+      return;
+    }
 
-                  const targetItem =
-                    component.items[targetIndex];
+    const beforeSelection = range.cloneRange();
+    beforeSelection.selectNodeContents(event.currentTarget);
+    beforeSelection.setEnd(
+      range.startContainer,
+      range.startOffset
+    );
 
-                  if (targetItem) {
-                    event.preventDefault();
-                    focusItem(targetItem.id, 'end');
-                  }
+    const start =
+      beforeSelection.toString().length;
 
-                  return;
-                }
+    const end =
+      start + range.toString().length;
 
-                if (
-                  component.layout === 'inline' &&
-                  (event.key === 'ArrowLeft' ||
-                    event.key === 'ArrowRight')
-                ) {
-                  const textarea = event.currentTarget;
+    const nextRange =
+      start !== end
+        ? {
+            start,
+            end,
+          }
+        : null;
 
-                  const caretStart =
-                    textarea.selectionStart ?? 0;
+    selectionRef.current = nextRange
+      ? {
+          itemId: item.id,
+          start,
+          end,
+        }
+      : null;
 
-                  const caretEnd =
-                    textarea.selectionEnd ?? 0;
+    onSelectionChange?.(
+      component.id,
+      item.id,
+      nextRange
+    );
+  }}
+  onFocus={() => {
+    if (item.showPlaceholder) {
+      updateItem(item.id, {
+        showPlaceholder: false,
+      });
+    }
+  }}
+  
+  onFocus={() => {
+    if (item.showPlaceholder) {
+      updateItem(item.id, {
+        showPlaceholder: false,
+      });
+    }
+  }}
 
-                  const movePrevious =
-                    event.key === 'ArrowLeft' &&
-                    caretStart === 0 &&
-                    caretEnd === 0;
+  onBlur={(event) => {
+    const updatedText =
+      getEditableText(event.currentTarget);
+  
+    const textChanged =
+      updatedText !== item.text;
+  
+    updateItem(item.id, {
+      text: updatedText,
+      richText: textChanged
+        ? updatedText
+          ? [
+              {
+                text: updatedText,
+              },
+            ]
+          : []
+        : item.richText,
+      showPlaceholder: false,
+    });
+  }}
 
-                  const moveNext =
-                    event.key === 'ArrowRight' &&
-                    caretStart ===
-                      textarea.value.length &&
-                    caretEnd === textarea.value.length;
+  onKeyDown={(event) => {
+    if (
+      component.layout === 'list' &&
+      (event.key === 'ArrowDown' ||
+        event.key === 'ArrowUp')
+    ) {
+      const currentIndex =
+        component.items.findIndex(
+          (currentItem) =>
+            currentItem.id === item.id
+        );
 
-                  if (movePrevious || moveNext) {
-                    const currentIndex =
-                      component.items.findIndex(
-                        (currentItem) =>
-                          currentItem.id === item.id
-                      );
+      const targetIndex =
+        event.key === 'ArrowDown'
+          ? currentIndex + 1
+          : currentIndex - 1;
 
-                    const targetIndex = moveNext
-                      ? currentIndex + 1
-                      : currentIndex - 1;
+      const targetItem =
+        component.items[targetIndex];
 
-                    const targetItem =
-                      component.items[targetIndex];
+      if (targetItem) {
+        event.preventDefault();
+        focusItem(targetItem.id, 'end');
+      }
 
-                    if (targetItem) {
-                      event.preventDefault();
+      return;
+    }
 
-                      focusItem(
-                        targetItem.id,
-                        moveNext ? 'start' : 'end'
-                      );
-                    }
-                  }
+    if (
+      component.layout === 'inline' &&
+      (event.key === 'ArrowLeft' ||
+        event.key === 'ArrowRight')
+    ) {
+      const selection = window.getSelection();
+    
+      if (!selection || selection.rangeCount === 0) {
+        return;
+      }
+    
+      const range = selection.getRangeAt(0);
+    
+      const beforeCaret = range.cloneRange();
+      beforeCaret.selectNodeContents(event.currentTarget);
+      beforeCaret.setEnd(
+        range.startContainer,
+        range.startOffset
+      );
+    
+      const caretPosition =
+        beforeCaret.toString().length;
+    
+      const textLength =
+        getEditableText(event.currentTarget).length;
+    
+      const movePrevious =
+        event.key === 'ArrowLeft' &&
+        caretPosition === 0;
+    
+      const moveNext =
+        event.key === 'ArrowRight' &&
+        caretPosition === textLength;
+    
+      if (movePrevious || moveNext) {
+        const currentIndex =
+          component.items.findIndex(
+            (currentItem) =>
+              currentItem.id === item.id
+          );
+    
+        const targetIndex = moveNext
+          ? currentIndex + 1
+          : currentIndex - 1;
+    
+        const targetItem =
+          component.items[targetIndex];
+    
+        if (targetItem) {
+          event.preventDefault();
+    
+          focusItem(
+            targetItem.id,
+            moveNext ? 'start' : 'end'
+          );
+        }
+      }
+    
+      return;
+    }
 
-                  return;
-                }
+    if (event.key === 'Enter') {
+      event.preventDefault();
 
-                if (event.key === 'Enter') {
-                  event.preventDefault();
+      const newItem: CheckboxItem = {
+        id: crypto.randomUUID(),
+        text: '',
+        richText: [],
+        checked: false,
+        markStyle: component.markStyle,
+        markColor: component.markColor,
+        showPlaceholder: true,
+      };
 
-                  const newItem: CheckboxItem = {
-                    id: crypto.randomUUID(),
-                    text: '',
-                    checked: false,
-                    markStyle: component.markStyle,
-                    markColor: component.markColor,
-                    showPlaceholder: true,
-                  };
+      const currentIndex =
+        component.items.findIndex(
+          (currentItem) =>
+            currentItem.id === item.id
+        );
 
-                  const currentIndex =
-                    component.items.findIndex(
-                      (currentItem) =>
-                        currentItem.id === item.id
-                    );
+      const nextItems = [
+        ...component.items,
+      ];
 
-                  const nextItems = [
-                    ...component.items,
-                  ];
+      nextItems.splice(
+        currentIndex + 1,
+        0,
+        newItem
+      );
 
-                  nextItems.splice(
-                    currentIndex + 1,
-                    0,
-                    newItem
-                  );
+      onUpdateComponent(component.id, {
+        items: nextItems,
+      });
 
-                  onUpdateComponent(component.id, {
-                    items: nextItems,
-                  });
+      focusItem(newItem.id, 'start');
 
-                  focusItem(newItem.id, 'start');
+      return;
+    }
 
-                  return;
-                }
+    if (
+      event.key === 'Backspace' &&
+      getEditableText(event.currentTarget) === '' &&
+      component.items.length > 1
+    ) {
+      event.preventDefault();
 
-                if (
-                  event.key === 'Backspace' &&
-                  event.currentTarget.value === '' &&
-                  component.items.length > 1
-                ) {
-                  event.preventDefault();
+      const currentIndex =
+        component.items.findIndex(
+          (currentItem) =>
+            currentItem.id === item.id
+        );
 
-                  const currentIndex =
-                    component.items.findIndex(
-                      (currentItem) =>
-                        currentItem.id === item.id
-                    );
+      const previousItem =
+        component.items[currentIndex - 1];
 
-                  const previousItem =
-                    component.items[currentIndex - 1];
+      const nextItem =
+        component.items[currentIndex + 1];
 
-                  const nextItem =
-                    component.items[currentIndex + 1];
+      const focusTarget =
+        previousItem ?? nextItem;
 
-                  const focusTarget =
-                    previousItem ?? nextItem;
+      onUpdateComponent(component.id, {
+        items: component.items.filter(
+          (currentItem) =>
+            currentItem.id !== item.id
+        ),
+      });
 
-                  onUpdateComponent(component.id, {
-                    items: component.items.filter(
-                      (currentItem) =>
-                        currentItem.id !== item.id
-                    ),
-                  });
-
-                  if (focusTarget) {
-                    focusItem(
-                      focusTarget.id,
-                      previousItem ? 'end' : 'start'
-                    );
-                  }
-                }
-              }}
-            />
+      if (focusTarget) {
+        focusItem(
+          focusTarget.id,
+          previousItem ? 'end' : 'start'
+        );
+      }
+    }
+  }}
+>
+  {item.richText.length > 0
+    ? item.richText.map((segment, index) => (
+        <span
+          key={`${segment.text}-${index}`}
+          style={{
+            fontWeight: segment.style?.bold
+              ? 700
+              : undefined,
+            fontStyle: segment.style?.italic
+              ? 'italic'
+              : undefined,
+            textDecoration: segment.style?.underline
+              ? 'underline'
+              : undefined,
+            color: segment.style?.color,
+            fontFamily:
+              segment.style?.fontFamily,
+          }}
+        >
+          {segment.text}
+        </span>
+      ))
+    : item.text}
+</div>
           </div>
         ))}
       </div>
