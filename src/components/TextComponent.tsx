@@ -7,7 +7,10 @@ import type { TextComponent as TextComponentType } from '../types/worksheet';
 type TextComponentProps = {
   component: TextComponentType;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (
+    id: string,
+    event?: ReactPointerEvent<HTMLElement>
+  ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
     component: TextComponentType
@@ -100,7 +103,7 @@ onSelectionChange?.(component.id, nextRange);
       }}
       onClick={(event) => {
         event.stopPropagation();
-        onSelect(component.id);
+        onSelect(component.id, event);
       }}
     >
       {isSelected && !component.locked && (

@@ -9,8 +9,12 @@ import { CheckboxComponent } from './CheckboxComponent';
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
   selectedComponentId: string | null;
+  components: WorksheetComponent[];
   pageRef: RefObject<HTMLElement | null>;
-  onSelectComponent: (id: string | null) => void;
+  onSelectComponent: (
+    id: string | null,
+    event?: ReactPointerEvent<HTMLElement>
+  ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
     component: WorksheetComponent
@@ -44,6 +48,7 @@ type WorksheetCanvasProps = {
 export function WorksheetCanvas({
   components,
   selectedComponentId,
+  selectedComponentIds,
   pageRef,
   onSelectComponent,
   onStartDragging,
@@ -113,7 +118,10 @@ onUpdateComponent,
       <TextComponent
         key={component.id}
         component={component}
-        isSelected={component.id === selectedComponentId}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -128,7 +136,10 @@ onUpdateComponent,
       <QuestionComponent
         key={component.id}
         component={component}
-        isSelected={component.id === selectedComponentId}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -145,7 +156,10 @@ onUpdateComponent,
       <AnswerLinesComponent
         key={component.id}
         component={component}
-        isSelected={component.id === selectedComponentId}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -161,7 +175,10 @@ onUpdateComponent,
       <CheckboxComponent
         key={component.id}
         component={component}
-        isSelected={component.id === selectedComponentId}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}

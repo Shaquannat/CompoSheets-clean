@@ -4,7 +4,10 @@ import type { AnswerLinesComponent as AnswerLinesComponentType } from '../types/
 type AnswerLinesComponentProps = {
   component: AnswerLinesComponentType;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (
+    id: string,
+    event?: ReactPointerEvent<HTMLElement>
+  ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
     component: AnswerLinesComponentType
@@ -42,7 +45,7 @@ export function AnswerLinesComponent({
       }}
       onClick={(event) => {
         event.stopPropagation();
-        onSelect(component.id);
+        onSelect(component.id, event);
       }}
     >
       {isSelected && !component.locked && (

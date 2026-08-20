@@ -86,6 +86,7 @@ function isRangeFullyStyled(
 
 type RightSidebarProps = {
   selectedComponent: WorksheetComponent | null
+  selectedComponentCount: number;
   textSelection: {
     id: string;
     start: number;
@@ -115,6 +116,7 @@ type RightSidebarProps = {
 
 export function RightSidebar({
   selectedComponent,
+  selectedComponentCount,
   textSelection,
   questionSelection,
   checkboxSelection,
@@ -134,7 +136,27 @@ export function RightSidebar({
         </p>
       </div>
 
-      {selectedComponent ? (
+      {selectedComponentCount > 1 ? (
+  <div className="space-y-5">
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Selected components
+      </span>
+
+      <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm font-semibold text-violet-800">
+        {selectedComponentCount} components selected
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={onDelete}
+      className="min-h-11 w-full rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 hover:bg-red-100"
+    >
+      Delete selected
+    </button>
+  </div>
+) : selectedComponent ? (
         <div className="space-y-5">
           <div>
             <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">

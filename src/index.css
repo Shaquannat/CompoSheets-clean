@@ -55,3 +55,9 @@ button {
 .question-component-editor:focus:empty::before {
   content: '';
 }
+
+.checkbox-item-editor:empty::before {
+  content: attr(data-placeholder);
+  color: rgb(148 163 184);
+  pointer-events: none;
+}

@@ -7,7 +7,10 @@ import type { QuestionComponent as QuestionComponentType } from '../types/worksh
 type QuestionComponentProps = {
   component: QuestionComponentType;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (
+    id: string,
+    event?: ReactPointerEvent<HTMLElement>
+  ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
     component: QuestionComponentType
@@ -92,7 +95,7 @@ onSelectionChange?.(component.id, nextRange);
       }}
       onClick={(event) => {
         event.stopPropagation();
-        onSelect(component.id);
+        onSelect(component.id, event);
       }}
     >
       {isSelected && !component.locked && (

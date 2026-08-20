@@ -13,7 +13,10 @@ import type {
 type CheckboxComponentProps = {
   component: CheckboxComponentType;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (
+    id: string,
+    event?: ReactPointerEvent<HTMLElement>
+  ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
     component: CheckboxComponentType
@@ -170,7 +173,7 @@ onSelectionChange,
       }}
       onClick={(event) => {
         event.stopPropagation();
-        onSelect(component.id);
+        onSelect(component.id, event);
       }}
     >
       {isSelected && !component.locked && (
@@ -281,7 +284,14 @@ onSelectionChange,
   }}
   onPointerDown={(event) => {
     event.stopPropagation();
-    onSelect(component.id);
+  
+    if (
+      !isSelected ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      event.preventDefault();
+    }
   }}
   onClick={(event) => {
     event.stopPropagation();
@@ -338,14 +348,6 @@ onSelectionChange,
       nextRange
     );
   }}
-  onFocus={() => {
-    if (item.showPlaceholder) {
-      updateItem(item.id, {
-        showPlaceholder: false,
-      });
-    }
-  }}
-  
   onFocus={() => {
     if (item.showPlaceholder) {
       updateItem(item.id, {

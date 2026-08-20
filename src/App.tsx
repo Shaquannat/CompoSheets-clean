@@ -24,10 +24,13 @@ function App() {
   const resizeState = useRef<ResizeState>(null);
   const undoStack = useRef<WorksheetComponent[][]>([]);
 const redoStack = useRef<WorksheetComponent[][]>([]);
+const componentClipboard = useRef<WorksheetComponent | null>(null);
   const [components, setComponents] = useState<WorksheetComponent[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
   );
+
+  const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
 
   const [textSelection, setTextSelection] = useState<{
     id: string;
@@ -88,6 +91,7 @@ textColor: '#0F172A',
     });
 
     setSelectedComponentId(newComponent.id);
+    setSelectedComponentIds([newComponent.id]);
   }
   function addQuestionComponent() {
     const newComponent: QuestionComponent = {
@@ -120,6 +124,7 @@ textColor: '#0F172A',
     });
   
     setSelectedComponentId(newComponent.id);
+    setSelectedComponentIds([newComponent.id]);
   }
   function addAnswerLinesComponent() {
     const newComponent: AnswerLinesComponent = {
@@ -147,6 +152,7 @@ textColor: '#0F172A',
     });
   
     setSelectedComponentId(newComponent.id);
+    setSelectedComponentIds([newComponent.id]);
   }
 
   function addCheckboxComponent() {
@@ -190,6 +196,7 @@ markColor: '#0f172a',
     
     requestAnimationFrame(() => {
       setSelectedComponentId(newComponent.id);
+      setSelectedComponentIds([newComponent.id]);
     });
   }
 
@@ -215,6 +222,26 @@ markColor: '#0f172a',
     });
 
     setSelectedComponentId(null);
+    setSelectedComponentIds([]);
+  }
+
+  function deleteSelectedComponents() {
+    if (selectedComponentIds.length === 0) return;
+  
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
+      return currentComponents.filter(
+        (component) =>
+          !selectedComponentIds.includes(component.id)
+      );
+    });
+  
+    setSelectedComponentId(null);
+    setSelectedComponentIds([]);
+    setTextSelection(null);
+    setQuestionSelection(null);
+    setCheckboxSelection(null);
   }
 
   function duplicateSelectedComponent() {
@@ -239,6 +266,63 @@ markColor: '#0f172a',
     });
 
     setSelectedComponentId(duplicatedComponent.id);
+    setSelectedComponentIds([duplicatedComponent.id]);
+  }
+
+  function copySelectedComponent() {
+    if (!selectedComponent) return;
+  
+    componentClipboard.current =
+      structuredClone(selectedComponent);
+  }
+
+  function pasteCopiedComponent() {
+    const copiedComponent = componentClipboard.current;
+  
+    if (!copiedComponent) return;
+  
+    const pastedComponent: WorksheetComponent = {
+      ...structuredClone(copiedComponent),
+      id: crypto.randomUUID(),
+      locked: false,
+      x: copiedComponent.x + 24,
+      y: copiedComponent.y + 24,
+      layer: components.length + 1,
+    };
+  
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
+      return [
+        ...currentComponents,
+        pastedComponent,
+      ];
+    });
+  
+    setSelectedComponentId(pastedComponent.id);
+    setSelectedComponentIds([pastedComponent.id]);
+  }
+
+  function cutSelectedComponent() {
+    if (!selectedComponent) return;
+  
+    componentClipboard.current =
+      structuredClone(selectedComponent);
+  
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
+      return currentComponents.filter(
+        (component) =>
+          component.id !== selectedComponent.id
+      );
+    });
+  
+    setSelectedComponentId(null);
+    setSelectedComponentIds([]);
+    setTextSelection(null);
+    setQuestionSelection(null);
+    setCheckboxSelection(null);
   }
 
   function undo() {
@@ -257,6 +341,7 @@ markColor: '#0f172a',
     );
   
     setSelectedComponentId(null);
+    setSelectedComponentIds([]);
     setTextSelection(null);
     setQuestionSelection(null);
     setCheckboxSelection(null);
@@ -283,10 +368,142 @@ markColor: '#0f172a',
     setCheckboxSelection(null);
   }
 
+  function isEditableTarget(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) return false;
+  
+    return (
+      target.isContentEditable ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT'
+    );
+  }
+  
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setSelectedComponentId(null);
+        setSelectedComponentIds([]);
+        setTextSelection(null);
+        setQuestionSelection(null);
+        setCheckboxSelection(null);
+        return;
+      }
+      
       const isModifierPressed =
         event.ctrlKey || event.metaKey;
+
+        if (
+          isModifierPressed &&
+          event.key.toLowerCase() === 'a' &&
+          !isEditableTarget(event.target)
+        ) {
+          event.preventDefault();
+        
+          const allComponentIds = components.map(
+            (component) => component.id
+          );
+        
+          setSelectedComponentIds(allComponentIds);
+          setSelectedComponentId(null);
+        
+          return;
+        }
+
+        if (
+          isModifierPressed &&
+          event.key.toLowerCase() === 'd'
+        ) {
+          event.preventDefault();
+        
+          if (!isEditableTarget(event.target)) {
+            duplicateSelectedComponent();
+          }
+        
+          return;
+        }
+
+        if (
+          isModifierPressed &&
+          event.key.toLowerCase() === 'c' &&
+          !isEditableTarget(event.target)
+        ) {
+          event.preventDefault();
+          copySelectedComponent();
+          return;
+        }
+        
+        if (
+          isModifierPressed &&
+          event.key.toLowerCase() === 'x' &&
+          !isEditableTarget(event.target)
+        ) {
+          event.preventDefault();
+          cutSelectedComponent();
+          return;
+        }
+        
+        if (
+          isModifierPressed &&
+          event.key.toLowerCase() === 'v' &&
+          !isEditableTarget(event.target)
+        ) {
+          event.preventDefault();
+          pasteCopiedComponent();
+          return;
+        }
+
+        if (
+          event.key === 'Delete' &&
+          !isEditableTarget(event.target)
+        ) {
+          if (selectedComponentIds.length > 1) {
+            event.preventDefault();
+            deleteSelectedComponents();
+            return;
+          }
+        
+          if (selectedComponentId) {
+            event.preventDefault();
+            deleteSelectedComponent();
+            return;
+          }
+        }
+
+        if (
+          selectedComponent &&
+          !isEditableTarget(event.target) &&
+          ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
+        ) {
+          event.preventDefault();
+        
+          const nudgeAmount = event.shiftKey ? 10 : 1;
+        
+          const changes: Partial<WorksheetComponent> = {};
+        
+          if (event.key === 'ArrowLeft') {
+            changes.x = selectedComponent.x - nudgeAmount;
+          }
+        
+          if (event.key === 'ArrowRight') {
+            changes.x = selectedComponent.x + nudgeAmount;
+          }
+        
+          if (event.key === 'ArrowUp') {
+            changes.y = selectedComponent.y - nudgeAmount;
+          }
+        
+          if (event.key === 'ArrowDown') {
+            changes.y = selectedComponent.y + nudgeAmount;
+          }
+        
+          updateComponent(
+            selectedComponent.id,
+            changes
+          );
+        
+          return;
+        }
   
       if (!isModifierPressed) return;
   
@@ -315,7 +532,8 @@ markColor: '#0f172a',
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [components]);
+
+  }, [components, selectedComponentId, selectedComponentIds]);
 
   function startDragging(
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -488,8 +706,44 @@ updateComponent(component.id, {
         <WorksheetCanvas
           components={components}
           selectedComponentId={selectedComponentId}
+          selectedComponentIds={selectedComponentIds}
           pageRef={pageRef}
-          onSelectComponent={setSelectedComponentId}
+          onSelectComponent={(id, event) => {
+            if (!id) {
+              setSelectedComponentId(null);
+              setSelectedComponentIds([]);
+              return;
+            }
+          
+            const isMultiSelect =
+              event?.ctrlKey || event?.metaKey;
+          
+            if (isMultiSelect) {
+              setSelectedComponentIds((currentIds) => {
+                const alreadySelected =
+                  currentIds.includes(id);
+          
+                const nextIds = alreadySelected
+                  ? currentIds.filter(
+                      (currentId) => currentId !== id
+                    )
+                  : [...currentIds, id];
+          
+                setSelectedComponentId(
+                  nextIds.length === 1
+                    ? nextIds[0]
+                    : null
+                );
+          
+                return nextIds;
+              });
+          
+              return;
+            }
+          
+            setSelectedComponentId(id);
+            setSelectedComponentIds([id]);
+          }}
           onStartDragging={startDragging}
           onPointerMove={handlePagePointerMove}
           onPointerEnd={stopPointerInteraction}
@@ -538,12 +792,17 @@ updateComponent(component.id, {
 
 <RightSidebar
   selectedComponent={selectedComponent}
+  selectedComponentCount={selectedComponentIds.length}
   textSelection={textSelection}
   questionSelection={questionSelection}
   checkboxSelection={checkboxSelection}
   onUpdateComponent={updateComponent}
   onDuplicate={duplicateSelectedComponent}
-  onDelete={deleteSelectedComponent}
+  onDelete={
+    selectedComponentIds.length > 1
+      ? deleteSelectedComponents
+      : deleteSelectedComponent
+  }
 />
       </main>
 
