@@ -28,6 +28,7 @@ export function TopBar({
       <div className="flex items-center gap-2">
       <button
   type="button"
+  onMouseDown={(event) => event.preventDefault()}
   onClick={onUndo}
   title="Undo"
   aria-label="Undo"
@@ -38,6 +39,7 @@ export function TopBar({
 
 <button
   type="button"
+  onMouseDown={(event) => event.preventDefault()}
   onClick={onRedo}
   title="Redo"
   aria-label="Redo"

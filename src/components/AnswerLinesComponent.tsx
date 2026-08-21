@@ -1,9 +1,13 @@
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { AnswerLinesComponent as AnswerLinesComponentType } from '../types/worksheet';
 
 type AnswerLinesComponentProps = {
   component: AnswerLinesComponentType;
   isSelected: boolean;
+  isGroupSelected: boolean;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -26,13 +30,17 @@ type AnswerLinesComponentProps = {
 export function AnswerLinesComponent({
   component,
   isSelected,
+  isGroupSelected,
   onSelect,
   onStartDragging,
   onResizeStart,
   onLineCountChange,
 }: AnswerLinesComponentProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div
+    data-worksheet-component="true"
       className="absolute"
       style={{
         left: component.x,
@@ -40,9 +48,13 @@ export function AnswerLinesComponent({
         width: component.width,
         minHeight: component.height,
         border: isSelected
-          ? '2px solid rgb(139 92 246)'
-          : '2px solid transparent',
+  ? '2px solid rgb(139 92 246)'
+  : isHovered
+    ? '1px solid rgb(196 181 253)'
+    : '2px solid transparent',
       }}
+      onMouseEnter={() => setIsHovered(true)}
+onMouseLeave={() => setIsHovered(false)}
       onClick={(event) => {
         event.stopPropagation();
         onSelect(component.id, event);
@@ -126,7 +138,7 @@ export function AnswerLinesComponent({
   );
 })}
 </div>
-{isSelected && (
+{isSelected && !isGroupSelected && (
   <div
     className="absolute flex gap-1"
     style={{
@@ -174,7 +186,7 @@ onLineCountChange(
     </button>
   </div>
 )}
-      {isSelected && !component.locked && (
+      {isSelected && !isGroupSelected && !component.locked && (
         <button
           type="button"
           aria-label="Resize answer lines"

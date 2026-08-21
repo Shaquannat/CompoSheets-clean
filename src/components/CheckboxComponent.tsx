@@ -1,6 +1,7 @@
 import {
   useEffect,
   useRef,
+  useState,
   type PointerEvent as ReactPointerEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
@@ -13,6 +14,7 @@ import type {
 type CheckboxComponentProps = {
   component: CheckboxComponentType;
   isSelected: boolean;
+  isGroupSelected: boolean;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -39,6 +41,7 @@ type CheckboxComponentProps = {
 export function CheckboxComponent({
   component,
   isSelected,
+  isGroupSelected,
   onSelect,
   onStartDragging,
   onResizeStart,
@@ -50,6 +53,7 @@ onSelectionChange,
     start: number;
     end: number;
   } | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   function updateItem(
     itemId: string,
@@ -160,17 +164,22 @@ onSelectionChange,
 
   return (
     <div
-      data-checkbox-component-id={component.id}
-      className="absolute"
+    data-checkbox-component-id={component.id}
+    data-worksheet-component="true"
+    className="absolute"
       style={{
         left: component.x,
         top: component.y,
         width: component.width,
         minHeight: component.height,
         border: isSelected
-          ? '2px solid rgb(139 92 246)'
-          : '2px solid transparent',
+  ? '2px solid rgb(139 92 246)'
+  : isHovered
+    ? '1px solid rgb(196 181 253)'
+    : '2px solid transparent',
       }}
+      onMouseEnter={() => setIsHovered(true)}
+onMouseLeave={() => setIsHovered(false)}
       onClick={(event) => {
         event.stopPropagation();
         onSelect(component.id, event);
@@ -571,7 +580,7 @@ onSelectionChange,
         ))}
       </div>
 
-      {isSelected && !component.locked && (
+      {isSelected && !isGroupSelected && !component.locked && (
         <button
           type="button"
           aria-label="Resize checkbox component"

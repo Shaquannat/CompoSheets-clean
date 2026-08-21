@@ -7,6 +7,11 @@ import type { TextComponent as TextComponentType } from '../types/worksheet';
 type TextComponentProps = {
   component: TextComponentType;
   isSelected: boolean;
+  isGroupSelected: boolean;
+  findMatch?: {
+    start: number;
+    end: number;
+  } | null;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -35,6 +40,8 @@ type TextComponentProps = {
 export function TextComponent({
   component,
   isSelected,
+  isGroupSelected,
+  findMatch,
   onSelect,
   onStartDragging,
   onResizeStart,
@@ -46,6 +53,8 @@ onUpdateComponent,
     start: number;
     end: number;
   } | null>(null);
+
+  const [isHovered, setIsHovered] = useState(false);
 
   function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
@@ -89,18 +98,62 @@ setSelectedRange(nextRange);
 onSelectionChange?.(component.id, nextRange);
   }
 
+  function renderTextWithFindHighlight(text: string, offset: number) {
+    if (!findMatch) return text;
+  
+    const matchStart = findMatch.start;
+    const matchEnd = findMatch.end;
+  
+    const segmentStart = offset;
+    const segmentEnd = offset + text.length;
+  
+    if (
+      matchEnd <= segmentStart ||
+      matchStart >= segmentEnd
+    ) {
+      return text;
+    }
+  
+    const localStart = Math.max(
+      0,
+      matchStart - segmentStart
+    );
+  
+    const localEnd = Math.min(
+      text.length,
+      matchEnd - segmentStart
+    );
+  
+    return (
+      <>
+        {text.slice(0, localStart)}
+        <mark className="rounded bg-yellow-200 px-0.5">
+          {text.slice(localStart, localEnd)}
+        </mark>
+        {text.slice(localEnd)}
+      </>
+    );
+  }
+
   return (
     <div
-      className="absolute"
+    data-worksheet-component="true"
+    className="absolute"
       style={{
         left: component.x,
         top: component.y,
         width: component.width,
         minHeight: component.height,
         border: isSelected
-          ? '2px solid rgb(139 92 246)'
-          : '2px solid transparent',
+  ? '2px solid rgb(139 92 246)'
+  : isHovered
+    ? '1px solid rgb(196 181 253)'
+    : '2px solid transparent',
       }}
+
+      onMouseEnter={() => setIsHovered(true)}
+onMouseLeave={() => setIsHovered(false)}
+
       onClick={(event) => {
         event.stopPropagation();
         onSelect(component.id, event);
@@ -136,6 +189,7 @@ onSelectionChange?.(component.id, nextRange);
           fontStyle: component.italic ? 'italic' : 'normal',
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
+          whiteSpace: 'pre-wrap',
         }}
         onPointerDown={(event) => {
           if (isSelected) {
@@ -151,41 +205,57 @@ onSelectionChange?.(component.id, nextRange);
 
         onBlur={(event) => {
           const updatedText =
-            event.currentTarget.textContent?.trim() || '';
+            event.currentTarget.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '');
         
-          onTextChange?.(component.id, updatedText);
+          const textChanged =
+            updatedText !== component.text;
         
           onUpdateComponent(component.id, {
-            richText: updatedText
-              ? [
-                  {
-                    text: updatedText,
-                  },
-                ]
-              : [],
+            text: updatedText,
+            richText: textChanged
+              ? updatedText
+                ? [
+                    {
+                      text: updatedText,
+                    },
+                  ]
+                : []
+              : component.richText,
           });
         }}
       >
         {component.richText.length > 0
-  ? component.richText.map((segment, index) => (
-      <span
-        key={`${segment.text}-${index}`}
-        style={{
-          fontWeight: segment.style?.bold ? 700 : undefined,
-          fontStyle: segment.style?.italic ? 'italic' : undefined,
-          textDecoration: segment.style?.underline
-            ? 'underline'
-            : undefined,
-          color: segment.style?.color,
-          fontFamily: segment.style?.fontFamily,
-        }}
-      >
-        {segment.text}
-      </span>
-    ))
-  : component.text}
+  ? component.richText.map((segment, index) => {
+      const offset = component.richText
+        .slice(0, index)
+        .reduce(
+          (total, currentSegment) =>
+            total + currentSegment.text.length,
+          0
+        );
+
+      return (
+        <span
+          key={`${segment.text}-${index}`}
+          style={{
+            fontWeight: segment.style?.bold ? 700 : undefined,
+            fontStyle: segment.style?.italic ? 'italic' : undefined,
+            textDecoration: segment.style?.underline
+              ? 'underline'
+              : undefined,
+            color: segment.style?.color,
+            fontFamily: segment.style?.fontFamily,
+          }}
+        >
+          {renderTextWithFindHighlight(segment.text, offset)}
+        </span>
+      );
+    })
+  : renderTextWithFindHighlight(component.text, 0)}
       </div>
-      {isSelected && !component.locked && (
+      {isSelected && !isGroupSelected && !component.locked && (
   <button
   type="button"
   aria-label="Resize component"

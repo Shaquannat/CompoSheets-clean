@@ -84,16 +84,38 @@ export type WorksheetComponent =
   | AnswerLinesComponent
   | CheckboxComponent;
 
-export type DragState = {
-  componentId: string;
-  offsetX: number;
-  offsetY: number;
-} | null;
+  export type DragState = {
+    componentId: string;
+    offsetX: number;
+    offsetY: number;
+    startX: number;
+    startY: number;
+    historySaved: boolean;
+    components: {
+      id: string;
+      startX: number;
+      startY: number;
+    }[];
+  } | null;
 
-export type ResizeState = {
-  componentId: string;
-  startX: number;
-  startY: number;
-  startWidth: number;
-  startHeight: number;
-} | null;
+  export type ResizeState = {
+    componentId: string;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+    historySaved: boolean;
+    groupBounds: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    } | null;
+    components: {
+      id: string;
+      startX: number;
+      startY: number;
+      startWidth: number;
+      startHeight: number;
+    }[];
+  } | null;

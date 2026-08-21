@@ -155,6 +155,14 @@ export function RightSidebar({
     >
       Delete selected
     </button>
+
+    <button
+  type="button"
+  onClick={onDuplicate}
+  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+>
+  Duplicate selected
+</button>
   </div>
 ) : selectedComponent ? (
         <div className="space-y-5">

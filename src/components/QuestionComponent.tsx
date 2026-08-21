@@ -7,6 +7,7 @@ import type { QuestionComponent as QuestionComponentType } from '../types/worksh
 type QuestionComponentProps = {
   component: QuestionComponentType;
   isSelected: boolean;
+  isGroupSelected: boolean;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -29,6 +30,7 @@ type QuestionComponentProps = {
 export function QuestionComponent({
   component,
   isSelected,
+  isGroupSelected,
   onSelect,
   onStartDragging,
   onResizeStart,
@@ -39,6 +41,7 @@ onSelectionChange,
     start: number;
     end: number;
   } | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
   
@@ -83,6 +86,7 @@ onSelectionChange?.(component.id, nextRange);
 
   return (
     <div
+    data-worksheet-component="true"
       className="absolute"
       style={{
         left: component.x,
@@ -90,9 +94,13 @@ onSelectionChange?.(component.id, nextRange);
         width: component.width,
         minHeight: component.height,
         border: isSelected
-          ? '2px solid rgb(139 92 246)'
-          : '2px solid transparent',
+  ? '2px solid rgb(139 92 246)'
+  : isHovered
+    ? '1px solid rgb(196 181 253)'
+    : '2px solid transparent',
       }}
+      onMouseEnter={() => setIsHovered(true)}
+onMouseLeave={() => setIsHovered(false)}
       onClick={(event) => {
         event.stopPropagation();
         onSelect(component.id, event);
@@ -170,7 +178,7 @@ onSelectionChange?.(component.id, nextRange);
   : component.question}
       </div>
 
-      {isSelected && !component.locked && (
+      {isSelected && !isGroupSelected && !component.locked && (
         <button
           type="button"
           aria-label="Resize question"

@@ -9,11 +9,29 @@ import { CheckboxComponent } from './CheckboxComponent';
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
   selectedComponentId: string | null;
-  components: WorksheetComponent[];
+  selectedComponentIds: string[];
+
+  selectionBox: {
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+  } | null;
+
+  findMatch?: {
+    componentId: string;
+    itemId?: string;
+    start: number;
+    end: number;
+  } | null;
+
   pageRef: RefObject<HTMLElement | null>;
   onSelectComponent: (
     id: string | null,
     event?: ReactPointerEvent<HTMLElement>
+  ) => void;
+  onStartSelectionBox: (
+    event: ReactPointerEvent<HTMLElement>
   ) => void;
   onStartDragging: (
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -49,8 +67,11 @@ export function WorksheetCanvas({
   components,
   selectedComponentId,
   selectedComponentIds,
+  selectionBox,
+  findMatch,
   pageRef,
   onSelectComponent,
+  onStartSelectionBox,
   onStartDragging,
   onResizeStart,
   onPointerMove,
@@ -61,6 +82,32 @@ onQuestionSelectionChange,
 onCheckboxSelectionChange,
 onUpdateComponent,
 }: WorksheetCanvasProps) {
+  const selectedComponents = components.filter((component) =>
+  selectedComponentIds.includes(component.id)
+);
+const isGroupSelected = selectedComponents.length > 1;
+
+const groupBounds =
+  selectedComponents.length > 1
+    ? {
+        left: Math.min(
+          ...selectedComponents.map((component) => component.x)
+        ),
+        top: Math.min(
+          ...selectedComponents.map((component) => component.y)
+        ),
+        right: Math.max(
+          ...selectedComponents.map(
+            (component) => component.x + component.width
+          )
+        ),
+        bottom: Math.max(
+          ...selectedComponents.map(
+            (component) => component.y + component.height
+          )
+        ),
+      }
+    : null;
   return (
     <section className="min-w-0 overflow-auto bg-slate-200/70">
       <div className="flex min-h-full flex-col items-center px-4 py-6 sm:px-8 sm:py-8">
@@ -101,17 +148,83 @@ onUpdateComponent,
             ref={pageRef}
             aria-label="Blank US Letter worksheet page"
             className="relative mx-auto aspect-[8.5/11] w-full touch-none bg-white shadow-xl"
+            onPointerDown={onStartSelectionBox}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}
             onPointerCancel={onPointerEnd}
             onPointerLeave={onPointerEnd}
-            onClick={() => onSelectComponent(null)}
           >
             <div className="pointer-events-none absolute inset-[48px] border border-dashed border-violet-300">
               <span className="absolute -top-6 left-0 text-[11px] font-medium text-violet-500">
                 Printable margin
               </span>
             </div>
+            {selectionBox && (
+  <div
+    className="pointer-events-none absolute border border-violet-500 bg-violet-200/20"
+    style={{
+      left: Math.min(
+        selectionBox.startX,
+        selectionBox.currentX
+      ),
+      top: Math.min(
+        selectionBox.startY,
+        selectionBox.currentY
+      ),
+      width: Math.abs(
+        selectionBox.currentX -
+          selectionBox.startX
+      ),
+      height: Math.abs(
+        selectionBox.currentY -
+          selectionBox.startY
+      ),
+      zIndex: 10002,
+    }}
+  />
+)}
+            {groupBounds && isGroupSelected && (
+  <>
+    <div
+      className="pointer-events-none absolute"
+      style={{
+        left: groupBounds.left,
+        top: groupBounds.top,
+        width: groupBounds.right - groupBounds.left,
+        height: groupBounds.bottom - groupBounds.top,
+        border: '2px solid rgb(124 58 237)',
+        boxSizing: 'border-box',
+        zIndex: 10000,
+      }}
+    />
+
+    <button
+      type="button"
+      aria-label="Resize selected group"
+      title="Resize selected group"
+      className="absolute flex h-5 w-5 cursor-se-resize items-center justify-center rounded-sm border border-violet-600 bg-white text-[10px] text-violet-600 shadow-sm"
+      style={{
+        left: groupBounds.right - 10,
+        top: groupBounds.bottom - 10,
+        zIndex: 10001,
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+
+        const anchorComponent = selectedComponents[0];
+
+        if (!anchorComponent) return;
+
+        onResizeStart(event, anchorComponent);
+      }}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+    >
+      ↘
+    </button>
+  </>
+)}
             {components.map((component) => {
   if (component.type === 'text') {
     return (
@@ -122,11 +235,21 @@ onUpdateComponent,
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)
         }
+        isGroupSelected={isGroupSelected}
+        findMatch={
+          findMatch?.componentId === component.id
+            ? {
+                start: findMatch.start,
+                end: findMatch.end,
+              }
+            : null
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
         onTextChange={onTextChange}
         onSelectionChange={onTextSelectionChange}
+        onUpdateComponent={onUpdateComponent}
       />
     );
   }
@@ -140,6 +263,7 @@ onUpdateComponent,
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)
         }
+        isGroupSelected={isGroupSelected}
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -160,6 +284,7 @@ onUpdateComponent,
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)
         }
+        isGroupSelected={isGroupSelected}
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -179,6 +304,7 @@ onUpdateComponent,
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)
         }
+        isGroupSelected={isGroupSelected}
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
