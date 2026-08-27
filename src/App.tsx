@@ -25,6 +25,12 @@ function App() {
   const undoStack = useRef<WorksheetComponent[][]>([]);
 const redoStack = useRef<WorksheetComponent[][]>([]);
 const componentClipboard = useRef<WorksheetComponent[]>([]);
+
+const textInputHistoryRef = useRef<{
+  componentId: string;
+  lastText: string;
+} | null>(null);
+
   const [components, setComponents] = useState<WorksheetComponent[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
@@ -79,6 +85,50 @@ const [findMatch, setFindMatch] = useState<{
       );
     
       redoStack.current = [];
+    }
+
+    function recordTextInputHistory(
+      componentId: string,
+      nextText: string
+    ) {
+      const component = components.find(
+        (currentComponent) =>
+          currentComponent.id === componentId
+      );
+    
+      if (!component || component.type !== 'text') return;
+    
+      const previousText =
+        textInputHistoryRef.current?.componentId === componentId
+          ? textInputHistoryRef.current.lastText
+          : component.text;
+    
+      if (previousText === nextText) return;
+    
+      const previousComponents = components.map(
+        (currentComponent) =>
+          currentComponent.id === componentId &&
+          currentComponent.type === 'text'
+            ? {
+                ...currentComponent,
+                text: previousText,
+                richText: previousText
+                  ? [{ text: previousText }]
+                  : [],
+              }
+            : currentComponent
+      );
+    
+      undoStack.current.push(
+        structuredClone(previousComponents)
+      );
+    
+      redoStack.current = [];
+    
+      textInputHistoryRef.current = {
+        componentId,
+        lastText: nextText,
+      };
     }
     
     function findMatchingComponent(query: string) {
@@ -540,6 +590,14 @@ setComponents((currentComponents) =>
     setCheckboxSelection(null);
   }
 
+  function handleToolbarUndo() {
+    undo();
+  }
+  
+  function handleToolbarRedo() {
+    redo();
+  }
+    
   function isEditableTarget(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) return false;
   
@@ -699,6 +757,14 @@ setComponents((currentComponents) =>
           isEditableTarget(event.target) &&
           (key === 'z' || key === 'y')
         ) {
+          event.preventDefault();
+        
+          if (key === 'y' || (key === 'z' && event.shiftKey)) {
+            redo();
+          } else {
+            undo();
+          }
+        
           return;
         }
         
@@ -1251,8 +1317,8 @@ resizeState.current = {
 )}
 
       <TopBar
-  onUndo={undo}
-  onRedo={redo}
+  onUndo={handleToolbarUndo}
+  onRedo={handleToolbarRedo}
 />
 
       <main className="grid flex-1 grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_260px]">
@@ -1311,6 +1377,7 @@ resizeState.current = {
           onPointerMove={handlePagePointerMove}
           onPointerEnd={stopPointerInteraction}
           onTextChange={(id, text) => updateComponent(id, { text })}
+          onTextInput={recordTextInputHistory}
           onUpdateComponent={updateComponent}
 
           onTextSelectionChange={(id, range) => {

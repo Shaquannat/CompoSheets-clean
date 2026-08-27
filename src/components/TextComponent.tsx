@@ -1,4 +1,6 @@
 import {
+  useLayoutEffect,
+  useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -27,6 +29,7 @@ type TextComponentProps = {
   ) => void;
 
   onTextChange?: (id: string, text: string) => void;
+  onTextInput?: (id: string, text: string) => void;
   onSelectionChange?: (
     id: string,
     range: { start: number; end: number } | null
@@ -46,6 +49,7 @@ export function TextComponent({
   onStartDragging,
   onResizeStart,
   onTextChange,
+  onTextInput,
 onSelectionChange,
 onUpdateComponent,
 }: TextComponentProps) {
@@ -55,6 +59,9 @@ onUpdateComponent,
   } | null>(null);
 
   const [isHovered, setIsHovered] = useState(false);
+
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const caretOffsetRef = useRef(0);
 
   function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
@@ -86,6 +93,8 @@ return;
     const start = beforeSelection.toString().length;
     const end = start + range.toString().length;
   
+    caretOffsetRef.current = end;
+
     const nextRange =
   start !== end
     ? {
@@ -97,6 +106,63 @@ return;
 setSelectedRange(nextRange);
 onSelectionChange?.(component.id, nextRange);
   }
+
+  function restoreCaretPosition() {
+    const editor = editorRef.current;
+  
+    if (!editor) return;
+  
+    const selection = window.getSelection();
+  
+    if (!selection) return;
+  
+    const range = document.createRange();
+    const targetOffset = caretOffsetRef.current;
+  
+    let currentOffset = 0;
+    let targetNode: Node | null = null;
+    let nodeOffset = 0;
+  
+    const walker = document.createTreeWalker(
+      editor,
+      NodeFilter.SHOW_TEXT
+    );
+  
+    let node = walker.nextNode();
+  
+    while (node) {
+      const textLength = node.textContent?.length ?? 0;
+  
+      if (currentOffset + textLength >= targetOffset) {
+        targetNode = node;
+        nodeOffset = Math.min(
+          targetOffset - currentOffset,
+          textLength
+        );
+        break;
+      }
+  
+      currentOffset += textLength;
+      node = walker.nextNode();
+    }
+  
+    if (!targetNode) {
+      targetNode = editor;
+      nodeOffset = editor.childNodes.length;
+    }
+  
+    range.setStart(targetNode, nodeOffset);
+    range.collapse(true);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  useLayoutEffect(() => {
+    if (document.activeElement === editorRef.current) {
+      restoreCaretPosition();
+    }
+  }, [component.text]);
 
   function renderTextWithFindHighlight(text: string, offset: number) {
     if (!findMatch) return text;
@@ -178,6 +244,7 @@ onMouseLeave={() => setIsHovered(false)}
       )}
 
 <div
+ref={editorRef}
   contentEditable
   data-placeholder="Type text"
         suppressContentEditableWarning
@@ -201,6 +268,15 @@ onMouseLeave={() => setIsHovered(false)}
         }}
         onKeyUp={(event) => {
           captureSelection(event.currentTarget);
+        }}
+
+        onInput={(event) => {
+          const updatedText =
+            event.currentTarget.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '');
+        
+          onTextInput?.(component.id, updatedText);
         }}
 
         onBlur={(event) => {

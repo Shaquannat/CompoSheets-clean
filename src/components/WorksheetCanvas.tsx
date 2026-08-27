@@ -44,6 +44,7 @@ type WorksheetCanvasProps = {
   onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerEnd: () => void;
   onTextChange: (id: string, text: string) => void;
+  onTextInput?: (id: string, text: string) => void;
   onTextSelectionChange?: (
     id: string,
     range: { start: number; end: number } | null
@@ -77,6 +78,7 @@ export function WorksheetCanvas({
   onPointerMove,
   onPointerEnd,
   onTextChange,
+  onTextInput,
   onTextSelectionChange,
 onQuestionSelectionChange,
 onCheckboxSelectionChange,
@@ -248,6 +250,7 @@ const groupBounds =
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
         onTextChange={onTextChange}
+        onTextInput={onTextInput}
         onSelectionChange={onTextSelectionChange}
         onUpdateComponent={onUpdateComponent}
       />
