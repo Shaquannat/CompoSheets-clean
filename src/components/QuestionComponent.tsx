@@ -1,4 +1,6 @@
 import {
+  useLayoutEffect,
+  useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -21,7 +23,8 @@ type QuestionComponentProps = {
     component: QuestionComponentType
   ) => void;
   onQuestionChange?: (id: string, question: string) => void;
-  onSelectionChange?: (
+onQuestionInput?: (id: string, question: string) => void;
+onSelectionChange?: (
     id: string,
     range: { start: number; end: number } | null
   ) => void;
@@ -34,7 +37,8 @@ export function QuestionComponent({
   onSelect,
   onStartDragging,
   onResizeStart,
-  onQuestionChange,
+onQuestionChange,
+onQuestionInput,
 onSelectionChange,
 }: QuestionComponentProps) {
   const [selectedRange, setSelectedRange] = useState<{
@@ -42,7 +46,12 @@ onSelectionChange,
     end: number;
   } | null>(null);
   const [isHovered, setIsHovered] = useState(false);
-  function captureSelection(element: HTMLElement) {
+
+const editorRef = useRef<HTMLDivElement | null>(null);
+const caretOffsetRef = useRef(0);
+const previousQuestionRef = useRef(component.question);
+
+function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
   
     if (!selection || selection.rangeCount === 0) {
@@ -72,6 +81,8 @@ return;
     const start = beforeSelection.toString().length;
     const end = start + range.toString().length;
   
+    caretOffsetRef.current = end;
+
     const nextRange =
   start !== end
     ? {
@@ -83,6 +94,73 @@ return;
 setSelectedRange(nextRange);
 onSelectionChange?.(component.id, nextRange);
   }
+  function restoreCaretPosition() {
+    const editor = editorRef.current;
+  
+    if (!editor) return;
+  
+    const selection = window.getSelection();
+  
+    if (!selection) return;
+  
+    const range = document.createRange();
+    const targetOffset = caretOffsetRef.current;
+  
+    let currentOffset = 0;
+    let targetNode: Node | null = null;
+    let nodeOffset = 0;
+  
+    const walker = document.createTreeWalker(
+      editor,
+      NodeFilter.SHOW_TEXT
+    );
+  
+    let node = walker.nextNode();
+  
+    while (node) {
+      const textLength = node.textContent?.length ?? 0;
+  
+      if (currentOffset + textLength >= targetOffset) {
+        targetNode = node;
+        nodeOffset = Math.min(
+          targetOffset - currentOffset,
+          textLength
+        );
+        break;
+      }
+  
+      currentOffset += textLength;
+      node = walker.nextNode();
+    }
+  
+    if (!targetNode) {
+      targetNode = editor;
+      nodeOffset = editor.childNodes.length;
+    }
+  
+    range.setStart(targetNode, nodeOffset);
+    range.collapse(true);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  
+  useLayoutEffect(() => {
+    const previousQuestion = previousQuestionRef.current;
+  
+    if (document.activeElement === editorRef.current) {
+      const wasAtEnd =
+        caretOffsetRef.current >= previousQuestion.length;
+  
+      if (wasAtEnd) {
+        caretOffsetRef.current = component.question.length;
+      }
+  
+      restoreCaretPosition();
+    }
+  
+    previousQuestionRef.current = component.question;
+  }, [component.question]);
 
   return (
     <div
@@ -124,9 +202,10 @@ onMouseLeave={() => setIsHovered(false)}
         </button>
       )}
 
-      <div
-        contentEditable
-        data-placeholder="Type your question here"
+<div
+  ref={editorRef}
+  contentEditable
+  data-placeholder="Type your question here"
         suppressContentEditableWarning
         className="question-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
         style={{
@@ -151,6 +230,18 @@ onMouseLeave={() => setIsHovered(false)}
           captureSelection(event.currentTarget);
         }}
 
+        onInput={(event) => {
+          const updatedQuestion =
+            event.currentTarget.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '');
+        
+          onQuestionInput?.(
+            component.id,
+            updatedQuestion
+          );
+        }}
+        
         onBlur={(event) => {
           const updatedQuestion =
           event.currentTarget.textContent?.trim() || '';

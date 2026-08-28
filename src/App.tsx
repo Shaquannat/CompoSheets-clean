@@ -31,6 +31,17 @@ const textInputHistoryRef = useRef<{
   lastText: string;
 } | null>(null);
 
+const questionInputHistoryRef = useRef<{
+  componentId: string;
+  lastQuestion: string;
+} | null>(null);
+
+const checkboxInputHistoryRef = useRef<{
+  componentId: string;
+  itemId: string;
+  lastText: string;
+} | null>(null);
+
   const [components, setComponents] = useState<WorksheetComponent[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
@@ -131,6 +142,143 @@ const [findMatch, setFindMatch] = useState<{
       };
     }
     
+    function recordQuestionInputHistory(
+      componentId: string,
+      nextQuestion: string
+    ) {
+      const component = components.find(
+        (currentComponent) =>
+          currentComponent.id === componentId
+      );
+    
+      if (!component || component.type !== 'question') return;
+    
+      const previousQuestion =
+        questionInputHistoryRef.current?.componentId === componentId
+          ? questionInputHistoryRef.current.lastQuestion
+          : component.question;
+    
+      if (previousQuestion === nextQuestion) return;
+    
+      const previousComponents = components.map(
+        (currentComponent) =>
+          currentComponent.id === componentId &&
+          currentComponent.type === 'question'
+            ? {
+                ...currentComponent,
+                question: previousQuestion,
+                richText: previousQuestion
+                  ? [{ text: previousQuestion }]
+                  : [],
+              }
+            : currentComponent
+      );
+    
+      undoStack.current.push(
+        structuredClone(previousComponents)
+      );
+    
+      redoStack.current = [];
+    
+      questionInputHistoryRef.current = {
+        componentId,
+        lastQuestion: nextQuestion,
+      };
+    }
+
+    function recordCheckboxInputHistory(
+      componentId: string,
+      itemId: string,
+      nextText: string
+    ) {
+      const component = components.find(
+        (currentComponent) =>
+          currentComponent.id === componentId
+      );
+    
+      if (!component || component.type !== 'checkbox') return;
+    
+      const item = component.items.find(
+        (currentItem) => currentItem.id === itemId
+      );
+    
+      if (!item) return;
+    
+      const previousText =
+        checkboxInputHistoryRef.current?.componentId === componentId &&
+        checkboxInputHistoryRef.current?.itemId === itemId
+          ? checkboxInputHistoryRef.current.lastText
+          : item.text;
+    
+      if (previousText === nextText) return;
+    
+      const previousComponents = components.map(
+        (currentComponent) => {
+          if (
+            currentComponent.id !== componentId ||
+            currentComponent.type !== 'checkbox'
+          ) {
+            return currentComponent;
+          }
+    
+          return {
+            ...currentComponent,
+            items: currentComponent.items.map(
+              (currentItem) =>
+                currentItem.id === itemId
+                  ? {
+                      ...currentItem,
+                      text: previousText,
+                      richText: previousText
+                        ? [{ text: previousText }]
+                        : [],
+                    }
+                  : currentItem
+            ),
+          };
+        }
+      );
+    
+      undoStack.current.push(
+        structuredClone(previousComponents)
+      );
+    
+      redoStack.current = [];
+    
+      checkboxInputHistoryRef.current = {
+        componentId,
+        itemId,
+        lastText: nextText,
+      };
+
+      setComponents((currentComponents) =>
+  currentComponents.map((currentComponent) => {
+    if (
+      currentComponent.id !== componentId ||
+      currentComponent.type !== 'checkbox'
+    ) {
+      return currentComponent;
+    }
+
+    return {
+      ...currentComponent,
+      items: currentComponent.items.map(
+        (currentItem) =>
+          currentItem.id === itemId
+            ? {
+                ...currentItem,
+                text: nextText,
+                richText: nextText
+                  ? [{ text: nextText }]
+                  : [],
+              }
+            : currentItem
+      ),
+    };
+  })
+);
+    }
+
     function findMatchingComponent(query: string) {
       const normalizedQuery = query.trim().toLowerCase();
     
@@ -359,14 +507,24 @@ markColor: '#0f172a',
     });
   }
 
-  function updateComponent(id: string, changes: Partial<WorksheetComponent>) {
-    setComponents((currentComponents) => {
-      saveHistory(currentComponents);
+  function updateComponent(
+    id: string,
+    changes: Partial<WorksheetComponent>
+  ) {
+    const nextComponents = components.map((component) =>
+      component.id === id
+        ? { ...component, ...changes }
+        : component
+    );
   
-      return currentComponents.map((component) =>
-        component.id === id ? { ...component, ...changes } : component
-      );
-    });
+    const hasChanged =
+      JSON.stringify(components) !==
+      JSON.stringify(nextComponents);
+  
+    if (!hasChanged) return;
+  
+    saveHistory(components);
+    setComponents(nextComponents);
   }
 
   function deleteSelectedComponent() {
@@ -556,21 +714,63 @@ setComponents((currentComponents) =>
   
     const currentComponents = components.map((component) => {
       if (
-        component.type !== 'text' ||
-        textInputHistoryRef.current?.componentId !== component.id
+        component.type === 'text' &&
+        textInputHistoryRef.current?.componentId === component.id
       ) {
-        return component;
+        const liveText = textInputHistoryRef.current.lastText;
+  
+        return {
+          ...component,
+          text: liveText,
+          richText: liveText
+            ? [{ text: liveText }]
+            : [],
+        };
       }
   
-      const liveText = textInputHistoryRef.current.lastText;
+      if (
+        component.type === 'question' &&
+        questionInputHistoryRef.current?.componentId === component.id
+      ) {
+        const liveQuestion =
+          questionInputHistoryRef.current.lastQuestion;
   
-      return {
-        ...component,
-        text: liveText,
-        richText: liveText
-          ? [{ text: liveText }]
-          : [],
-      };
+        return {
+          ...component,
+          question: liveQuestion,
+          richText: liveQuestion
+            ? [{ text: liveQuestion }]
+            : [],
+        };
+      }
+  
+      if (
+        component.type === 'checkbox' &&
+        checkboxInputHistoryRef.current?.componentId === component.id
+      ) {
+        const liveItemId =
+          checkboxInputHistoryRef.current.itemId;
+  
+        const liveText =
+          checkboxInputHistoryRef.current.lastText;
+  
+        return {
+          ...component,
+          items: component.items.map((item) =>
+            item.id === liveItemId
+              ? {
+                  ...item,
+                  text: liveText,
+                  richText: liveText
+                    ? [{ text: liveText }]
+                    : [],
+                }
+              : item
+          ),
+        };
+      }
+  
+      return component;
     });
   
     redoStack.current.push(
@@ -601,6 +801,61 @@ setComponents((currentComponents) =>
       }
     }
   
+    if (questionInputHistoryRef.current) {
+      const previousQuestionComponent = previousState.find(
+        (component) =>
+          component.id ===
+            questionInputHistoryRef.current?.componentId &&
+          component.type === 'question'
+      );
+  
+      if (
+        previousQuestionComponent &&
+        previousQuestionComponent.type === 'question'
+      ) {
+        questionInputHistoryRef.current = {
+          componentId: previousQuestionComponent.id,
+          lastQuestion: previousQuestionComponent.question,
+        };
+      } else {
+        questionInputHistoryRef.current = null;
+      }
+    }
+  
+    if (checkboxInputHistoryRef.current) {
+      const previousCheckboxComponent =
+        previousState.find(
+          (component) =>
+            component.id ===
+              checkboxInputHistoryRef.current?.componentId &&
+            component.type === 'checkbox'
+        );
+  
+      if (
+        previousCheckboxComponent &&
+        previousCheckboxComponent.type === 'checkbox'
+      ) {
+        const previousItem =
+          previousCheckboxComponent.items.find(
+            (item) =>
+              item.id ===
+              checkboxInputHistoryRef.current?.itemId
+          );
+  
+        if (previousItem) {
+          checkboxInputHistoryRef.current = {
+            componentId: previousCheckboxComponent.id,
+            itemId: previousItem.id,
+            lastText: previousItem.text,
+          };
+        } else {
+          checkboxInputHistoryRef.current = null;
+        }
+      } else {
+        checkboxInputHistoryRef.current = null;
+      }
+    }
+  
     setSelectedComponentId(null);
     setSelectedComponentIds([]);
     setTextSelection(null);
@@ -617,21 +872,63 @@ setComponents((currentComponents) =>
   
     const currentComponents = components.map((component) => {
       if (
-        component.type !== 'text' ||
-        textInputHistoryRef.current?.componentId !== component.id
+        component.type === 'text' &&
+        textInputHistoryRef.current?.componentId === component.id
       ) {
-        return component;
+        const liveText = textInputHistoryRef.current.lastText;
+  
+        return {
+          ...component,
+          text: liveText,
+          richText: liveText
+            ? [{ text: liveText }]
+            : [],
+        };
       }
   
-      const liveText = textInputHistoryRef.current.lastText;
+      if (
+        component.type === 'question' &&
+        questionInputHistoryRef.current?.componentId === component.id
+      ) {
+        const liveQuestion =
+          questionInputHistoryRef.current.lastQuestion;
   
-      return {
-        ...component,
-        text: liveText,
-        richText: liveText
-          ? [{ text: liveText }]
-          : [],
-      };
+        return {
+          ...component,
+          question: liveQuestion,
+          richText: liveQuestion
+            ? [{ text: liveQuestion }]
+            : [],
+        };
+      }
+  
+      if (
+        component.type === 'checkbox' &&
+        checkboxInputHistoryRef.current?.componentId === component.id
+      ) {
+        const liveItemId =
+          checkboxInputHistoryRef.current.itemId;
+  
+        const liveText =
+          checkboxInputHistoryRef.current.lastText;
+  
+        return {
+          ...component,
+          items: component.items.map((item) =>
+            item.id === liveItemId
+              ? {
+                  ...item,
+                  text: liveText,
+                  richText: liveText
+                    ? [{ text: liveText }]
+                    : [],
+                }
+              : item
+          ),
+        };
+      }
+  
+      return component;
     });
   
     undoStack.current.push(
@@ -662,13 +959,68 @@ setComponents((currentComponents) =>
       }
     }
   
+    if (questionInputHistoryRef.current) {
+      const nextQuestionComponent = nextState.find(
+        (component) =>
+          component.id ===
+            questionInputHistoryRef.current?.componentId &&
+          component.type === 'question'
+      );
+  
+      if (
+        nextQuestionComponent &&
+        nextQuestionComponent.type === 'question'
+      ) {
+        questionInputHistoryRef.current = {
+          componentId: nextQuestionComponent.id,
+          lastQuestion: nextQuestionComponent.question,
+        };
+      } else {
+        questionInputHistoryRef.current = null;
+      }
+    }
+  
+    if (checkboxInputHistoryRef.current) {
+      const nextCheckboxComponent =
+        nextState.find(
+          (component) =>
+            component.id ===
+              checkboxInputHistoryRef.current?.componentId &&
+            component.type === 'checkbox'
+        );
+  
+      if (
+        nextCheckboxComponent &&
+        nextCheckboxComponent.type === 'checkbox'
+      ) {
+        const nextItem =
+          nextCheckboxComponent.items.find(
+            (item) =>
+              item.id ===
+              checkboxInputHistoryRef.current?.itemId
+          );
+  
+        if (nextItem) {
+          checkboxInputHistoryRef.current = {
+            componentId: nextCheckboxComponent.id,
+            itemId: nextItem.id,
+            lastText: nextItem.text,
+          };
+        } else {
+          checkboxInputHistoryRef.current = null;
+        }
+      } else {
+        checkboxInputHistoryRef.current = null;
+      }
+    }
+  
     setSelectedComponentId(null);
     setSelectedComponentIds([]);
     setTextSelection(null);
     setQuestionSelection(null);
     setCheckboxSelection(null);
   }
-
+  
   function handleToolbarUndo() {
     undo();
   }
@@ -676,7 +1028,7 @@ setComponents((currentComponents) =>
   function handleToolbarRedo() {
     redo();
   }
-    
+  
   function isEditableTarget(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) return false;
   
@@ -687,7 +1039,7 @@ setComponents((currentComponents) =>
       target.tagName === 'SELECT'
     );
   }
-  
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -1214,30 +1566,49 @@ resizeState.current = {
     const proposedHeight =
       resize.startHeight + changeInHeight;
   
-    if (
-      component.type === 'answerLines' ||
-      component.type === 'checkbox'
-    ) {
-      updateComponent(component.id, {
-        width: Math.min(
-          Math.max(proposedWidth, minimumWidth),
-          maximumWidth
-        ),
-      });
-  
-      return;
-    }
-  
-    updateComponent(component.id, {
-      width: Math.min(
-        Math.max(proposedWidth, minimumWidth),
-        maximumWidth
-      ),
-      height: Math.min(
-        Math.max(proposedHeight, minimumHeight),
-        maximumHeight
-      ),
-    });
+      if (!resize.historySaved) {
+        saveHistory(components);
+        resize.historySaved = true;
+      }
+      
+      if (
+        component.type === 'answerLines' ||
+        component.type === 'checkbox'
+      ) {
+        setComponents((currentComponents) =>
+          currentComponents.map((currentComponent) =>
+            currentComponent.id === component.id
+              ? {
+                  ...currentComponent,
+                  width: Math.min(
+                    Math.max(proposedWidth, minimumWidth),
+                    maximumWidth
+                  ),
+                }
+              : currentComponent
+          )
+        );
+      
+        return;
+      }
+      
+      setComponents((currentComponents) =>
+        currentComponents.map((currentComponent) =>
+          currentComponent.id === component.id
+            ? {
+                ...currentComponent,
+                width: Math.min(
+                  Math.max(proposedWidth, minimumWidth),
+                  maximumWidth
+                ),
+                height: Math.min(
+                  Math.max(proposedHeight, minimumHeight),
+                  maximumHeight
+                ),
+              }
+            : currentComponent
+        )
+      );
   }
 
   function startSelectionBox(event: ReactPointerEvent<HTMLElement>) {
@@ -1457,6 +1828,8 @@ resizeState.current = {
           onPointerEnd={stopPointerInteraction}
           onTextChange={(id, text) => updateComponent(id, { text })}
           onTextInput={recordTextInputHistory}
+          onQuestionInput={recordQuestionInputHistory}
+          onCheckboxInput={recordCheckboxInputHistory}
           onUpdateComponent={updateComponent}
 
           onTextSelectionChange={(id, range) => {

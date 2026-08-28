@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -31,6 +32,11 @@ type CheckboxComponentProps = {
     id: string,
     changes: Partial<CheckboxComponentType>
   ) => void;
+  onCheckboxInput?: (
+    componentId: string,
+    itemId: string,
+    text: string
+  ) => void;
   onSelectionChange?: (
     componentId: string,
     itemId: string,
@@ -46,6 +52,7 @@ export function CheckboxComponent({
   onStartDragging,
   onResizeStart,
   onUpdateComponent,
+  onCheckboxInput,
 onSelectionChange,
 }: CheckboxComponentProps) {
   const selectionRef = useRef<{
@@ -54,6 +61,10 @@ onSelectionChange,
     end: number;
   } | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+
+  const activeItemIdRef = useRef<string | null>(null);
+const caretOffsetRef = useRef(0);
+const previousItemTextRef = useRef('');
 
   function updateItem(
     itemId: string,
@@ -135,6 +146,85 @@ onSelectionChange,
       }
     });
   }
+
+  useLayoutEffect(() => {
+    const activeItemId = activeItemIdRef.current;
+  
+    if (!activeItemId) return;
+  
+    const activeItem = component.items.find(
+      (item) => item.id === activeItemId
+    );
+  
+    if (!activeItem) return;
+  
+    const editor = document.querySelector<HTMLElement>(
+      `[data-checkbox-item-id="${activeItemId}"]`
+    );
+  
+    if (!editor || document.activeElement !== editor) return;
+  
+    const previousText = previousItemTextRef.current;
+    const nextText = activeItem.text;
+  
+    const wasAtEnd =
+      caretOffsetRef.current >= previousText.length;
+  
+    if (wasAtEnd) {
+      caretOffsetRef.current = nextText.length;
+    } else {
+      caretOffsetRef.current = Math.min(
+        caretOffsetRef.current,
+        nextText.length
+      );
+    }
+  
+    const targetOffset = caretOffsetRef.current;
+  
+    const walker = document.createTreeWalker(
+      editor,
+      NodeFilter.SHOW_TEXT
+    );
+  
+    let currentOffset = 0;
+    let currentNode = walker.nextNode();
+  
+    while (currentNode) {
+      const nodeLength =
+        currentNode.textContent?.length ?? 0;
+  
+      if (
+        targetOffset <=
+        currentOffset + nodeLength
+      ) {
+        const range = document.createRange();
+  
+        range.setStart(
+          currentNode,
+          Math.max(
+            0,
+            targetOffset - currentOffset
+          )
+        );
+  
+        range.collapse(true);
+  
+        const selection = window.getSelection();
+  
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+  
+        break;
+      }
+  
+      currentOffset += nodeLength;
+      currentNode = walker.nextNode();
+    }
+  
+    previousItemTextRef.current = nextText;
+  }, [component.items]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -357,34 +447,54 @@ onMouseLeave={() => setIsHovered(false)}
       nextRange
     );
   }}
-  onFocus={() => {
-    if (item.showPlaceholder) {
-      updateItem(item.id, {
-        showPlaceholder: false,
-      });
-    }
+  onFocus={(event) => {
+    activeItemIdRef.current = item.id;
+    previousItemTextRef.current =
+      getEditableText(event.currentTarget);
   }}
 
-  onBlur={(event) => {
+  onInput={(event) => {
     const updatedText =
       getEditableText(event.currentTarget);
   
-    const textChanged =
-      updatedText !== item.text;
+    activeItemIdRef.current = item.id;
+    previousItemTextRef.current = updatedText;
   
-    updateItem(item.id, {
-      text: updatedText,
-      richText: textChanged
-        ? updatedText
-          ? [
-              {
-                text: updatedText,
-              },
-            ]
-          : []
-        : item.richText,
-      showPlaceholder: false,
-    });
+    const selection = window.getSelection();
+  
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+  
+      if (
+        event.currentTarget.contains(
+          range.endContainer
+        )
+      ) {
+        const beforeCaret = range.cloneRange();
+  
+        beforeCaret.selectNodeContents(
+          event.currentTarget
+        );
+  
+        beforeCaret.setEnd(
+          range.endContainer,
+          range.endOffset
+        );
+  
+        caretOffsetRef.current =
+          beforeCaret.toString().length;
+      }
+    }
+  
+    onCheckboxInput?.(
+      component.id,
+      item.id,
+      updatedText
+    );
+  }}
+
+  onBlur={() => {
+    activeItemIdRef.current = null;
   }}
 
   onKeyDown={(event) => {

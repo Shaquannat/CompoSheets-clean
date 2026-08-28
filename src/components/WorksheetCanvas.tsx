@@ -45,6 +45,12 @@ type WorksheetCanvasProps = {
   onPointerEnd: () => void;
   onTextChange: (id: string, text: string) => void;
   onTextInput?: (id: string, text: string) => void;
+  onQuestionInput?: (id: string, question: string) => void;
+  onCheckboxInput?: (
+    componentId: string,
+    itemId: string,
+    text: string
+  ) => void;
   onTextSelectionChange?: (
     id: string,
     range: { start: number; end: number } | null
@@ -79,6 +85,8 @@ export function WorksheetCanvas({
   onPointerEnd,
   onTextChange,
   onTextInput,
+  onQuestionInput,
+  onCheckboxInput,
   onTextSelectionChange,
 onQuestionSelectionChange,
 onCheckboxSelectionChange,
@@ -273,6 +281,7 @@ const groupBounds =
         onQuestionChange={(id, question) =>
           onUpdateComponent(id, { question })
         }
+        onQuestionInput={onQuestionInput}
         onSelectionChange={onQuestionSelectionChange}
       />
     );
@@ -311,6 +320,7 @@ const groupBounds =
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
+        onCheckboxInput={onCheckboxInput}
         onSelectionChange={onCheckboxSelectionChange}
         onUpdateComponent={onUpdateComponent}
       />
