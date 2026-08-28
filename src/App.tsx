@@ -554,13 +554,52 @@ setComponents((currentComponents) =>
   
     if (!previousState) return;
   
+    const currentComponents = components.map((component) => {
+      if (
+        component.type !== 'text' ||
+        textInputHistoryRef.current?.componentId !== component.id
+      ) {
+        return component;
+      }
+  
+      const liveText = textInputHistoryRef.current.lastText;
+  
+      return {
+        ...component,
+        text: liveText,
+        richText: liveText
+          ? [{ text: liveText }]
+          : [],
+      };
+    });
+  
     redoStack.current.push(
-      structuredClone(components)
+      structuredClone(currentComponents)
     );
   
     setComponents(
       structuredClone(previousState)
     );
+  
+    if (textInputHistoryRef.current) {
+      const previousTextComponent = previousState.find(
+        (component) =>
+          component.id === textInputHistoryRef.current?.componentId &&
+          component.type === 'text'
+      );
+  
+      if (
+        previousTextComponent &&
+        previousTextComponent.type === 'text'
+      ) {
+        textInputHistoryRef.current = {
+          componentId: previousTextComponent.id,
+          lastText: previousTextComponent.text,
+        };
+      } else {
+        textInputHistoryRef.current = null;
+      }
+    }
   
     setSelectedComponentId(null);
     setSelectedComponentIds([]);
@@ -576,15 +615,55 @@ setComponents((currentComponents) =>
   
     if (!nextState) return;
   
+    const currentComponents = components.map((component) => {
+      if (
+        component.type !== 'text' ||
+        textInputHistoryRef.current?.componentId !== component.id
+      ) {
+        return component;
+      }
+  
+      const liveText = textInputHistoryRef.current.lastText;
+  
+      return {
+        ...component,
+        text: liveText,
+        richText: liveText
+          ? [{ text: liveText }]
+          : [],
+      };
+    });
+  
     undoStack.current.push(
-      structuredClone(components)
+      structuredClone(currentComponents)
     );
   
     setComponents(
       structuredClone(nextState)
     );
   
+    if (textInputHistoryRef.current) {
+      const nextTextComponent = nextState.find(
+        (component) =>
+          component.id === textInputHistoryRef.current?.componentId &&
+          component.type === 'text'
+      );
+  
+      if (
+        nextTextComponent &&
+        nextTextComponent.type === 'text'
+      ) {
+        textInputHistoryRef.current = {
+          componentId: nextTextComponent.id,
+          lastText: nextTextComponent.text,
+        };
+      } else {
+        textInputHistoryRef.current = null;
+      }
+    }
+  
     setSelectedComponentId(null);
+    setSelectedComponentIds([]);
     setTextSelection(null);
     setQuestionSelection(null);
     setCheckboxSelection(null);

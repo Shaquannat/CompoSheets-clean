@@ -62,6 +62,7 @@ onUpdateComponent,
 
   const editorRef = useRef<HTMLDivElement | null>(null);
   const caretOffsetRef = useRef(0);
+  const previousTextRef = useRef(component.text);
 
   function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
@@ -159,9 +160,20 @@ onSelectionChange?.(component.id, nextRange);
   }
 
   useLayoutEffect(() => {
+    const previousText = previousTextRef.current;
+  
     if (document.activeElement === editorRef.current) {
+      const wasAtEnd =
+        caretOffsetRef.current >= previousText.length;
+  
+      if (wasAtEnd) {
+        caretOffsetRef.current = component.text.length;
+      }
+  
       restoreCaretPosition();
     }
+  
+    previousTextRef.current = component.text;
   }, [component.text]);
 
   function renderTextWithFindHighlight(text: string, offset: number) {
