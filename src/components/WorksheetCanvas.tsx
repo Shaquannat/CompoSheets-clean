@@ -25,6 +25,20 @@ type WorksheetCanvasProps = {
     end: number;
   } | null;
 
+  findMatches?: {
+    componentId: string;
+    itemId?: string;
+    start: number;
+    end: number;
+  }[];
+  
+  activeFindMatch?: {
+    componentId: string;
+    itemId?: string;
+    start: number;
+    end: number;
+  } | null;
+
   pageRef: RefObject<HTMLElement | null>;
   onSelectComponent: (
     id: string | null,
@@ -76,6 +90,8 @@ export function WorksheetCanvas({
   selectedComponentIds,
   selectionBox,
   findMatch,
+  findMatches = [],
+activeFindMatch,
   pageRef,
   onSelectComponent,
   onStartSelectionBox,
@@ -254,6 +270,27 @@ const groupBounds =
               }
             : null
         }
+
+        findMatches={findMatches
+          .filter(
+            (match) =>
+              match.componentId === component.id &&
+              !match.itemId
+          )
+          .map((match) => ({
+            start: match.start,
+            end: match.end,
+          }))}
+        
+        activeFindMatch={
+          activeFindMatch?.componentId === component.id &&
+          !activeFindMatch.itemId
+            ? {
+                start: activeFindMatch.start,
+                end: activeFindMatch.end,
+              }
+            : null
+        }
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -275,6 +312,28 @@ const groupBounds =
           selectedComponentIds.includes(component.id)
         }
         isGroupSelected={isGroupSelected}
+
+        findMatches={findMatches
+          .filter(
+            (match) =>
+              match.componentId === component.id &&
+              !match.itemId
+          )
+          .map((match) => ({
+            start: match.start,
+            end: match.end,
+          }))}
+        
+        activeFindMatch={
+          activeFindMatch?.componentId === component.id &&
+          !activeFindMatch.itemId
+            ? {
+                start: activeFindMatch.start,
+                end: activeFindMatch.end,
+              }
+            : null
+        }
+
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
@@ -317,6 +376,30 @@ const groupBounds =
           selectedComponentIds.includes(component.id)
         }
         isGroupSelected={isGroupSelected}
+
+        findMatches={findMatches
+          .filter(
+            (match) =>
+              match.componentId === component.id &&
+              match.itemId
+          )
+          .map((match) => ({
+            itemId: match.itemId as string,
+            start: match.start,
+            end: match.end,
+          }))}
+        
+        activeFindMatch={
+          activeFindMatch?.componentId === component.id &&
+          activeFindMatch.itemId
+            ? {
+                itemId: activeFindMatch.itemId,
+                start: activeFindMatch.start,
+                end: activeFindMatch.end,
+              }
+            : null
+        }
+        
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}

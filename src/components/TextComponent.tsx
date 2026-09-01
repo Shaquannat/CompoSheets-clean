@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react';
 import type { TextComponent as TextComponentType } from '../types/worksheet';
 
@@ -14,6 +15,17 @@ type TextComponentProps = {
     start: number;
     end: number;
   } | null;
+
+  findMatches?: {
+    start: number;
+    end: number;
+  }[];
+  
+  activeFindMatch?: {
+    start: number;
+    end: number;
+  } | null;
+
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -45,6 +57,8 @@ export function TextComponent({
   isSelected,
   isGroupSelected,
   findMatch,
+  findMatches = [],
+  activeFindMatch,
   onSelect,
   onStartDragging,
   onResizeStart,
@@ -177,40 +191,77 @@ onSelectionChange?.(component.id, nextRange);
   }, [component.text]);
 
   function renderTextWithFindHighlight(text: string, offset: number) {
-    if (!findMatch) return text;
+    const matchesToRender =
+      findMatches.length > 0
+        ? findMatches
+        : findMatch
+          ? [findMatch]
+          : [];
   
-    const matchStart = findMatch.start;
-    const matchEnd = findMatch.end;
+    if (matchesToRender.length === 0) return text;
   
     const segmentStart = offset;
     const segmentEnd = offset + text.length;
   
-    if (
-      matchEnd <= segmentStart ||
-      matchStart >= segmentEnd
-    ) {
-      return text;
+    const overlappingMatches = matchesToRender
+      .filter(
+        (match) =>
+          match.end > segmentStart &&
+          match.start < segmentEnd
+      )
+      .sort((a, b) => a.start - b.start);
+  
+    if (overlappingMatches.length === 0) return text;
+  
+    const currentActiveMatch =
+      activeFindMatch ?? findMatch ?? null;
+  
+    const parts: ReactNode[] = [];
+  
+    let cursor = 0;
+  
+    for (const match of overlappingMatches) {
+      const localStart = Math.max(
+        0,
+        match.start - segmentStart
+      );
+  
+      const localEnd = Math.min(
+        text.length,
+        match.end - segmentStart
+      );
+  
+      if (localStart > cursor) {
+        parts.push(
+          text.slice(cursor, localStart)
+        );
+      }
+  
+      const isActive =
+        currentActiveMatch?.start === match.start &&
+        currentActiveMatch?.end === match.end;
+  
+        parts.push(
+          <mark
+            key={`${match.start}-${match.end}-${offset}`}
+            style={{
+              backgroundColor: isActive
+              ? '#FACC15'
+              : '#FEF08A',
+            }}
+          >
+            {text.slice(localStart, localEnd)}
+          </mark>
+        );
+  
+      cursor = Math.max(cursor, localEnd);
     }
   
-    const localStart = Math.max(
-      0,
-      matchStart - segmentStart
-    );
+    if (cursor < text.length) {
+      parts.push(text.slice(cursor));
+    }
   
-    const localEnd = Math.min(
-      text.length,
-      matchEnd - segmentStart
-    );
-  
-    return (
-      <>
-        {text.slice(0, localStart)}
-        <mark className="rounded bg-yellow-200 px-0.5">
-          {text.slice(localStart, localEnd)}
-        </mark>
-        {text.slice(localEnd)}
-      </>
-    );
+    return <>{parts}</>;
   }
 
   return (

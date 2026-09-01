@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react';
 import type { QuestionComponent as QuestionComponentType } from '../types/worksheet';
 
@@ -10,6 +11,15 @@ type QuestionComponentProps = {
   component: QuestionComponentType;
   isSelected: boolean;
   isGroupSelected: boolean;
+  findMatches?: {
+    start: number;
+    end: number;
+  }[];
+  
+  activeFindMatch?: {
+    start: number;
+    end: number;
+  } | null;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -32,9 +42,11 @@ onSelectionChange?: (
 
 export function QuestionComponent({
   component,
-  isSelected,
-  isGroupSelected,
-  onSelect,
+isSelected,
+isGroupSelected,
+findMatches = [],
+activeFindMatch,
+onSelect,
   onStartDragging,
   onResizeStart,
 onQuestionChange,
@@ -162,6 +174,72 @@ onSelectionChange?.(component.id, nextRange);
     previousQuestionRef.current = component.question;
   }, [component.question]);
 
+  function renderQuestionWithFindHighlight(
+    text: string,
+    offset: number
+  ) {
+    if (findMatches.length === 0) return text;
+  
+    const segmentStart = offset;
+    const segmentEnd = offset + text.length;
+  
+    const overlappingMatches = findMatches
+      .filter(
+        (match) =>
+          match.end > segmentStart &&
+          match.start < segmentEnd
+      )
+      .sort((a, b) => a.start - b.start);
+  
+    if (overlappingMatches.length === 0) return text;
+  
+    const parts: ReactNode[] = [];
+    let cursor = 0;
+  
+    for (const match of overlappingMatches) {
+      const localStart = Math.max(
+        0,
+        match.start - segmentStart
+      );
+  
+      const localEnd = Math.min(
+        text.length,
+        match.end - segmentStart
+      );
+  
+      if (localStart > cursor) {
+        parts.push(
+          text.slice(cursor, localStart)
+        );
+      }
+  
+      const isActive =
+        activeFindMatch?.start === match.start &&
+        activeFindMatch?.end === match.end;
+  
+      parts.push(
+        <mark
+          key={`${match.start}-${match.end}-${offset}`}
+          style={{
+            backgroundColor: isActive
+              ? '#FACC15'
+              : '#FEF08A',
+          }}
+        >
+          {text.slice(localStart, localEnd)}
+        </mark>
+      );
+  
+      cursor = Math.max(cursor, localEnd);
+    }
+  
+    if (cursor < text.length) {
+      parts.push(text.slice(cursor));
+    }
+  
+    return <>{parts}</>;
+  }
+
   return (
     <div
     data-worksheet-component="true"
@@ -249,24 +327,40 @@ onMouseLeave={() => setIsHovered(false)}
           onQuestionChange?.(component.id, updatedQuestion);
         }}
       >
-        {component.richText.length > 0
-  ? component.richText.map((segment, index) => (
-      <span
-        key={`${segment.text}-${index}`}
-        style={{
-          fontWeight: segment.style?.bold ? 700 : undefined,
-          fontStyle: segment.style?.italic ? 'italic' : undefined,
-          textDecoration: segment.style?.underline
-            ? 'underline'
-            : undefined,
-          color: segment.style?.color,
-          fontFamily: segment.style?.fontFamily,
-        }}
-      >
-        {segment.text}
-      </span>
-    ))
-  : component.question}
+       {component.richText.length > 0
+  ? component.richText.map((segment, index) => {
+      const offset = component.richText
+        .slice(0, index)
+        .reduce(
+          (total, currentSegment) =>
+            total + currentSegment.text.length,
+          0
+        );
+
+      return (
+        <span
+          key={`${segment.text}-${index}`}
+          style={{
+            fontWeight: segment.style?.bold ? 700 : undefined,
+            fontStyle: segment.style?.italic ? 'italic' : undefined,
+            textDecoration: segment.style?.underline
+              ? 'underline'
+              : undefined,
+            color: segment.style?.color,
+            fontFamily: segment.style?.fontFamily,
+          }}
+        >
+          {renderQuestionWithFindHighlight(
+            segment.text,
+            offset
+          )}
+        </span>
+      );
+    })
+  : renderQuestionWithFindHighlight(
+      component.question,
+      0
+    )}
       </div>
 
       {isSelected && !isGroupSelected && !component.locked && (

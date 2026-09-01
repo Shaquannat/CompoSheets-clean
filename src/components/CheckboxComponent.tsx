@@ -5,6 +5,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
 } from 'react';
 
 import type {
@@ -16,6 +17,17 @@ type CheckboxComponentProps = {
   component: CheckboxComponentType;
   isSelected: boolean;
   isGroupSelected: boolean;
+  findMatches?: {
+    itemId: string;
+    start: number;
+    end: number;
+  }[];
+  
+  activeFindMatch?: {
+    itemId?: string;
+    start: number;
+    end: number;
+  } | null;
   onSelect: (
     id: string,
     event?: ReactPointerEvent<HTMLElement>
@@ -46,9 +58,11 @@ type CheckboxComponentProps = {
 
 export function CheckboxComponent({
   component,
-  isSelected,
-  isGroupSelected,
-  onSelect,
+isSelected,
+isGroupSelected,
+findMatches = [],
+activeFindMatch,
+onSelect,
   onStartDragging,
   onResizeStart,
   onUpdateComponent,
@@ -251,6 +265,77 @@ const previousItemTextRef = useRef('');
     component.layout,
     component.items,
   ]);
+
+  function renderCheckboxTextWithFindHighlight(
+    text: string,
+    offset: number,
+    itemId: string
+  ) {
+    const itemMatches = findMatches
+      .filter((match) => match.itemId === itemId);
+  
+    if (itemMatches.length === 0) return text;
+  
+    const segmentStart = offset;
+    const segmentEnd = offset + text.length;
+  
+    const overlappingMatches = itemMatches
+      .filter(
+        (match) =>
+          match.end > segmentStart &&
+          match.start < segmentEnd
+      )
+      .sort((a, b) => a.start - b.start);
+  
+    if (overlappingMatches.length === 0) return text;
+  
+    const parts: ReactNode[] = [];
+    let cursor = 0;
+  
+    for (const match of overlappingMatches) {
+      const localStart = Math.max(
+        0,
+        match.start - segmentStart
+      );
+  
+      const localEnd = Math.min(
+        text.length,
+        match.end - segmentStart
+      );
+  
+      if (localStart > cursor) {
+        parts.push(
+          text.slice(cursor, localStart)
+        );
+      }
+  
+      const isActive =
+        activeFindMatch?.itemId === itemId &&
+        activeFindMatch.start === match.start &&
+        activeFindMatch.end === match.end;
+  
+      parts.push(
+        <mark
+          key={`${itemId}-${match.start}-${match.end}-${offset}`}
+          style={{
+            backgroundColor: isActive
+              ? '#FACC15'
+              : '#FEF08A',
+          }}
+        >
+          {text.slice(localStart, localEnd)}
+        </mark>
+      );
+  
+      cursor = Math.max(cursor, localEnd);
+    }
+  
+    if (cursor < text.length) {
+      parts.push(text.slice(cursor));
+    }
+  
+    return <>{parts}</>;
+  }
 
   return (
     <div
@@ -662,8 +747,17 @@ onMouseLeave={() => setIsHovered(false)}
     }
   }}
 >
-  {item.richText.length > 0
-    ? item.richText.map((segment, index) => (
+{item.richText.length > 0
+  ? item.richText.map((segment, index) => {
+      const offset = item.richText
+        .slice(0, index)
+        .reduce(
+          (total, currentSegment) =>
+            total + currentSegment.text.length,
+          0
+        );
+
+      return (
         <span
           key={`${segment.text}-${index}`}
           style={{
@@ -681,10 +775,19 @@ onMouseLeave={() => setIsHovered(false)}
               segment.style?.fontFamily,
           }}
         >
-          {segment.text}
+          {renderCheckboxTextWithFindHighlight(
+            segment.text,
+            offset,
+            item.id
+          )}
         </span>
-      ))
-    : item.text}
+      );
+    })
+  : renderCheckboxTextWithFindHighlight(
+      item.text,
+      0,
+      item.id
+    )}
 </div>
           </div>
         ))}
