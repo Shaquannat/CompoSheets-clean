@@ -29,6 +29,7 @@ export type TextComponent = BaseWorksheetComponent & {
   type: 'text';
   text: string;
   richText: RichTextSegment[];
+  paragraphIndents?: number[];
   fontSize: number;
   fontFamily: string;
   fontWeight: 'normal' | 'bold';
@@ -41,6 +42,7 @@ export type QuestionComponent = BaseWorksheetComponent & {
   type: 'question';
   question: string;
   richText: RichTextSegment[];
+  paragraphIndents?: number[];
   fontSize: number;
   fontFamily: string;
   fontWeight: 'normal' | 'bold';

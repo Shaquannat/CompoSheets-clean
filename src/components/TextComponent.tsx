@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useLayoutEffect,
   useRef,
   useState,
@@ -110,16 +111,21 @@ return;
   
     caretOffsetRef.current = end;
 
-    const nextRange =
-  start !== end
-    ? {
-        start,
-        end,
-      }
-    : null;
-
-setSelectedRange(nextRange);
-onSelectionChange?.(component.id, nextRange);
+    const nextRange = {
+      start,
+      end,
+    };
+    
+    setSelectedRange(
+      start !== end
+        ? nextRange
+        : null
+    );
+    
+    onSelectionChange?.(
+      component.id,
+      nextRange
+    );
   }
 
   function restoreCaretPosition() {
@@ -171,6 +177,123 @@ onSelectionChange?.(component.id, nextRange);
   
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+
+  function insertTabAtCaret(editor: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) return;
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !editor.contains(range.startContainer) ||
+      !editor.contains(range.endContainer)
+    ) {
+      return;
+    }
+  
+    range.deleteContents();
+  
+    const tabNode = document.createTextNode('\t');
+  
+    range.insertNode(tabNode);
+    range.setStartAfter(tabNode);
+    range.collapse(true);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  
+    caretOffsetRef.current += 1;
+  
+    editor.dispatchEvent(
+      new InputEvent('input', {
+        bubbles: true,
+        inputType: 'insertText',
+        data: '\t',
+      })
+    );
+  }
+
+  function removeTabBeforeCaret(editor: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) return;
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !range.collapsed ||
+      !editor.contains(range.startContainer)
+    ) {
+      return;
+    }
+  
+    const beforeCaret = range.cloneRange();
+  
+    beforeCaret.selectNodeContents(editor);
+    beforeCaret.setEnd(
+      range.startContainer,
+      range.startOffset
+    );
+  
+    const caretOffset = beforeCaret.toString().length;
+  
+    if (caretOffset === 0) return;
+  
+    const characterIndex = caretOffset - 1;
+  
+    const walker = document.createTreeWalker(
+      editor,
+      NodeFilter.SHOW_TEXT
+    );
+  
+    let currentOffset = 0;
+    let node = walker.nextNode();
+  
+    while (node) {
+      const text = node.textContent ?? '';
+      const nextOffset = currentOffset + text.length;
+  
+      if (characterIndex < nextOffset) {
+        const localIndex =
+          characterIndex - currentOffset;
+  
+        if (text[localIndex] !== '\t') return;
+  
+        const textNode = node as Text;
+  
+        textNode.deleteData(localIndex, 1);
+  
+        const nextRange = document.createRange();
+  
+        nextRange.setStart(
+          textNode,
+          localIndex
+        );
+  
+        nextRange.collapse(true);
+  
+        selection.removeAllRanges();
+        selection.addRange(nextRange);
+  
+        caretOffsetRef.current =
+          Math.max(0, caretOffset - 1);
+  
+        editor.dispatchEvent(
+          new InputEvent('input', {
+            bubbles: true,
+            inputType: 'deleteContentBackward',
+            data: null,
+          })
+        );
+  
+        return;
+      }
+  
+      currentOffset = nextOffset;
+      node = walker.nextNode();
+    }
   }
 
   useLayoutEffect(() => {
@@ -264,6 +387,147 @@ onSelectionChange?.(component.id, nextRange);
     return <>{parts}</>;
   }
 
+  function renderParagraphContent(
+    paragraphStart: number,
+    paragraphEnd: number
+  ) {
+    if (component.richText.length === 0) {
+      return renderTextWithFindHighlight(
+        component.text.slice(
+          paragraphStart,
+          paragraphEnd
+        ),
+        paragraphStart
+      );
+    }
+
+    const parts: ReactNode[] = [];
+    let segmentOffset = 0;
+
+    component.richText.forEach(
+      (segment, segmentIndex) => {
+        const segmentStart = segmentOffset;
+        const segmentEnd =
+          segmentStart + segment.text.length;
+
+        segmentOffset = segmentEnd;
+
+        if (
+          segmentEnd <= paragraphStart ||
+          segmentStart >= paragraphEnd
+        ) {
+          return;
+        }
+
+        const sliceStart = Math.max(
+          paragraphStart,
+          segmentStart
+        );
+
+        const sliceEnd = Math.min(
+          paragraphEnd,
+          segmentEnd
+        );
+
+        const localStart =
+          sliceStart - segmentStart;
+
+        const localEnd =
+          sliceEnd - segmentStart;
+
+        const slicedText =
+          segment.text.slice(
+            localStart,
+            localEnd
+          );
+
+        parts.push(
+          <span
+            key={`${segmentIndex}-${sliceStart}-${sliceEnd}`}
+            style={{
+              fontWeight:
+                segment.style?.bold
+                  ? 700
+                  : undefined,
+              fontStyle:
+                segment.style?.italic
+                  ? 'italic'
+                  : undefined,
+              textDecoration:
+                segment.style?.underline
+                  ? 'underline'
+                  : undefined,
+              color:
+                segment.style?.color,
+              fontFamily:
+                segment.style?.fontFamily,
+            }}
+          >
+            {renderTextWithFindHighlight(
+              slicedText,
+              sliceStart
+            )}
+          </span>
+        );
+      }
+    );
+
+    return parts;
+  }
+
+  function renderParagraphs() {
+    const paragraphs =
+      component.text.split('\n');
+
+    let paragraphStart = 0;
+
+    return paragraphs.map(
+      (paragraph, paragraphIndex) => {
+        const paragraphEnd =
+          paragraphStart + paragraph.length;
+
+        const start = paragraphStart;
+        const end = paragraphEnd;
+
+        const indentLevel =
+          component.paragraphIndents?.[
+            paragraphIndex
+          ] ?? 0;
+
+        paragraphStart =
+          paragraphEnd + 1;
+
+        return (
+          <Fragment
+            key={`paragraph-${paragraphIndex}`}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                marginLeft:
+                  indentLevel * 24,
+                maxWidth: `calc(100% - ${
+                  indentLevel * 24
+                }px)`,
+                boxSizing: 'border-box',
+                verticalAlign: 'top',
+              }}
+            >
+              {renderParagraphContent(
+                start,
+                end
+              )}
+            </span>
+
+            {paragraphIndex <
+              paragraphs.length - 1 &&
+              '\n'}
+          </Fragment>
+        );
+      }
+    );
+  }
+
   return (
     <div
     data-worksheet-component="true"
@@ -307,8 +571,10 @@ onMouseLeave={() => setIsHovered(false)}
       )}
 
 <div
+key={component.text}
 ref={editorRef}
   contentEditable
+  data-text-component-id={component.id}
   data-placeholder="Type text"
         suppressContentEditableWarning
         className="text-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
@@ -320,6 +586,7 @@ ref={editorRef}
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
           whiteSpace: 'pre-wrap',
+          tabSize: 4,
         }}
         onPointerDown={(event) => {
           if (isSelected) {
@@ -328,6 +595,24 @@ ref={editorRef}
         }}
         onMouseUp={(event) => {
           captureSelection(event.currentTarget);
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Tab') return;
+        
+          event.preventDefault();
+          event.stopPropagation();
+        
+          if (event.shiftKey) {
+            removeTabBeforeCaret(
+              event.currentTarget
+            );
+        
+            return;
+          }
+        
+          insertTabAtCaret(
+            event.currentTarget
+          );
         }}
         onKeyUp={(event) => {
           captureSelection(event.currentTarget);
@@ -365,34 +650,7 @@ ref={editorRef}
           });
         }}
       >
-        {component.richText.length > 0
-  ? component.richText.map((segment, index) => {
-      const offset = component.richText
-        .slice(0, index)
-        .reduce(
-          (total, currentSegment) =>
-            total + currentSegment.text.length,
-          0
-        );
-
-      return (
-        <span
-          key={`${segment.text}-${index}`}
-          style={{
-            fontWeight: segment.style?.bold ? 700 : undefined,
-            fontStyle: segment.style?.italic ? 'italic' : undefined,
-            textDecoration: segment.style?.underline
-              ? 'underline'
-              : undefined,
-            color: segment.style?.color,
-            fontFamily: segment.style?.fontFamily,
-          }}
-        >
-          {renderTextWithFindHighlight(segment.text, offset)}
-        </span>
-      );
-    })
-  : renderTextWithFindHighlight(component.text, 0)}
+        {renderParagraphs()}
       </div>
       {isSelected && !isGroupSelected && !component.locked && (
   <button

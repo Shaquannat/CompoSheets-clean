@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useLayoutEffect,
   useRef,
   useState,
@@ -62,6 +63,7 @@ onSelectionChange,
 const editorRef = useRef<HTMLDivElement | null>(null);
 const caretOffsetRef = useRef(0);
 const previousQuestionRef = useRef(component.question);
+const shouldRestoreCaretRef = useRef(false);
 
 function captureSelection(element: HTMLElement) {
     const selection = window.getSelection();
@@ -95,16 +97,21 @@ return;
   
     caretOffsetRef.current = end;
 
-    const nextRange =
-  start !== end
-    ? {
-        start,
-        end,
-      }
-    : null;
-
-setSelectedRange(nextRange);
-onSelectionChange?.(component.id, nextRange);
+    const nextRange = {
+      start,
+      end,
+    };
+    
+    setSelectedRange(
+      start !== end
+        ? nextRange
+        : null
+    );
+    
+    onSelectionChange?.(
+      component.id,
+      nextRange
+    );
   }
   function restoreCaretPosition() {
     const editor = editorRef.current;
@@ -157,10 +164,125 @@ onSelectionChange?.(component.id, nextRange);
     selection.addRange(range);
   }
   
+  function insertTabAtCaret(editor: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) return;
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !editor.contains(range.startContainer) ||
+      !editor.contains(range.endContainer)
+    ) {
+      return;
+    }
+  
+    range.deleteContents();
+  
+    const tabNode = document.createTextNode('\t');
+  
+    range.insertNode(tabNode);
+    range.setStartAfter(tabNode);
+    range.collapse(true);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  
+    caretOffsetRef.current += 1;
+  
+    editor.dispatchEvent(
+      new InputEvent('input', {
+        bubbles: true,
+        inputType: 'insertText',
+        data: '\t',
+      })
+    );
+  }
+
+  function removeTabBeforeCaret(editor: HTMLElement) {
+    const selection = window.getSelection();
+  
+    if (!selection || selection.rangeCount === 0) return;
+  
+    const range = selection.getRangeAt(0);
+  
+    if (
+      !range.collapsed ||
+      !editor.contains(range.startContainer)
+    ) {
+      return;
+    }
+  
+    const beforeCaret = range.cloneRange();
+  
+    beforeCaret.selectNodeContents(editor);
+    beforeCaret.setEnd(
+      range.startContainer,
+      range.startOffset
+    );
+  
+    const caretOffset = beforeCaret.toString().length;
+  
+    if (caretOffset === 0) return;
+  
+    const characterIndex = caretOffset - 1;
+  
+    const walker = document.createTreeWalker(
+      editor,
+      NodeFilter.SHOW_TEXT
+    );
+  
+    let currentOffset = 0;
+    let node = walker.nextNode();
+  
+    while (node) {
+      const text = node.textContent ?? '';
+      const nextOffset = currentOffset + text.length;
+  
+      if (characterIndex < nextOffset) {
+        const localIndex =
+          characterIndex - currentOffset;
+  
+        if (text[localIndex] !== '\t') return;
+  
+        const textNode = node as Text;
+  
+        textNode.deleteData(localIndex, 1);
+  
+        const nextRange = document.createRange();
+  
+        nextRange.setStart(textNode, localIndex);
+        nextRange.collapse(true);
+  
+        selection.removeAllRanges();
+        selection.addRange(nextRange);
+  
+        caretOffsetRef.current =
+          Math.max(0, caretOffset - 1);
+  
+        editor.dispatchEvent(
+          new InputEvent('input', {
+            bubbles: true,
+            inputType: 'deleteContentBackward',
+            data: null,
+          })
+        );
+  
+        return;
+      }
+  
+      currentOffset = nextOffset;
+      node = walker.nextNode();
+    }
+  }
+
   useLayoutEffect(() => {
     const previousQuestion = previousQuestionRef.current;
   
-    if (document.activeElement === editorRef.current) {
+    if (shouldRestoreCaretRef.current) {
+      editorRef.current?.focus();
+      
       const wasAtEnd =
         caretOffsetRef.current >= previousQuestion.length;
   
@@ -239,7 +361,148 @@ onSelectionChange?.(component.id, nextRange);
   
     return <>{parts}</>;
   }
+  function renderQuestionParagraphContent(
+    paragraphStart: number,
+    paragraphEnd: number
+  ) {
 
+    if (component.richText.length === 0) {
+      return renderQuestionWithFindHighlight(
+        component.question.slice(
+          paragraphStart,
+          paragraphEnd
+        ),
+        paragraphStart
+      );
+    }
+  
+    const parts: ReactNode[] = [];
+    let segmentOffset = 0;
+  
+    component.richText.forEach(
+      (segment, segmentIndex) => {
+        const segmentStart = segmentOffset;
+        const segmentEnd =
+          segmentStart + segment.text.length;
+  
+        segmentOffset = segmentEnd;
+  
+        if (
+          segmentEnd <= paragraphStart ||
+          segmentStart >= paragraphEnd
+        ) {
+          return;
+        }
+  
+        const sliceStart = Math.max(
+          paragraphStart,
+          segmentStart
+        );
+  
+        const sliceEnd = Math.min(
+          paragraphEnd,
+          segmentEnd
+        );
+  
+        const localStart =
+          sliceStart - segmentStart;
+  
+        const localEnd =
+          sliceEnd - segmentStart;
+  
+        const slicedText =
+          segment.text.slice(
+            localStart,
+            localEnd
+          );
+  
+        parts.push(
+          <span
+            key={`${segmentIndex}-${sliceStart}-${sliceEnd}`}
+            style={{
+              fontWeight:
+                segment.style?.bold
+                  ? 700
+                  : undefined,
+              fontStyle:
+                segment.style?.italic
+                  ? 'italic'
+                  : undefined,
+              textDecoration:
+                segment.style?.underline
+                  ? 'underline'
+                  : undefined,
+              color:
+                segment.style?.color,
+              fontFamily:
+                segment.style?.fontFamily,
+            }}
+          >
+            {renderQuestionWithFindHighlight(
+              slicedText,
+              sliceStart
+            )}
+          </span>
+        );
+      }
+    );
+  
+    return parts;
+  }
+  
+  function renderQuestionParagraphs() {
+    const paragraphs =
+      component.question.split('\n');
+  
+    let paragraphStart = 0;
+  
+    return paragraphs.map(
+      (paragraph, paragraphIndex) => {
+        const paragraphEnd =
+          paragraphStart + paragraph.length;
+  
+        const start = paragraphStart;
+        const end = paragraphEnd;
+  
+        const indentLevel =
+          component.paragraphIndents?.[
+            paragraphIndex
+          ] ?? 0;
+  
+        paragraphStart =
+          paragraphEnd + 1;
+  
+        return (
+          <Fragment
+            key={`paragraph-${paragraphIndex}`}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                marginLeft:
+                  indentLevel * 24,
+                maxWidth: `calc(100% - ${
+                  indentLevel * 24
+                }px)`,
+                boxSizing: 'border-box',
+                verticalAlign: 'top',
+              }}
+            >
+              {renderQuestionParagraphContent(
+                start,
+                end
+              )}
+            </span>
+  
+            {paragraphIndex <
+              paragraphs.length - 1 &&
+              '\n'}
+          </Fragment>
+        );
+      }
+    );
+  }
+  
   return (
     <div
     data-worksheet-component="true"
@@ -281,8 +544,13 @@ onMouseLeave={() => setIsHovered(false)}
       )}
 
 <div
+key={component.question}
   ref={editorRef}
   contentEditable
+  data-question-component-id={component.id}
+  onFocus={() => {
+    shouldRestoreCaretRef.current = true;
+  }}
   data-placeholder="Type your question here"
         suppressContentEditableWarning
         className="question-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
@@ -293,15 +561,37 @@ onMouseLeave={() => setIsHovered(false)}
           fontFamily: component.fontFamily,
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
+          whiteSpace: 'pre-wrap',
+          tabSize: 4,
         }}
+
         onPointerDown={(event) => {
           if (isSelected) {
             event.stopPropagation();
           }
         }}
-
+        
         onMouseUp={(event) => {
           captureSelection(event.currentTarget);
+        }}
+        
+        onKeyDown={(event) => {
+          if (event.key !== 'Tab') return;
+        
+          event.preventDefault();
+          event.stopPropagation();
+        
+          if (event.shiftKey) {
+            removeTabBeforeCaret(
+              event.currentTarget
+            );
+        
+            return;
+          }
+        
+          insertTabAtCaret(
+            event.currentTarget
+          );
         }}
         
         onKeyUp={(event) => {
@@ -313,7 +603,7 @@ onMouseLeave={() => setIsHovered(false)}
             event.currentTarget.innerText
               .replace(/\r\n/g, '\n')
               .replace(/\n$/, '');
-        
+
           onQuestionInput?.(
             component.id,
             updatedQuestion
@@ -321,47 +611,21 @@ onMouseLeave={() => setIsHovered(false)}
         }}
         
         onBlur={(event) => {
+          shouldRestoreCaretRef.current = false;
+
           const updatedQuestion =
-          event.currentTarget.textContent?.trim() || '';
+            event.currentTarget.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '');
 
-          onQuestionChange?.(component.id, updatedQuestion);
+          onQuestionChange?.(
+            component.id,
+            updatedQuestion
+          );
         }}
-      >
-       {component.richText.length > 0
-  ? component.richText.map((segment, index) => {
-      const offset = component.richText
-        .slice(0, index)
-        .reduce(
-          (total, currentSegment) =>
-            total + currentSegment.text.length,
-          0
-        );
-
-      return (
-        <span
-          key={`${segment.text}-${index}`}
-          style={{
-            fontWeight: segment.style?.bold ? 700 : undefined,
-            fontStyle: segment.style?.italic ? 'italic' : undefined,
-            textDecoration: segment.style?.underline
-              ? 'underline'
-              : undefined,
-            color: segment.style?.color,
-            fontFamily: segment.style?.fontFamily,
-          }}
         >
-          {renderQuestionWithFindHighlight(
-            segment.text,
-            offset
-          )}
-        </span>
-      );
-    })
-  : renderQuestionWithFindHighlight(
-      component.question,
-      0
-    )}
-      </div>
+          {renderQuestionParagraphs()}
+        </div>
 
       {isSelected && !isGroupSelected && !component.locked && (
         <button

@@ -1074,15 +1074,252 @@ setComponents((currentComponents) =>
     );
   }
 
+  function selectAdjacentComponent(direction: 1 | -1) {
+    if (components.length === 0) return;
+  
+    const orderedComponents = [...components].sort((a, b) => {
+      if (Math.abs(a.y - b.y) < 8) {
+        return a.x - b.x;
+      }
+  
+      return a.y - b.y;
+    });
+  
+    const currentIndex = selectedComponentId
+      ? orderedComponents.findIndex(
+          (component) => component.id === selectedComponentId
+        )
+      : -1;
+  
+    let nextIndex: number;
+  
+    if (currentIndex === -1) {
+      nextIndex =
+        direction === 1
+          ? 0
+          : orderedComponents.length - 1;
+    } else {
+      nextIndex =
+        (currentIndex + direction + orderedComponents.length) %
+        orderedComponents.length;
+    }
+  
+    const nextComponent = orderedComponents[nextIndex];
+  
+    setSelectedComponentId(nextComponent.id);
+    setSelectedComponentIds([nextComponent.id]);
+  
+    setTextSelection(null);
+    setQuestionSelection(null);
+    setCheckboxSelection(null);
+  }
+
+  function beginEditingSelectedComponent(): HTMLElement | null {
+    if (!selectedComponentId) return null;
+  
+    const component = components.find(
+      (currentComponent) =>
+        currentComponent.id === selectedComponentId
+    );
+  
+    if (!component) return null;
+  
+    let editor: HTMLElement | null = null;
+  
+    if (component.type === 'text') {
+      editor = document.querySelector<HTMLElement>(
+        `[data-text-component-id="${component.id}"]`
+      );
+    }
+  
+    if (component.type === 'question') {
+      editor = document.querySelector<HTMLElement>(
+        `[data-question-component-id="${component.id}"]`
+      );
+    }
+  
+    if (!editor) return null;
+  
+    editor.focus();
+  
+    const selection = window.getSelection();
+  
+    if (!selection) return editor;
+  
+    const range = document.createRange();
+  
+    range.selectNodeContents(editor);
+    range.collapse(false);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  
+    return editor;
+  }
+
+  function insertCharacterIntoEditor(
+    editor: HTMLElement,
+    character: string
+  ) {
+    const selection = window.getSelection();
+  
+    if (!selection) return;
+  
+    let range: Range;
+  
+    if (
+      selection.rangeCount > 0 &&
+      editor.contains(
+        selection.getRangeAt(0).startContainer
+      )
+    ) {
+      range = selection.getRangeAt(0);
+    } else {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+  
+    range.deleteContents();
+  
+    const textNode = document.createTextNode(character);
+  
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.collapse(true);
+  
+    selection.removeAllRanges();
+    selection.addRange(range);
+  
+    editor.dispatchEvent(
+      new InputEvent('input', {
+        bubbles: true,
+        inputType: 'insertText',
+        data: character,
+      })
+    );
+  }
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        if (isEditableTarget(event.target)) {
+          event.preventDefault();
+      
+          if (event.target instanceof HTMLElement) {
+            event.target.blur();
+          }
+      
+          setTextSelection(null);
+          setQuestionSelection(null);
+          setCheckboxSelection(null);
+      
+          if (selectedComponentId) {
+            setSelectedComponentIds([selectedComponentId]);
+          }
+      
+          return;
+        }
+      
         setSelectedComponentId(null);
         setSelectedComponentIds([]);
         setTextSelection(null);
         setQuestionSelection(null);
         setCheckboxSelection(null);
+      
         return;
+      }
+      
+      if (
+        event.key === 'Tab' &&
+        !isEditableTarget(event.target)
+      ) {
+        const target = event.target;
+      
+        if (
+          target instanceof HTMLElement &&
+          target.closest(
+            'button, a, input, textarea, select, [role="button"]'
+          )
+        ) {
+          return;
+        }
+      
+        event.preventDefault();
+      
+        selectAdjacentComponent(
+          event.shiftKey ? -1 : 1
+        );
+      
+        return;
+      }
+
+      if (
+        event.key === 'Enter' &&
+        !isEditableTarget(event.target) &&
+        selectedComponentIds.length === 1 &&
+        selectedComponentId
+      ) {
+        const selected = components.find(
+          (component) =>
+            component.id === selectedComponentId
+        );
+      
+        if (
+          selected?.type === 'text' ||
+          selected?.type === 'question'
+        ) {
+          event.preventDefault();
+      
+          beginEditingSelectedComponent();
+      
+          return;
+        }
+      }
+
+      if (
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        !isEditableTarget(event.target) &&
+        selectedComponentIds.length === 1 &&
+        selectedComponentId
+      ) {
+        const target = event.target;
+      
+        if (
+          target instanceof HTMLElement &&
+          target.closest(
+            'button, a, input, textarea, select, [role="button"]'
+          )
+        ) {
+          return;
+        }
+      
+        const selected = components.find(
+          (component) =>
+            component.id === selectedComponentId
+        );
+      
+        if (
+          selected?.type === 'text' ||
+          selected?.type === 'question'
+        ) {
+          event.preventDefault();
+      
+          const editor =
+            beginEditingSelectedComponent();
+      
+          if (editor) {
+            insertCharacterIntoEditor(
+              editor,
+              event.key
+            );
+          }
+      
+          return;
+        }
       }
       
       const isModifierPressed =

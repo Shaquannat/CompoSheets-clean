@@ -84,6 +84,92 @@ function isRangeFullyStyled(
   return foundSelectedText;
 }
 
+function getTouchedParagraphRange(
+  text: string,
+  start: number,
+  end: number
+) {
+  const safeStart = Math.max(
+    0,
+    Math.min(start, text.length)
+  );
+
+  const safeEnd = Math.max(
+    safeStart,
+    Math.min(end, text.length)
+  );
+
+  function getParagraphIndex(offset: number) {
+    return text
+      .slice(0, offset)
+      .split('\n').length - 1;
+  }
+
+  const startParagraph =
+    getParagraphIndex(safeStart);
+
+  const endPosition =
+    safeEnd > safeStart
+      ? safeEnd - 1
+      : safeEnd;
+
+  const endParagraph =
+    getParagraphIndex(endPosition);
+
+  return {
+    startParagraph,
+    endParagraph,
+  };
+}
+
+function changeParagraphIndents(
+  text: string,
+  currentIndents: number[] | undefined,
+  start: number,
+  end: number,
+  direction: 1 | -1
+) {
+  const paragraphCount =
+    text.split('\n').length;
+
+  const nextIndents = Array.from(
+    { length: paragraphCount },
+    (_, index) =>
+      Math.max(
+        0,
+        Math.min(
+          8,
+          currentIndents?.[index] ?? 0
+        )
+      )
+  );
+
+  const {
+    startParagraph,
+    endParagraph,
+  } = getTouchedParagraphRange(
+    text,
+    start,
+    end
+  );
+
+  for (
+    let index = startParagraph;
+    index <= endParagraph;
+    index += 1
+  ) {
+    nextIndents[index] = Math.max(
+      0,
+      Math.min(
+        8,
+        nextIndents[index] + direction
+      )
+    );
+  }
+
+  return nextIndents;
+}
+
 type RightSidebarProps = {
   selectedComponent: WorksheetComponent | null
   selectedComponentCount: number;
@@ -457,6 +543,178 @@ export function RightSidebar({
 
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Paragraph indent
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          title="Decrease indent"
+          aria-label="Decrease indent"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
+          disabled={
+            textSelection?.id !==
+            selectedComponent.id
+          }
+          onClick={() => {
+            if (
+              textSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const questionEditor =
+  document.querySelector<HTMLElement>(
+    `[data-question-component-id="${selectedComponent.id}"]`
+  );
+
+const questionText =
+  questionEditor?.innerText
+    .replace(/\r\n/g, '\n')
+    .replace(/\n$/, '') ??
+  selectedComponent.question;
+
+const nextIndents =
+  changeParagraphIndents(
+    questionText,
+    selectedComponent.paragraphIndents,
+    questionSelection.start,
+    questionSelection.end,
+    -1
+  );
+
+  const questionChanged =
+  questionText !==
+  selectedComponent.question;
+
+onUpdateComponent(
+  selectedComponent.id,
+  {
+    question: questionText,
+    richText: questionChanged
+      ? questionText
+        ? [{ text: questionText }]
+        : []
+      : selectedComponent.richText,
+    paragraphIndents: nextIndents,
+  }
+);
+          }}
+          className={`flex min-h-11 items-center justify-center rounded-lg border ${
+            textSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m7 7-3 3 3 3" />
+          </svg>
+        </button>
+
+        <button
+  type="button"
+  title="Increase indent"
+  aria-label="Increase indent"
+  onMouseDown={(event) => {
+    event.preventDefault();
+  }}
+  disabled={
+    textSelection?.id !==
+    selectedComponent.id
+  }
+          onClick={() => {
+            if (
+              textSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const questionEditor =
+  document.querySelector<HTMLElement>(
+    `[data-question-component-id="${selectedComponent.id}"]`
+  );
+
+const questionText =
+  questionEditor?.innerText
+    .replace(/\r\n/g, '\n')
+    .replace(/\n$/, '') ??
+  selectedComponent.question;
+
+const nextIndents =
+  changeParagraphIndents(
+    questionText,
+    selectedComponent.paragraphIndents,
+    questionSelection.start,
+    questionSelection.end,
+    1
+  );
+
+  const questionChanged =
+  questionText !==
+  selectedComponent.question;
+
+onUpdateComponent(
+  selectedComponent.id,
+  {
+    question: questionText,
+    richText: questionChanged
+      ? questionText
+        ? [{ text: questionText }]
+        : []
+      : selectedComponent.richText,
+    paragraphIndents: nextIndents,
+  }
+);
+          }}
+          className={`flex min-h-11 items-center justify-center rounded-lg border ${
+            textSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m4 7 3 3-3 3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Text color
       </span>
 
@@ -823,12 +1081,142 @@ export function RightSidebar({
 >
 Underline
 </button>
-</div>
-</div>
+      </div>
+    </div>
 
-<div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Text color
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Paragraph indent
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          title="Decrease indent"
+          aria-label="Decrease indent"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
+          disabled={
+            questionSelection?.id !==
+            selectedComponent.id
+          }
+          onClick={() => {
+            if (
+              questionSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const nextIndents =
+              changeParagraphIndents(
+                selectedComponent.question,
+                selectedComponent.paragraphIndents,
+                questionSelection.start,
+                questionSelection.end,
+                -1
+              );
+
+            onUpdateComponent(
+              selectedComponent.id,
+              {
+                paragraphIndents: nextIndents,
+              }
+            );
+          }}
+          className={`flex min-h-11 items-center justify-center rounded-lg border ${
+            questionSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m7 7-3 3 3 3" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          title="Increase indent"
+          aria-label="Increase indent"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
+          disabled={
+            questionSelection?.id !==
+            selectedComponent.id
+          }
+          onClick={() => {
+            if (
+              questionSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const nextIndents =
+              changeParagraphIndents(
+                selectedComponent.question,
+                selectedComponent.paragraphIndents,
+                questionSelection.start,
+                questionSelection.end,
+                1
+              );
+
+            onUpdateComponent(
+              selectedComponent.id,
+              {
+                paragraphIndents: nextIndents,
+              }
+            );
+          }}
+          className={`flex min-h-11 items-center justify-center rounded-lg border ${
+            questionSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m4 7 3 3-3 3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Text color
   </span>
 
   <div
