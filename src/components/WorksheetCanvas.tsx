@@ -349,9 +349,6 @@ orderedQuestions.forEach((component) => {
       <QuestionComponent
         key={component.id}
         component={component}
-        onUpdateComponent={(id, changes) =>
-          onUpdateComponent(id, changes)
-        }
         questionNumber={
           questionNumberById.get(component.id) ?? null
         }

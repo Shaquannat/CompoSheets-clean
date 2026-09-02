@@ -11,11 +11,6 @@ import type { QuestionComponent as QuestionComponentType } from '../types/worksh
 type QuestionComponentProps = {
   component: QuestionComponentType;
 
-  onUpdateComponent: (
-    id: string,
-    changes: Partial<QuestionComponentType>
-  ) => void;
-
   questionNumber?: number | null;
   isSelected: boolean;
   isGroupSelected: boolean;
@@ -50,7 +45,6 @@ onSelectionChange?: (
 
 export function QuestionComponent({
   component,
-  onUpdateComponent,
   questionNumber,
 isSelected,
 isGroupSelected,
@@ -660,151 +654,6 @@ key={component.question}
         >
           {renderQuestionParagraphs()}
         </div>
-
-        {component.responseType === 'multipleChoice' &&
-  component.multipleChoiceOptions &&
-  component.multipleChoiceOptions.length > 0 && (
-    <div
-      className={`mt-2 grid gap-x-6 gap-y-2 px-2 ${
-        component.multipleChoiceLayout === 'twoColumn'
-          ? 'grid-cols-2'
-          : 'grid-cols-1'
-      }`}
-      style={{
-        paddingLeft:
-          questionNumber !== null &&
-          questionNumber !== undefined
-            ? Math.max(
-                40,
-                24 + String(questionNumber).length * 9
-              )
-            : 8,
-      }}
-    >
-      {component.multipleChoiceOptions.map(
-        (option, index) => {
-          const upperLetter = String.fromCharCode(
-            65 + index
-          );
-
-          const lowerLetter =
-            upperLetter.toLowerCase();
-
-          const labelStyle =
-            component.multipleChoiceLabelStyle ?? 'A.';
-
-          const letter =
-            labelStyle.startsWith('a')
-              ? lowerLetter
-              : upperLetter;
-
-          const punctuation =
-            labelStyle.endsWith(')')
-              ? ')'
-              : '.';
-
-          const markerStyle =
-            component.multipleChoiceMarkerStyle ??
-            'plain';
-
-            const defaultChoiceStyle =
-  component.multipleChoiceDefaultStyle ?? {
-    fontFamily: component.fontFamily,
-    fontSize: component.fontSize,
-    fontWeight: 'normal',
-    italic: false,
-    underline: false,
-    textColor: component.textColor,
-  };
-
-const choiceStyle = {
-  ...defaultChoiceStyle,
-  ...option.style,
-};
-
-          return (
-            <div
-              key={option.id}
-              className="flex min-w-0 items-start gap-2"
-              style={{
-                fontSize: choiceStyle.fontSize,
-                fontFamily: choiceStyle.fontFamily,
-                fontWeight: choiceStyle.fontWeight,
-                fontStyle: choiceStyle.italic
-                  ? 'italic'
-                  : 'normal',
-                textDecoration: choiceStyle.underline
-                  ? 'underline'
-                  : 'none',
-                color: choiceStyle.textColor,
-              }}
-            >
-              {markerStyle === 'circle' ? (
-               <span
-               className="shrink-0 border border-slate-500"
-               style={{
-                 width: 22,
-                 height: 22,
-                 minWidth: 22,
-                 minHeight: 22,
-                 borderRadius: '50%',
-                 boxSizing: 'border-box',
-                 fontSize: 13,
-                 lineHeight: 1,
-                 display: 'inline-flex',
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 textAlign: 'center',
-               }}
-             >
-               {letter}
-             </span>
-              ) : (
-                <span className="shrink-0">
-                  {letter}
-                  {punctuation}
-                </span>
-              )}
-
-<input
-  type="text"
-  defaultValue={option.text}
-  placeholder="Choice"
-  onPointerDown={(event) => {
-    event.stopPropagation();
-  }}
-  onBlur={(event) => {
-    const updatedOptions =
-      component.multipleChoiceOptions?.map(
-        (currentOption) =>
-          currentOption.id === option.id
-            ? {
-                ...currentOption,
-                text: event.currentTarget.value,
-              }
-            : currentOption
-      ) ?? [];
-
-    onUpdateComponent(component.id, {
-      multipleChoiceOptions: updatedOptions,
-    });
-  }}
-  className="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none placeholder:text-slate-400"
-  style={{
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    fontWeight: 'inherit',
-    fontStyle: 'inherit',
-    textDecoration: 'inherit',
-    color: 'inherit',
-  }}
-/>
-            </div>
-          );
-        }
-      )}
-    </div>
-  )}
 
       {isSelected && !isGroupSelected && !component.locked && (
         <button

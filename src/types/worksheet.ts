@@ -66,11 +66,6 @@ export type TextComponent = BaseWorksheetComponent & {
 textColor: string;
 };
 
-export type QuestionResponseType =
-  | 'multipleChoice'
-  | 'trueFalse'
-  | 'fillBlank';
-
   export type MultipleChoiceTextStyle = {
     fontFamily?: string;
     fontSize?: number;
@@ -94,16 +89,6 @@ export type QuestionComponent = BaseWorksheetComponent & {
 
   numberingMode?: 'continue' | 'restart' | 'custom' | 'off';
 numberingStart?: number;
-
-responseType?: QuestionResponseType;
-
-multipleChoiceOptions?: MultipleChoiceOption[];
-multipleChoiceLabelStyle?: 'A.' | 'A)' | 'a.' | 'a)';
-multipleChoiceLayout?: 'vertical' | 'twoColumn';
-multipleChoiceMarkerStyle?: 'plain' | 'circle';
-
-multipleChoiceDefaultStyle?: MultipleChoiceTextStyle;
-multipleChoiceCorrectOptionId?: string;
 
   fontSize: number;
   fontFamily: string;
