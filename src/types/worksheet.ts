@@ -38,6 +38,26 @@ export type TextComponent = BaseWorksheetComponent & {
 textColor: string;
 };
 
+export type QuestionResponseType =
+  | 'multipleChoice'
+  | 'trueFalse'
+  | 'fillBlank';
+
+  export type MultipleChoiceTextStyle = {
+    fontFamily?: string;
+    fontSize?: number;
+    fontWeight?: 'normal' | 'bold';
+    italic?: boolean;
+    underline?: boolean;
+    textColor?: string;
+  };
+  
+  export type MultipleChoiceOption = {
+    id: string;
+    text: string;
+    style?: MultipleChoiceTextStyle;
+  };
+
 export type QuestionComponent = BaseWorksheetComponent & {
   type: 'question';
   question: string;
@@ -46,6 +66,16 @@ export type QuestionComponent = BaseWorksheetComponent & {
 
   numberingMode?: 'continue' | 'restart' | 'custom' | 'off';
 numberingStart?: number;
+
+responseType?: QuestionResponseType;
+
+multipleChoiceOptions?: MultipleChoiceOption[];
+multipleChoiceLabelStyle?: 'A.' | 'A)' | 'a.' | 'a)';
+multipleChoiceLayout?: 'vertical' | 'twoColumn';
+multipleChoiceMarkerStyle?: 'plain' | 'circle';
+
+multipleChoiceDefaultStyle?: MultipleChoiceTextStyle;
+multipleChoiceCorrectOptionId?: string;
 
   fontSize: number;
   fontFamily: string;
