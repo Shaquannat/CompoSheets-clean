@@ -10,6 +10,7 @@ import type {
   ResizeState,
   TextComponent,
   QuestionComponent,
+  ResponseComponent,
   WorksheetComponent,
 } from './types/worksheet';
 
@@ -471,6 +472,34 @@ textColor: '#0F172A',
     setSelectedComponentId(newComponent.id);
     setSelectedComponentIds([newComponent.id]);
   }
+
+  function addResponseComponent() {
+    const newComponent: ResponseComponent = {
+      id: crypto.randomUUID(),
+      type: 'response',
+      responseType: undefined,
+      x: 64,
+      y: 64 + components.length * 60,
+      width: 500,
+      height: 48,
+      rotation: 0,
+      locked: false,
+      layer: components.length + 1,
+    };
+  
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
+      return [
+        ...currentComponents,
+        newComponent,
+      ];
+    });
+  
+    setSelectedComponentId(newComponent.id);
+    setSelectedComponentIds([newComponent.id]);
+  }
+
   function addAnswerLinesComponent() {
     const newComponent: AnswerLinesComponent = {
       id: crypto.randomUUID(),
@@ -2135,6 +2164,7 @@ resizeState.current = {
       <Library 
   onAddText={addTextComponent}
   onAddQuestion={addQuestionComponent}
+  onAddResponse={addResponseComponent}
   onAddAnswerLines={addAnswerLinesComponent}
   onAddCheckbox={addCheckboxComponent}
 />

@@ -3,6 +3,7 @@ import type { RefObject, PointerEvent as ReactPointerEvent } from 'react';
 import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
 import { QuestionComponent } from './QuestionComponent';
+import { ResponseComponent } from './ResponseComponent';
 import { AnswerLinesComponent } from './AnswerLinesComponent';
 import { CheckboxComponent } from './CheckboxComponent';
 
@@ -389,6 +390,26 @@ orderedQuestions.forEach((component) => {
         }
         onQuestionInput={onQuestionInput}
         onSelectionChange={onQuestionSelectionChange}
+      />
+    );
+  }
+
+  if (component.type === 'response') {
+    return (
+      <ResponseComponent
+        key={component.id}
+        component={component}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
+        isGroupSelected={isGroupSelected}
+        onUpdateComponent={(id, changes) =>
+          onUpdateComponent(id, changes)
+        }
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
       />
     );
   }

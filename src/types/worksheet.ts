@@ -1,4 +1,9 @@
-export type ComponentType = 'text' | 'question' | 'answerLines' | 'checkbox';
+export type ComponentType =
+  | 'text'
+  | 'question'
+  | 'response'
+  | 'answerLines'
+  | 'checkbox';
 
 export type BaseWorksheetComponent = {
   id: string;
@@ -10,7 +15,30 @@ export type BaseWorksheetComponent = {
   rotation: number;
   locked: boolean;
   layer: number;
+
+  attachedToComponentId?: string;
+attachmentPlacement?: 'below' | 'right';
+attachmentGap?: number;
 };
+
+export type ResponseType =
+  | 'multipleChoice'
+  | 'trueFalse'
+  | 'shortAnswer'
+  | 'answerLines';
+
+  export type ResponseComponent =
+  BaseWorksheetComponent & {
+    type: 'response';
+    responseType?: ResponseType;
+
+    multipleChoiceOptions?: MultipleChoiceOption[];
+    multipleChoiceLabelStyle?: 'A.' | 'A)' | 'a.' | 'a)';
+    multipleChoiceLayout?: 'vertical' | 'twoColumn';
+    multipleChoiceMarkerStyle?: 'plain' | 'circle';
+    multipleChoiceDefaultStyle?: MultipleChoiceTextStyle;
+    multipleChoiceCorrectOptionId?: string;
+  };
 
 export type RichTextStyle = {
   bold?: boolean;
@@ -117,6 +145,7 @@ markColor: string;
 export type WorksheetComponent =
   | TextComponent
   | QuestionComponent
+  | ResponseComponent
   | AnswerLinesComponent
   | CheckboxComponent;
 

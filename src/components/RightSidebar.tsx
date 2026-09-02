@@ -933,9 +933,17 @@ onUpdateComponent(
             selectedComponent.multipleChoiceLabelStyle ?? 'A.',
           multipleChoiceLayout:
             selectedComponent.multipleChoiceLayout ?? 'vertical',
-
           multipleChoiceMarkerStyle:
             selectedComponent.multipleChoiceMarkerStyle ?? 'plain',
+            multipleChoiceDefaultStyle:
+  selectedComponent.multipleChoiceDefaultStyle ?? {
+    fontFamily: 'Arial',
+    fontSize: 16,
+    fontWeight: 'normal',
+    italic: false,
+    underline: false,
+    textColor: '#0F172A',
+  },
 
             multipleChoiceDefaultStyle:
   selectedComponent.multipleChoiceDefaultStyle ?? {
@@ -2354,6 +2362,199 @@ Underline
 
   </div>
 )}
+
+{selectedComponent?.type === 'response' && (
+  <div className="mb-4">
+    <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Response type
+    </label>
+
+    <select
+      value={selectedComponent.responseType ?? ''}
+      onChange={(event) => {
+        const responseType =
+          event.target.value === ''
+            ? undefined
+            : (event.target.value as
+                | 'multipleChoice'
+                | 'trueFalse'
+                | 'shortAnswer'
+                | 'answerLines');
+      
+        if (responseType === 'multipleChoice') {
+          onUpdateComponent(selectedComponent.id, {
+            responseType,
+            multipleChoiceOptions:
+              selectedComponent.multipleChoiceOptions ?? [
+                { id: crypto.randomUUID(), text: '' },
+                { id: crypto.randomUUID(), text: '' },
+                { id: crypto.randomUUID(), text: '' },
+                { id: crypto.randomUUID(), text: '' },
+              ],
+            multipleChoiceLabelStyle:
+              selectedComponent.multipleChoiceLabelStyle ?? 'A.',
+            multipleChoiceLayout:
+              selectedComponent.multipleChoiceLayout ?? 'vertical',
+            multipleChoiceMarkerStyle:
+              selectedComponent.multipleChoiceMarkerStyle ?? 'plain',
+          });
+      
+          return;
+        }
+      
+        onUpdateComponent(selectedComponent.id, {
+          responseType,
+        });
+      }}
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"
+    >
+      <option value="">Choose response type</option>
+      <option value="multipleChoice">Multiple Choice</option>
+      <option value="trueFalse">True / False</option>
+      <option value="shortAnswer">Short Answer</option>
+      <option value="answerLines">Answer Lines</option>
+    </select>
+  </div>
+)}
+
+{selectedComponent.type === 'response' &&
+  selectedComponent.responseType === 'multipleChoice' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choices
+      </span>
+
+<div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          disabled={
+            (selectedComponent.multipleChoiceOptions?.length ?? 0) <= 2
+          }
+          onClick={() => {
+            const currentOptions =
+              selectedComponent.multipleChoiceOptions ?? [];
+
+            if (currentOptions.length <= 2) return;
+
+            onUpdateComponent(selectedComponent.id, {
+              multipleChoiceOptions: currentOptions.slice(0, -1),
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          − Remove
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            (selectedComponent.multipleChoiceOptions?.length ?? 0) >= 5
+          }
+          onClick={() => {
+            const currentOptions =
+              selectedComponent.multipleChoiceOptions ?? [];
+
+            if (currentOptions.length >= 5) return;
+
+            onUpdateComponent(selectedComponent.id, {
+              multipleChoiceOptions: [
+                ...currentOptions,
+                {
+                  id: crypto.randomUUID(),
+                  text: '',
+                },
+              ],
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          + Add
+        </button>
+      </div>
+
+      {selectedComponent.type === 'response' &&
+  selectedComponent.responseType === 'multipleChoice' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choice labels
+      </span>
+
+      <select
+        value={
+          selectedComponent.multipleChoiceLabelStyle ?? 'A.'
+        }
+        onChange={(event) => {
+          onUpdateComponent(selectedComponent.id, {
+            multipleChoiceLabelStyle: event.target.value as
+              | 'A.'
+              | 'A)'
+              | 'a.'
+              | 'a)',
+          });
+        }}
+        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+      >
+        <option value="A.">A. B. C.</option>
+        <option value="A)">A) B) C)</option>
+        <option value="a.">a. b. c.</option>
+        <option value="a)">a) b) c)</option>
+      </select>
+    </div>
+  )}
+
+{selectedComponent.type === 'response' &&
+  selectedComponent.responseType === 'multipleChoice' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choice layout
+      </span>
+
+      <select
+        value={
+          selectedComponent.multipleChoiceLayout ?? 'vertical'
+        }
+        onChange={(event) => {
+          onUpdateComponent(selectedComponent.id, {
+            multipleChoiceLayout: event.target.value as
+              | 'vertical'
+              | 'twoColumn',
+          });
+        }}
+        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+      >
+        <option value="vertical">Vertical</option>
+        <option value="twoColumn">2 columns</option>
+      </select>
+    </div>
+  )}
+
+{selectedComponent.type === 'response' &&
+  selectedComponent.responseType === 'multipleChoice' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choice marker
+      </span>
+
+      <select
+        value={
+          selectedComponent.multipleChoiceMarkerStyle ?? 'plain'
+        }
+        onChange={(event) => {
+          onUpdateComponent(selectedComponent.id, {
+            multipleChoiceMarkerStyle: event.target.value as
+              | 'plain'
+              | 'circle',
+          });
+        }}
+        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+      >
+        <option value="plain">Plain label</option>
+        <option value="circle">Letter in circle</option>
+      </select>
+    </div>
+  )}
+    </div>
+  )}
 
           <label className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
             <span className="text-sm font-semibold text-slate-800">

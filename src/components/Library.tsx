@@ -3,6 +3,7 @@ import { ToolButton } from './ToolButton';
 type LibraryProps = {
   onAddText: () => void;
   onAddQuestion: () => void;
+  onAddResponse: () => void;
   onAddAnswerLines: () => void;
   onAddCheckbox: () => void;
 };
@@ -10,12 +11,14 @@ type LibraryProps = {
 export function Library({
   onAddText,
   onAddQuestion,
+  onAddResponse,
   onAddAnswerLines,
   onAddCheckbox,
 }: LibraryProps) {
   const componentTools = [
     { icon: 'T', label: 'Text' },
     { icon: 'Q', label: 'Question' },
+    { icon: 'R', label: 'Response' },
     { icon: '—', label: 'Answer Lines' },
     { icon: '☐', label: 'Checkbox' },
     { icon: '▦', label: 'Table' },
@@ -41,10 +44,12 @@ export function Library({
             label={tool.label}
             onClick={
               tool.label === 'Text'
-                ? onAddText
-                : tool.label === 'Question'
-                  ? onAddQuestion
-                  : tool.label === 'Answer Lines'
+  ? onAddText
+  : tool.label === 'Question'
+    ? onAddQuestion
+    : tool.label === 'Response'
+      ? onAddResponse
+      : tool.label === 'Answer Lines'
                     ? onAddAnswerLines
                     : tool.label === 'Checkbox'
                       ? onAddCheckbox
