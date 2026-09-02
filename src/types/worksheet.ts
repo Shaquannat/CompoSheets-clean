@@ -43,6 +43,10 @@ export type QuestionComponent = BaseWorksheetComponent & {
   question: string;
   richText: RichTextSegment[];
   paragraphIndents?: number[];
+
+  numberingMode?: 'continue' | 'restart' | 'custom' | 'off';
+numberingStart?: number;
+
   fontSize: number;
   fontFamily: string;
   fontWeight: 'normal' | 'bold';

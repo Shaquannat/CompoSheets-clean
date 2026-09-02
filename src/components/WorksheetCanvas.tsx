@@ -134,6 +134,47 @@ const groupBounds =
         ),
       }
     : null;
+    const questionNumberById = new Map<string, number | null>();
+
+const orderedQuestions = components
+  .filter((component) => component.type === 'question')
+  .sort((a, b) => {
+    if (a.y !== b.y) {
+      return a.y - b.y;
+    }
+
+    return a.x - b.x;
+  });
+
+let nextQuestionNumber = 1;
+
+orderedQuestions.forEach((component) => {
+  const numberingMode =
+    component.numberingMode ?? 'continue';
+
+  if (numberingMode === 'off') {
+    questionNumberById.set(component.id, null);
+    return;
+  }
+
+  if (numberingMode === 'restart') {
+    nextQuestionNumber = 1;
+  }
+
+  if (numberingMode === 'custom') {
+    nextQuestionNumber = Math.max(
+      1,
+      component.numberingStart ?? 1
+    );
+  }
+
+  questionNumberById.set(
+    component.id,
+    nextQuestionNumber
+  );
+
+  nextQuestionNumber += 1;
+});
   return (
     <section className="min-w-0 overflow-auto bg-slate-200/70">
       <div className="flex min-h-full flex-col items-center px-4 py-6 sm:px-8 sm:py-8">
@@ -307,6 +348,9 @@ const groupBounds =
       <QuestionComponent
         key={component.id}
         component={component}
+        questionNumber={
+          questionNumberById.get(component.id) ?? null
+        }
         isSelected={
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)

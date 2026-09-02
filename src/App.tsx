@@ -442,6 +442,8 @@ textColor: '#0F172A',
       type: 'question',
       question: '',
       richText: [],
+      numberingMode: 'continue',
+numberingStart: 1,
       x: 64,
       y: 64 + components.length * 60,
       width: 500,
@@ -1222,7 +1224,7 @@ setComponents((currentComponents) =>
         setIsHelpOpen(true);
         return;
       }
-      
+
       if (event.key === 'Escape') {
         if (isEditableTarget(event.target)) {
           event.preventDefault();

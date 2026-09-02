@@ -10,6 +10,7 @@ import type { QuestionComponent as QuestionComponentType } from '../types/worksh
 
 type QuestionComponentProps = {
   component: QuestionComponentType;
+  questionNumber?: number | null;
   isSelected: boolean;
   isGroupSelected: boolean;
   findMatches?: {
@@ -43,6 +44,7 @@ onSelectionChange?: (
 
 export function QuestionComponent({
   component,
+  questionNumber,
 isSelected,
 isGroupSelected,
 findMatches = [],
@@ -543,6 +545,24 @@ onMouseLeave={() => setIsHovered(false)}
         </button>
       )}
 
+{questionNumber !== null && questionNumber !== undefined && (
+  <span
+    aria-hidden="true"
+    style={{
+      position: 'absolute',
+      left: '8px',
+      top: '4px',
+      fontSize: component.fontSize,
+      fontWeight: component.fontWeight,
+      fontFamily: component.fontFamily,
+      color: component.textColor,
+      lineHeight: 'normal',
+      pointerEvents: 'none',
+    }}
+  >
+    {questionNumber}.
+  </span>
+)}
 <div
 key={component.question}
   ref={editorRef}
@@ -553,7 +573,7 @@ key={component.question}
   }}
   data-placeholder="Type your question here"
         suppressContentEditableWarning
-        className="question-component-editor h-full w-full cursor-text px-2 py-1 outline-none"
+        className="question-component-editor h-full w-full cursor-text py-1 pr-2 outline-none"
         style={{
           fontSize: component.fontSize,
           fontWeight: component.fontWeight,
@@ -563,6 +583,13 @@ key={component.question}
           color: component.textColor,
           whiteSpace: 'pre-wrap',
           tabSize: 4,
+          paddingLeft:
+  questionNumber !== null && questionNumber !== undefined
+    ? Math.max(
+        40,
+        24 + String(questionNumber).length * 9
+      )
+    : 8,
         }}
 
         onPointerDown={(event) => {

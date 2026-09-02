@@ -829,6 +829,82 @@ onUpdateComponent(
 
 <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Numbering
+  </span>
+
+  <select
+    value={selectedComponent.numberingMode ?? 'continue'}
+    onChange={(event) => {
+      const numberingMode = event.target.value as
+        | 'continue'
+        | 'restart'
+        | 'custom'
+        | 'off';
+
+      onUpdateComponent(selectedComponent.id, {
+        numberingMode,
+        ...(numberingMode === 'custom'
+          ? {
+              numberingStart:
+                selectedComponent.numberingStart ?? 1,
+            }
+          : {}),
+      });
+    }}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="continue">Continue numbering</option>
+    <option value="restart">Restart at 1</option>
+    <option value="custom">Start at...</option>
+    <option value="off">Numbering off</option>
+  </select>
+
+  {(selectedComponent.numberingMode ?? 'continue') === 'custom' && (
+  <div className="mt-2">
+    <label className="block">
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Start number
+      </span>
+
+      <input
+  type="text"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  value={selectedComponent.numberingStart ?? ''}
+  onChange={(event) => {
+    const rawValue = event.target.value.replace(/\D/g, '');
+
+    if (rawValue === '') {
+      onUpdateComponent(selectedComponent.id, {
+        numberingStart: undefined,
+      });
+
+      return;
+    }
+
+    onUpdateComponent(selectedComponent.id, {
+      numberingStart: Math.max(
+        1,
+        Number(rawValue)
+      ),
+    });
+  }}
+  onBlur={() => {
+    if (selectedComponent.numberingStart === undefined) {
+      onUpdateComponent(selectedComponent.id, {
+        numberingStart: 1,
+      });
+    }
+  }}
+  className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+/>
+    </label>
+  </div>
+)}
+</div>
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Font family
   </span>
 
