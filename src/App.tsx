@@ -17,6 +17,7 @@ import { TopBar } from './components/TopBar';
 import { Library } from './components/Library';
 import { WorksheetCanvas } from './components/WorksheetCanvas';
 import { RightSidebar } from './components/RightSidebar';
+import { HelpPanel } from './components/HelpPanel';
 
 function App() {
   const pageRef = useRef<HTMLElement | null>(null);
@@ -58,6 +59,7 @@ const checkboxInputHistoryRef = useRef<{
   } | null>(null);
 
   const [isFindOpen, setIsFindOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 const [findQuery, setFindQuery] = useState('');
 
 const [findMatches, setFindMatches] = useState<
@@ -1202,6 +1204,25 @@ setComponents((currentComponents) =>
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (
+        event.key === 'Escape' &&
+        isHelpOpen
+      ) {
+        event.preventDefault();
+        setIsHelpOpen(false);
+        return;
+      }
+
+      if (
+        event.key === '?' &&
+        !isHelpOpen &&
+        !isEditableTarget(event.target)
+      ) {
+        event.preventDefault();
+        setIsHelpOpen(true);
+        return;
+      }
+      
       if (event.key === 'Escape') {
         if (isEditableTarget(event.target)) {
           event.preventDefault();
@@ -1494,7 +1515,7 @@ setComponents((currentComponents) =>
       window.removeEventListener('keydown', handleKeyDown);
     };
 
-  }, [components, selectedComponentId, selectedComponentIds]);
+  }, [components, selectedComponentId, selectedComponentIds, isHelpOpen,]);
 
   function startDragging(
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -2097,9 +2118,15 @@ resizeState.current = {
   </div>
 )}
 
-      <TopBar
+<HelpPanel
+  isOpen={isHelpOpen}
+  onClose={() => setIsHelpOpen(false)}
+/>
+
+<TopBar
   onUndo={handleToolbarUndo}
   onRedo={handleToolbarRedo}
+  onHelp={() => setIsHelpOpen(true)}
 />
 
       <main className="grid flex-1 grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_260px]">

@@ -1,11 +1,13 @@
 type TopBarProps = {
   onUndo: () => void;
   onRedo: () => void;
+  onHelp?: () => void;
 };
 
 export function TopBar({
   onUndo,
   onRedo,
+  onHelp,
 }: TopBarProps) {
   return (
     <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
@@ -46,6 +48,19 @@ export function TopBar({
   className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
 >
   ↷
+</button>
+
+<button
+  type="button"
+  onMouseDown={(event) =>
+    event.preventDefault()
+  }
+  onClick={onHelp}
+  title="Help"
+  aria-label="Help"
+  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-base font-bold text-slate-700 hover:bg-slate-50"
+>
+  ?
 </button>
 
         <span className="hidden text-xs text-slate-500 md:inline">
