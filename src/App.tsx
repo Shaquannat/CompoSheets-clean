@@ -10,6 +10,7 @@ import type {
   ResizeState,
   TextComponent,
   QuestionComponent,
+  MultipleChoiceComponent,
   ResponseComponent,
   WorksheetComponent,
 } from './types/worksheet';
@@ -463,6 +464,53 @@ textColor: '#0F172A',
     setComponents((currentComponents) => {
       saveHistory(currentComponents);
     
+      return [
+        ...currentComponents,
+        newComponent,
+      ];
+    });
+  
+    setSelectedComponentId(newComponent.id);
+    setSelectedComponentIds([newComponent.id]);
+  }
+
+  function addMultipleChoiceComponent() {
+    const newComponent: MultipleChoiceComponent = {
+      id: crypto.randomUUID(),
+      type: 'multipleChoice',
+  
+      options: [
+        { id: crypto.randomUUID(), text: '' },
+        { id: crypto.randomUUID(), text: '' },
+        { id: crypto.randomUUID(), text: '' },
+        { id: crypto.randomUUID(), text: '' },
+      ],
+  
+      labelStyle: 'A.',
+      layout: 'vertical',
+      markerStyle: 'plain',
+  
+      defaultStyle: {
+        fontFamily: 'Arial',
+        fontSize: 16,
+        fontWeight: 'normal',
+        italic: false,
+        underline: false,
+        textColor: '#0F172A',
+      },
+  
+      x: 64,
+      y: 64 + components.length * 60,
+      width: 500,
+      height: 120,
+      rotation: 0,
+      locked: false,
+      layer: components.length + 1,
+    };
+  
+    setComponents((currentComponents) => {
+      saveHistory(currentComponents);
+  
       return [
         ...currentComponents,
         newComponent,
@@ -2164,7 +2212,7 @@ resizeState.current = {
       <Library 
   onAddText={addTextComponent}
   onAddQuestion={addQuestionComponent}
-  onAddResponse={addResponseComponent}
+  onAddMultipleChoice={addMultipleChoiceComponent}
   onAddAnswerLines={addAnswerLinesComponent}
   onAddCheckbox={addCheckboxComponent}
 />

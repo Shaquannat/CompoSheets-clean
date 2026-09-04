@@ -205,6 +205,16 @@ import {
         );
       }
     )}
+        </div>
+) : component.responseType === 'shortAnswer' ? (
+  <div className="px-3 py-3">
+    <div
+      style={{
+        width: '100%',
+        borderBottom: '1px solid #64748B',
+        height: 24,
+      }}
+    />
   </div>
 ) : (
   <div className="flex min-h-12 items-center px-3 py-2 text-sm text-slate-400">

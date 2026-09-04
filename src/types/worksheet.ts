@@ -1,6 +1,7 @@
 export type ComponentType =
   | 'text'
   | 'question'
+  | 'multipleChoice'
   | 'response'
   | 'answerLines'
   | 'checkbox';
@@ -23,8 +24,6 @@ attachmentGap?: number;
 
 export type ResponseType =
   | 'multipleChoice'
-  | 'trueFalse'
-  | 'shortAnswer'
   | 'answerLines';
 
   export type ResponseComponent =
@@ -81,6 +80,19 @@ textColor: string;
     style?: MultipleChoiceTextStyle;
   };
 
+  export type MultipleChoiceComponent =
+  BaseWorksheetComponent & {
+    type: 'multipleChoice';
+
+    options: MultipleChoiceOption[];
+    labelStyle?: 'A.' | 'A)' | 'a.' | 'a)';
+    layout?: 'vertical' | 'twoColumn';
+    markerStyle?: 'plain' | 'circle';
+    defaultStyle?: MultipleChoiceTextStyle;
+
+    correctOptionId?: string;
+  };
+
 export type QuestionComponent = BaseWorksheetComponent & {
   type: 'question';
   question: string;
@@ -130,6 +142,7 @@ markColor: string;
 export type WorksheetComponent =
   | TextComponent
   | QuestionComponent
+  | MultipleChoiceComponent
   | ResponseComponent
   | AnswerLinesComponent
   | CheckboxComponent;

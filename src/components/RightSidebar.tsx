@@ -2176,8 +2176,6 @@ Underline
             ? undefined
             : (event.target.value as
                 | 'multipleChoice'
-                | 'trueFalse'
-                | 'shortAnswer'
                 | 'answerLines');
       
         if (responseType === 'multipleChoice') {
@@ -2209,8 +2207,6 @@ Underline
     >
       <option value="">Choose response type</option>
       <option value="multipleChoice">Multiple Choice</option>
-      <option value="trueFalse">True / False</option>
-      <option value="shortAnswer">Short Answer</option>
       <option value="answerLines">Answer Lines</option>
     </select>
   </div>
