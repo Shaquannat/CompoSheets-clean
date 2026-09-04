@@ -2367,39 +2367,192 @@ Underline
   </span>
 
   <select
-    value={
-      activeMultipleChoiceOption?.style?.fontFamily ??
-      selectedComponent.defaultStyle?.fontFamily ??
-      'Arial'
-    }
+    value={(() => {
+      const wholeChoiceFont =
+        activeMultipleChoiceOption?.style?.fontFamily ??
+        selectedComponent.defaultStyle?.fontFamily ??
+        'Arial';
+
+      if (!activeMultipleChoiceOption) {
+        return wholeChoiceFont;
+      }
+
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      if (!hasSelection) {
+        return wholeChoiceFont;
+      }
+
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [{ text: activeMultipleChoiceOption.text }]
+            : [];
+
+      let position = 0;
+      let selectedFont: string | null = null;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          const effectiveFont =
+            segment.style?.fontFamily ??
+            wholeChoiceFont;
+
+          if (selectedFont === null) {
+            selectedFont = effectiveFont;
+          } else if (
+            selectedFont !== effectiveFont
+          ) {
+            return '';
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      return selectedFont ?? wholeChoiceFont;
+    })()}
     onChange={(event) => {
       if (!activeMultipleChoiceOption) return;
 
       const newFontFamily = event.target.value;
 
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      if (hasSelection) {
+        const baseSegments =
+          activeMultipleChoiceOption.richText &&
+          activeMultipleChoiceOption.richText.length > 0
+            ? activeMultipleChoiceOption.richText
+            : activeMultipleChoiceOption.text
+              ? [
+                  {
+                    text:
+                      activeMultipleChoiceOption.text,
+                  },
+                ]
+              : [];
+
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            multipleChoiceSelection.start!,
+            multipleChoiceSelection.end!,
+            {
+              fontFamily: newFontFamily,
+            }
+          );
+
+        onUpdateComponent(selectedComponent.id, {
+          options:
+            selectedComponent.options.map(
+              (option) =>
+                option.id ===
+                activeMultipleChoiceOption.id
+                  ? {
+                      ...option,
+                      richText:
+                        updatedRichText,
+                    }
+                  : option
+            ),
+        });
+
+        return;
+      }
+
       onUpdateComponent(selectedComponent.id, {
-        options: selectedComponent.options.map((option) =>
-          option.id === activeMultipleChoiceOption.id
-            ? {
+        options:
+          selectedComponent.options.map(
+            (option) => {
+              if (
+                option.id !==
+                activeMultipleChoiceOption.id
+              ) {
+                return option;
+              }
+
+              const cleanedRichText =
+                option.richText?.map(
+                  (segment) => {
+                    const nextStyle:
+                      RichTextStyle = {
+                      ...(segment.style ?? {}),
+                    };
+
+                    delete nextStyle.fontFamily;
+
+                    return {
+                      ...segment,
+                      style:
+                        Object.keys(nextStyle)
+                          .length > 0
+                          ? nextStyle
+                          : undefined,
+                    };
+                  }
+                );
+
+              return {
                 ...option,
                 style: {
                   ...option.style,
-                  fontFamily: newFontFamily,
+                  fontFamily:
+                    newFontFamily,
                 },
-              }
-            : option
-        ),
+                richText:
+                  cleanedRichText,
+              };
+            }
+          ),
       });
     }}
     disabled={!activeMultipleChoiceOption}
     className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
   >
+    <option value="" disabled>
+      Mixed fonts
+    </option>
     <option value="Arial">Arial</option>
     <option value="Verdana">Verdana</option>
     <option value="Georgia">Georgia</option>
-    <option value="Times New Roman">Times New Roman</option>
-    <option value="Trebuchet MS">Trebuchet MS</option>
-    <option value="Courier New">Courier New</option>
+    <option value="Times New Roman">
+      Times New Roman
+    </option>
+    <option value="Trebuchet MS">
+      Trebuchet MS
+    </option>
+    <option value="Courier New">
+      Courier New
+    </option>
   </select>
 </div>
 
@@ -2412,28 +2565,175 @@ Underline
     type="number"
     min="8"
     max="72"
-    value={
-      activeMultipleChoiceOption?.style?.fontSize ??
-      selectedComponent.defaultStyle?.fontSize ??
-      16
-    }
+    value={(() => {
+      const wholeChoiceSize =
+        activeMultipleChoiceOption?.style?.fontSize ??
+        selectedComponent.defaultStyle?.fontSize ??
+        16;
+
+      if (!activeMultipleChoiceOption) {
+        return wholeChoiceSize;
+      }
+
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      if (!hasSelection) {
+        return wholeChoiceSize;
+      }
+
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [{ text: activeMultipleChoiceOption.text }]
+            : [];
+
+      let position = 0;
+      let selectedSize: number | null = null;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          const effectiveSize =
+            segment.style?.fontSize ??
+            wholeChoiceSize;
+
+          if (selectedSize === null) {
+            selectedSize = effectiveSize;
+          } else if (
+            selectedSize !== effectiveSize
+          ) {
+            return '';
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      return selectedSize ?? wholeChoiceSize;
+    })()}
     onChange={(event) => {
       if (!activeMultipleChoiceOption) return;
 
-      const newFontSize = Number(event.target.value);
+      const newFontSize =
+        Number(event.target.value);
+
+      if (!newFontSize) return;
+
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      if (hasSelection) {
+        const baseSegments =
+          activeMultipleChoiceOption.richText &&
+          activeMultipleChoiceOption.richText.length > 0
+            ? activeMultipleChoiceOption.richText
+            : activeMultipleChoiceOption.text
+              ? [
+                  {
+                    text:
+                      activeMultipleChoiceOption.text,
+                  },
+                ]
+              : [];
+
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            multipleChoiceSelection.start!,
+            multipleChoiceSelection.end!,
+            {
+              fontSize: newFontSize,
+            }
+          );
+
+        onUpdateComponent(selectedComponent.id, {
+          options:
+            selectedComponent.options.map(
+              (option) =>
+                option.id ===
+                activeMultipleChoiceOption.id
+                  ? {
+                      ...option,
+                      richText:
+                        updatedRichText,
+                    }
+                  : option
+            ),
+        });
+
+        return;
+      }
 
       onUpdateComponent(selectedComponent.id, {
-        options: selectedComponent.options.map((option) =>
-          option.id === activeMultipleChoiceOption.id
-            ? {
+        options:
+          selectedComponent.options.map(
+            (option) => {
+              if (
+                option.id !==
+                activeMultipleChoiceOption.id
+              ) {
+                return option;
+              }
+
+              const cleanedRichText =
+                option.richText?.map(
+                  (segment) => {
+                    const nextStyle:
+                      RichTextStyle = {
+                      ...(segment.style ?? {}),
+                    };
+
+                    delete nextStyle.fontSize;
+
+                    return {
+                      ...segment,
+                      style:
+                        Object.keys(nextStyle)
+                          .length > 0
+                          ? nextStyle
+                          : undefined,
+                    };
+                  }
+                );
+
+              return {
                 ...option,
                 style: {
                   ...option.style,
-                  fontSize: newFontSize,
+                  fontSize:
+                    newFontSize,
                 },
-              }
-            : option
-        ),
+                richText:
+                  cleanedRichText,
+              };
+            }
+          ),
       });
     }}
     disabled={!activeMultipleChoiceOption}
@@ -2446,35 +2746,215 @@ Underline
   onClick={() => {
     if (!activeMultipleChoiceOption) return;
 
-    const currentFontWeight =
-      activeMultipleChoiceOption.style?.fontWeight ??
-      selectedComponent.defaultStyle?.fontWeight ??
-      'normal';
+    const hasSelection =
+      multipleChoiceSelection?.componentId ===
+        selectedComponent.id &&
+      multipleChoiceSelection.optionId ===
+        activeMultipleChoiceOption.id &&
+      multipleChoiceSelection.start !== undefined &&
+      multipleChoiceSelection.end !== undefined &&
+      multipleChoiceSelection.start !==
+        multipleChoiceSelection.end;
 
-    onUpdateComponent(selectedComponent.id, {
-      options: selectedComponent.options.map((option) =>
-        option.id === activeMultipleChoiceOption.id
-          ? {
-              ...option,
-              style: {
-                ...option.style,
-                fontWeight:
-                  currentFontWeight === 'bold'
-                    ? 'normal'
-                    : 'bold',
-              },
+    const wholeChoiceIsBold =
+      (
+        activeMultipleChoiceOption.style?.fontWeight ??
+        selectedComponent.defaultStyle?.fontWeight ??
+        'normal'
+      ) === 'bold';
+
+    if (hasSelection) {
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [
+                {
+                  text: activeMultipleChoiceOption.text,
+                },
+              ]
+            : [];
+
+      const selectedIsBold = (() => {
+        let position = 0;
+        let foundSelectedText = false;
+
+        for (const segment of baseSegments) {
+          const segmentStart = position;
+          const segmentEnd =
+            position + segment.text.length;
+
+          const overlapsSelection =
+            segmentEnd >
+              multipleChoiceSelection.start! &&
+            segmentStart <
+              multipleChoiceSelection.end!;
+
+          if (overlapsSelection) {
+            foundSelectedText = true;
+
+            const effectiveBold =
+              segment.style?.bold ??
+              wholeChoiceIsBold;
+
+            if (!effectiveBold) {
+              return false;
             }
-          : option
-      ),
-    });
+          }
+
+          position = segmentEnd;
+        }
+
+        return foundSelectedText;
+      })();
+
+      const updatedRichText =
+        applyStyleToRange(
+          baseSegments,
+          multipleChoiceSelection.start!,
+          multipleChoiceSelection.end!,
+          {
+            bold: !selectedIsBold,
+          }
+        );
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map(
+          (option) =>
+            option.id ===
+            activeMultipleChoiceOption.id
+              ? {
+                  ...option,
+                  richText: updatedRichText,
+                }
+              : option
+        ),
+      });
+
+      return;
+    }
+
+    const nextFontWeight =
+  wholeChoiceIsBold ? 'normal' : 'bold';
+
+onUpdateComponent(selectedComponent.id, {
+  options: selectedComponent.options.map(
+    (option) => {
+      if (
+        option.id !==
+        activeMultipleChoiceOption.id
+      ) {
+        return option;
+      }
+
+      const cleanedRichText =
+        option.richText?.map((segment) => {
+          const nextStyle: RichTextStyle = {
+            ...(segment.style ?? {}),
+          };
+
+          delete nextStyle.bold;
+
+          return {
+            ...segment,
+            style:
+              Object.keys(nextStyle).length > 0
+                ? nextStyle
+                : undefined,
+          };
+        });
+
+      return {
+        ...option,
+        style: {
+          ...option.style,
+          fontWeight: nextFontWeight,
+        },
+        richText: cleanedRichText,
+      };
+    }
+  ),
+});
   }}
   disabled={!activeMultipleChoiceOption}
   className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
     (
-      activeMultipleChoiceOption?.style?.fontWeight ??
-      selectedComponent.defaultStyle?.fontWeight ??
-      'normal'
-    ) === 'bold'
+      multipleChoiceSelection?.componentId ===
+        selectedComponent.id &&
+      multipleChoiceSelection.optionId ===
+        activeMultipleChoiceOption?.id &&
+      multipleChoiceSelection.start !== undefined &&
+      multipleChoiceSelection.end !== undefined &&
+      multipleChoiceSelection.start !==
+        multipleChoiceSelection.end
+        ? (() => {
+            if (!activeMultipleChoiceOption) {
+              return false;
+            }
+
+            const baseSegments =
+              activeMultipleChoiceOption.richText &&
+              activeMultipleChoiceOption.richText.length > 0
+                ? activeMultipleChoiceOption.richText
+                : activeMultipleChoiceOption.text
+                  ? [
+                      {
+                        text:
+                          activeMultipleChoiceOption.text,
+                      },
+                    ]
+                  : [];
+
+            const wholeChoiceIsBold =
+              (
+                activeMultipleChoiceOption.style
+                  ?.fontWeight ??
+                selectedComponent.defaultStyle
+                  ?.fontWeight ??
+                'normal'
+              ) === 'bold';
+
+            let position = 0;
+            let foundSelectedText = false;
+
+            for (const segment of baseSegments) {
+              const segmentStart = position;
+              const segmentEnd =
+                position + segment.text.length;
+
+              const overlapsSelection =
+                segmentEnd >
+                  multipleChoiceSelection.start! &&
+                segmentStart <
+                  multipleChoiceSelection.end!;
+
+              if (overlapsSelection) {
+                foundSelectedText = true;
+
+                if (
+                  !(
+                    segment.style?.bold ??
+                    wholeChoiceIsBold
+                  )
+                ) {
+                  return false;
+                }
+              }
+
+              position = segmentEnd;
+            }
+
+            return foundSelectedText;
+          })()
+        : (
+            activeMultipleChoiceOption?.style
+              ?.fontWeight ??
+            selectedComponent.defaultStyle
+              ?.fontWeight ??
+            'normal'
+          ) === 'bold'
+    )
       ? 'border-violet-500 bg-violet-50 text-violet-700'
       : 'border-slate-300 bg-white text-slate-700'
   } disabled:cursor-not-allowed disabled:opacity-40`}
@@ -2487,32 +2967,205 @@ Underline
   onClick={() => {
     if (!activeMultipleChoiceOption) return;
 
-    const currentItalic =
+    const hasSelection =
+      multipleChoiceSelection?.componentId ===
+        selectedComponent.id &&
+      multipleChoiceSelection.optionId ===
+        activeMultipleChoiceOption.id &&
+      multipleChoiceSelection.start !== undefined &&
+      multipleChoiceSelection.end !== undefined &&
+      multipleChoiceSelection.start !==
+        multipleChoiceSelection.end;
+
+    const wholeChoiceIsItalic =
       activeMultipleChoiceOption.style?.italic ??
       selectedComponent.defaultStyle?.italic ??
       false;
 
+    if (hasSelection) {
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [
+                {
+                  text: activeMultipleChoiceOption.text,
+                },
+              ]
+            : [];
+
+      let position = 0;
+      let foundSelectedText = false;
+      let selectedIsItalic = true;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          foundSelectedText = true;
+
+          const effectiveItalic =
+            segment.style?.italic ??
+            wholeChoiceIsItalic;
+
+          if (!effectiveItalic) {
+            selectedIsItalic = false;
+            break;
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      if (!foundSelectedText) {
+        selectedIsItalic = false;
+      }
+
+      const updatedRichText =
+        applyStyleToRange(
+          baseSegments,
+          multipleChoiceSelection.start!,
+          multipleChoiceSelection.end!,
+          {
+            italic: !selectedIsItalic,
+          }
+        );
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map(
+          (option) =>
+            option.id ===
+            activeMultipleChoiceOption.id
+              ? {
+                  ...option,
+                  richText: updatedRichText,
+                }
+              : option
+        ),
+      });
+
+      return;
+    }
+
+    const nextItalic = !wholeChoiceIsItalic;
+
     onUpdateComponent(selectedComponent.id, {
-      options: selectedComponent.options.map((option) =>
-        option.id === activeMultipleChoiceOption.id
-          ? {
-              ...option,
-              style: {
-                ...option.style,
-                italic: !currentItalic,
-              },
-            }
-          : option
+      options: selectedComponent.options.map(
+        (option) => {
+          if (
+            option.id !==
+            activeMultipleChoiceOption.id
+          ) {
+            return option;
+          }
+
+          const cleanedRichText =
+            option.richText?.map((segment) => {
+              const nextStyle: RichTextStyle = {
+                ...(segment.style ?? {}),
+              };
+
+              delete nextStyle.italic;
+
+              return {
+                ...segment,
+                style:
+                  Object.keys(nextStyle).length > 0
+                    ? nextStyle
+                    : undefined,
+              };
+            });
+
+          return {
+            ...option,
+            style: {
+              ...option.style,
+              italic: nextItalic,
+            },
+            richText: cleanedRichText,
+          };
+        }
       ),
     });
   }}
   disabled={!activeMultipleChoiceOption}
   className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-    (
-      activeMultipleChoiceOption?.style?.italic ??
-      selectedComponent.defaultStyle?.italic ??
-      false
-    )
+    (() => {
+      if (!activeMultipleChoiceOption) {
+        return false;
+      }
+
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      const wholeChoiceIsItalic =
+        activeMultipleChoiceOption.style?.italic ??
+        selectedComponent.defaultStyle?.italic ??
+        false;
+
+      if (!hasSelection) {
+        return wholeChoiceIsItalic;
+      }
+
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [
+                {
+                  text: activeMultipleChoiceOption.text,
+                },
+              ]
+            : [];
+
+      let position = 0;
+      let foundSelectedText = false;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          foundSelectedText = true;
+
+          const effectiveItalic =
+            segment.style?.italic ??
+            wholeChoiceIsItalic;
+
+          if (!effectiveItalic) {
+            return false;
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      return foundSelectedText;
+    })()
       ? 'border-violet-500 bg-violet-50 text-violet-700'
       : 'border-slate-300 bg-white text-slate-700'
   } disabled:cursor-not-allowed disabled:opacity-40`}
@@ -2525,32 +3178,206 @@ Underline
   onClick={() => {
     if (!activeMultipleChoiceOption) return;
 
-    const currentUnderline =
+    const hasSelection =
+      multipleChoiceSelection?.componentId ===
+        selectedComponent.id &&
+      multipleChoiceSelection.optionId ===
+        activeMultipleChoiceOption.id &&
+      multipleChoiceSelection.start !== undefined &&
+      multipleChoiceSelection.end !== undefined &&
+      multipleChoiceSelection.start !==
+        multipleChoiceSelection.end;
+
+    const wholeChoiceIsUnderlined =
       activeMultipleChoiceOption.style?.underline ??
       selectedComponent.defaultStyle?.underline ??
       false;
 
+    if (hasSelection) {
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [
+                {
+                  text: activeMultipleChoiceOption.text,
+                },
+              ]
+            : [];
+
+      let position = 0;
+      let foundSelectedText = false;
+      let selectedIsUnderlined = true;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          foundSelectedText = true;
+
+          const effectiveUnderline =
+            segment.style?.underline ??
+            wholeChoiceIsUnderlined;
+
+          if (!effectiveUnderline) {
+            selectedIsUnderlined = false;
+            break;
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      if (!foundSelectedText) {
+        selectedIsUnderlined = false;
+      }
+
+      const updatedRichText =
+        applyStyleToRange(
+          baseSegments,
+          multipleChoiceSelection.start!,
+          multipleChoiceSelection.end!,
+          {
+            underline: !selectedIsUnderlined,
+          }
+        );
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map(
+          (option) =>
+            option.id ===
+            activeMultipleChoiceOption.id
+              ? {
+                  ...option,
+                  richText: updatedRichText,
+                }
+              : option
+        ),
+      });
+
+      return;
+    }
+
+    const nextUnderline =
+      !wholeChoiceIsUnderlined;
+
     onUpdateComponent(selectedComponent.id, {
-      options: selectedComponent.options.map((option) =>
-        option.id === activeMultipleChoiceOption.id
-          ? {
-              ...option,
-              style: {
-                ...option.style,
-                underline: !currentUnderline,
-              },
-            }
-          : option
+      options: selectedComponent.options.map(
+        (option) => {
+          if (
+            option.id !==
+            activeMultipleChoiceOption.id
+          ) {
+            return option;
+          }
+
+          const cleanedRichText =
+            option.richText?.map((segment) => {
+              const nextStyle: RichTextStyle = {
+                ...(segment.style ?? {}),
+              };
+
+              delete nextStyle.underline;
+
+              return {
+                ...segment,
+                style:
+                  Object.keys(nextStyle).length > 0
+                    ? nextStyle
+                    : undefined,
+              };
+            });
+
+          return {
+            ...option,
+            style: {
+              ...option.style,
+              underline: nextUnderline,
+            },
+            richText: cleanedRichText,
+          };
+        }
       ),
     });
   }}
   disabled={!activeMultipleChoiceOption}
   className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-    (
-      activeMultipleChoiceOption?.style?.underline ??
-      selectedComponent.defaultStyle?.underline ??
-      false
-    )
+    (() => {
+      if (!activeMultipleChoiceOption) {
+        return false;
+      }
+
+      const hasSelection =
+        multipleChoiceSelection?.componentId ===
+          selectedComponent.id &&
+        multipleChoiceSelection.optionId ===
+          activeMultipleChoiceOption.id &&
+        multipleChoiceSelection.start !== undefined &&
+        multipleChoiceSelection.end !== undefined &&
+        multipleChoiceSelection.start !==
+          multipleChoiceSelection.end;
+
+      const wholeChoiceIsUnderlined =
+        activeMultipleChoiceOption.style?.underline ??
+        selectedComponent.defaultStyle?.underline ??
+        false;
+
+      if (!hasSelection) {
+        return wholeChoiceIsUnderlined;
+      }
+
+      const baseSegments =
+        activeMultipleChoiceOption.richText &&
+        activeMultipleChoiceOption.richText.length > 0
+          ? activeMultipleChoiceOption.richText
+          : activeMultipleChoiceOption.text
+            ? [
+                {
+                  text: activeMultipleChoiceOption.text,
+                },
+              ]
+            : [];
+
+      let position = 0;
+      let foundSelectedText = false;
+
+      for (const segment of baseSegments) {
+        const segmentStart = position;
+        const segmentEnd =
+          position + segment.text.length;
+
+        const overlapsSelection =
+          segmentEnd >
+            multipleChoiceSelection.start! &&
+          segmentStart <
+            multipleChoiceSelection.end!;
+
+        if (overlapsSelection) {
+          foundSelectedText = true;
+
+          const effectiveUnderline =
+            segment.style?.underline ??
+            wholeChoiceIsUnderlined;
+
+          if (!effectiveUnderline) {
+            return false;
+          }
+        }
+
+        position = segmentEnd;
+      }
+
+      return foundSelectedText;
+    })()
       ? 'border-violet-500 bg-violet-50 text-violet-700'
       : 'border-slate-300 bg-white text-slate-700'
   } disabled:cursor-not-allowed disabled:opacity-40`}
@@ -2573,29 +3400,175 @@ Underline
   >
     <input
       type="color"
-      value={
-        activeMultipleChoiceOption?.style?.textColor ??
-        selectedComponent.defaultStyle?.textColor ??
-        '#0F172A'
-      }
+      value={(() => {
+        const wholeChoiceColor =
+          activeMultipleChoiceOption?.style?.textColor ??
+          selectedComponent.defaultStyle?.textColor ??
+          '#0F172A';
+
+        if (!activeMultipleChoiceOption) {
+          return wholeChoiceColor;
+        }
+
+        const hasSelection =
+          multipleChoiceSelection?.componentId ===
+            selectedComponent.id &&
+          multipleChoiceSelection.optionId ===
+            activeMultipleChoiceOption.id &&
+          multipleChoiceSelection.start !== undefined &&
+          multipleChoiceSelection.end !== undefined &&
+          multipleChoiceSelection.start !==
+            multipleChoiceSelection.end;
+
+        if (!hasSelection) {
+          return wholeChoiceColor;
+        }
+
+        const baseSegments =
+          activeMultipleChoiceOption.richText &&
+          activeMultipleChoiceOption.richText.length > 0
+            ? activeMultipleChoiceOption.richText
+            : activeMultipleChoiceOption.text
+              ? [
+                  {
+                    text:
+                      activeMultipleChoiceOption.text,
+                  },
+                ]
+              : [];
+
+        let position = 0;
+
+        for (const segment of baseSegments) {
+          const segmentStart = position;
+          const segmentEnd =
+            position + segment.text.length;
+
+          const overlapsSelection =
+            segmentEnd >
+              multipleChoiceSelection.start! &&
+            segmentStart <
+              multipleChoiceSelection.end!;
+
+          if (overlapsSelection) {
+            return (
+              segment.style?.color ??
+              wholeChoiceColor
+            );
+          }
+
+          position = segmentEnd;
+        }
+
+        return wholeChoiceColor;
+      })()}
       onChange={(event) => {
         if (!activeMultipleChoiceOption) return;
 
         const newColor = event.target.value;
 
-        onUpdateComponent(selectedComponent.id, {
-          options: selectedComponent.options.map((option) =>
-            option.id === activeMultipleChoiceOption.id
-              ? {
-                  ...option,
-                  style: {
-                    ...option.style,
-                    textColor: newColor,
-                  },
+        const hasSelection =
+          multipleChoiceSelection?.componentId ===
+            selectedComponent.id &&
+          multipleChoiceSelection.optionId ===
+            activeMultipleChoiceOption.id &&
+          multipleChoiceSelection.start !== undefined &&
+          multipleChoiceSelection.end !== undefined &&
+          multipleChoiceSelection.start !==
+            multipleChoiceSelection.end;
+
+        if (hasSelection) {
+          const baseSegments =
+            activeMultipleChoiceOption.richText &&
+            activeMultipleChoiceOption.richText.length > 0
+              ? activeMultipleChoiceOption.richText
+              : activeMultipleChoiceOption.text
+                ? [
+                    {
+                      text:
+                        activeMultipleChoiceOption.text,
+                    },
+                  ]
+                : [];
+
+          const updatedRichText =
+            applyStyleToRange(
+              baseSegments,
+              multipleChoiceSelection.start!,
+              multipleChoiceSelection.end!,
+              {
+                color: newColor,
+              }
+            );
+
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              options:
+                selectedComponent.options.map(
+                  (option) =>
+                    option.id ===
+                    activeMultipleChoiceOption.id
+                      ? {
+                          ...option,
+                          richText:
+                            updatedRichText,
+                        }
+                      : option
+                ),
+            }
+          );
+
+          return;
+        }
+
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            options:
+              selectedComponent.options.map(
+                (option) => {
+                  if (
+                    option.id !==
+                    activeMultipleChoiceOption.id
+                  ) {
+                    return option;
+                  }
+
+                  const cleanedRichText =
+                    option.richText?.map(
+                      (segment) => {
+                        const nextStyle:
+                          RichTextStyle = {
+                          ...(segment.style ?? {}),
+                        };
+
+                        delete nextStyle.color;
+
+                        return {
+                          ...segment,
+                          style:
+                            Object.keys(nextStyle)
+                              .length > 0
+                              ? nextStyle
+                              : undefined,
+                        };
+                      }
+                    );
+
+                  return {
+                    ...option,
+                    style: {
+                      ...option.style,
+                      textColor: newColor,
+                    },
+                    richText:
+                      cleanedRichText,
+                  };
                 }
-              : option
-          ),
-        });
+              ),
+          }
+        );
       }}
       disabled={!activeMultipleChoiceOption}
       className="h-10 w-full cursor-pointer rounded-md border border-slate-300 bg-white p-1 disabled:cursor-not-allowed disabled:opacity-40"
@@ -2603,17 +3576,129 @@ Underline
     />
 
     <input
-      key={
-        activeMultipleChoiceOption?.style?.textColor ??
-        selectedComponent.defaultStyle?.textColor ??
-        '#0F172A'
-      }
+      key={(() => {
+        const wholeChoiceColor =
+          activeMultipleChoiceOption?.style?.textColor ??
+          selectedComponent.defaultStyle?.textColor ??
+          '#0F172A';
+
+        if (!activeMultipleChoiceOption) {
+          return wholeChoiceColor;
+        }
+
+        const hasSelection =
+          multipleChoiceSelection?.componentId ===
+            selectedComponent.id &&
+          multipleChoiceSelection.optionId ===
+            activeMultipleChoiceOption.id &&
+          multipleChoiceSelection.start !== undefined &&
+          multipleChoiceSelection.end !== undefined &&
+          multipleChoiceSelection.start !==
+            multipleChoiceSelection.end;
+
+        if (!hasSelection) {
+          return wholeChoiceColor;
+        }
+
+        const baseSegments =
+          activeMultipleChoiceOption.richText &&
+          activeMultipleChoiceOption.richText.length > 0
+            ? activeMultipleChoiceOption.richText
+            : activeMultipleChoiceOption.text
+              ? [
+                  {
+                    text:
+                      activeMultipleChoiceOption.text,
+                  },
+                ]
+              : [];
+
+        let position = 0;
+
+        for (const segment of baseSegments) {
+          const segmentStart = position;
+          const segmentEnd =
+            position + segment.text.length;
+
+          if (
+            segmentEnd >
+              multipleChoiceSelection.start! &&
+            segmentStart <
+              multipleChoiceSelection.end!
+          ) {
+            return (
+              segment.style?.color ??
+              wholeChoiceColor
+            );
+          }
+
+          position = segmentEnd;
+        }
+
+        return wholeChoiceColor;
+      })()}
       type="text"
-      defaultValue={(
-        activeMultipleChoiceOption?.style?.textColor ??
-        selectedComponent.defaultStyle?.textColor ??
-        '#0F172A'
-      ).toUpperCase()}
+      defaultValue={(() => {
+        const wholeChoiceColor =
+          activeMultipleChoiceOption?.style?.textColor ??
+          selectedComponent.defaultStyle?.textColor ??
+          '#0F172A';
+
+        if (!activeMultipleChoiceOption) {
+          return wholeChoiceColor.toUpperCase();
+        }
+
+        const hasSelection =
+          multipleChoiceSelection?.componentId ===
+            selectedComponent.id &&
+          multipleChoiceSelection.optionId ===
+            activeMultipleChoiceOption.id &&
+          multipleChoiceSelection.start !== undefined &&
+          multipleChoiceSelection.end !== undefined &&
+          multipleChoiceSelection.start !==
+            multipleChoiceSelection.end;
+
+        if (!hasSelection) {
+          return wholeChoiceColor.toUpperCase();
+        }
+
+        const baseSegments =
+          activeMultipleChoiceOption.richText &&
+          activeMultipleChoiceOption.richText.length > 0
+            ? activeMultipleChoiceOption.richText
+            : activeMultipleChoiceOption.text
+              ? [
+                  {
+                    text:
+                      activeMultipleChoiceOption.text,
+                  },
+                ]
+              : [];
+
+        let position = 0;
+
+        for (const segment of baseSegments) {
+          const segmentStart = position;
+          const segmentEnd =
+            position + segment.text.length;
+
+          if (
+            segmentEnd >
+              multipleChoiceSelection.start! &&
+            segmentStart <
+              multipleChoiceSelection.end!
+          ) {
+            return (
+              segment.style?.color ??
+              wholeChoiceColor
+            ).toUpperCase();
+          }
+
+          position = segmentEnd;
+        }
+
+        return wholeChoiceColor.toUpperCase();
+      })()}
       maxLength={7}
       disabled={!activeMultipleChoiceOption}
       className="h-[38px] w-[92px] rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
@@ -2625,29 +3710,115 @@ Underline
       onBlur={(event) => {
         if (!activeMultipleChoiceOption) return;
 
-        const value = event.currentTarget.value.trim();
+        const value =
+          event.currentTarget.value.trim();
 
-        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-          onUpdateComponent(selectedComponent.id, {
-            options: selectedComponent.options.map((option) =>
-              option.id === activeMultipleChoiceOption.id
-                ? {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          return;
+        }
+
+        const hasSelection =
+          multipleChoiceSelection?.componentId ===
+            selectedComponent.id &&
+          multipleChoiceSelection.optionId ===
+            activeMultipleChoiceOption.id &&
+          multipleChoiceSelection.start !== undefined &&
+          multipleChoiceSelection.end !== undefined &&
+          multipleChoiceSelection.start !==
+            multipleChoiceSelection.end;
+
+        if (hasSelection) {
+          const baseSegments =
+            activeMultipleChoiceOption.richText &&
+            activeMultipleChoiceOption.richText.length > 0
+              ? activeMultipleChoiceOption.richText
+              : activeMultipleChoiceOption.text
+                ? [
+                    {
+                      text:
+                        activeMultipleChoiceOption.text,
+                    },
+                  ]
+                : [];
+
+          const updatedRichText =
+            applyStyleToRange(
+              baseSegments,
+              multipleChoiceSelection.start!,
+              multipleChoiceSelection.end!,
+              {
+                color: value,
+              }
+            );
+
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              options:
+                selectedComponent.options.map(
+                  (option) =>
+                    option.id ===
+                    activeMultipleChoiceOption.id
+                      ? {
+                          ...option,
+                          richText:
+                            updatedRichText,
+                        }
+                      : option
+                ),
+            }
+          );
+
+          return;
+        }
+
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            options:
+              selectedComponent.options.map(
+                (option) => {
+                  if (
+                    option.id !==
+                    activeMultipleChoiceOption.id
+                  ) {
+                    return option;
+                  }
+
+                  const cleanedRichText =
+                    option.richText?.map(
+                      (segment) => {
+                        const nextStyle:
+                          RichTextStyle = {
+                          ...(segment.style ?? {}),
+                        };
+
+                        delete nextStyle.color;
+
+                        return {
+                          ...segment,
+                          style:
+                            Object.keys(nextStyle)
+                              .length > 0
+                              ? nextStyle
+                              : undefined,
+                        };
+                      }
+                    );
+
+                  return {
                     ...option,
                     style: {
                       ...option.style,
                       textColor: value,
                     },
-                  }
-                : option
-            ),
-          });
-        } else {
-          event.currentTarget.value = (
-            activeMultipleChoiceOption.style?.textColor ??
-            selectedComponent.defaultStyle?.textColor ??
-            '#0F172A'
-          ).toUpperCase();
-        }
+                    richText:
+                      cleanedRichText,
+                  };
+                }
+              ),
+          }
+        );
       }}
     />
   </div>
