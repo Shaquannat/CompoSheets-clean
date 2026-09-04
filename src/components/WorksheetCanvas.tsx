@@ -4,7 +4,6 @@ import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
 import { QuestionComponent } from './QuestionComponent';
 import { MultipleChoiceComponent } from './MultipleChoiceComponent';
-import { ResponseComponent } from './ResponseComponent';
 import { AnswerLinesComponent } from './AnswerLinesComponent';
 import { CheckboxComponent } from './CheckboxComponent';
 
@@ -395,26 +394,6 @@ orderedQuestions.forEach((component) => {
   if (component.type === 'multipleChoice') {
     return (
       <MultipleChoiceComponent
-        key={component.id}
-        component={component}
-        isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
-        isGroupSelected={isGroupSelected}
-        onUpdateComponent={(id, changes) =>
-          onUpdateComponent(id, changes)
-        }
-        onSelect={onSelectComponent}
-        onStartDragging={onStartDragging}
-        onResizeStart={onResizeStart}
-      />
-    );
-  }
-
-  if (component.type === 'response') {
-    return (
-      <ResponseComponent
         key={component.id}
         component={component}
         isSelected={

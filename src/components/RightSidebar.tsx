@@ -262,11 +262,13 @@ export function RightSidebar({
   ? 'Text'
   : selectedComponent.type === 'question'
     ? 'Question'
-    : selectedComponent.type === 'answerLines'
-      ? 'Answer Lines'
-      : selectedComponent.type === 'checkbox'
-        ? 'Checkbox'
-        : selectedComponent.type}
+    : selectedComponent.type === 'multipleChoice'
+      ? 'Multiple Choice'
+      : selectedComponent.type === 'answerLines'
+        ? 'Answer Lines'
+        : selectedComponent.type === 'checkbox'
+          ? 'Checkbox'
+          : selectedComponent.type}
             </div>
           </div>
 
@@ -2212,27 +2214,22 @@ Underline
   </div>
 )}
 
-{selectedComponent.type === 'response' &&
-  selectedComponent.responseType === 'multipleChoice' && (
+{selectedComponent.type === 'multipleChoice' && (
+  <div className="space-y-4">
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Choices
       </span>
 
-<div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
-          disabled={
-            (selectedComponent.multipleChoiceOptions?.length ?? 0) <= 2
-          }
+          disabled={selectedComponent.options.length <= 2}
           onClick={() => {
-            const currentOptions =
-              selectedComponent.multipleChoiceOptions ?? [];
-
-            if (currentOptions.length <= 2) return;
+            if (selectedComponent.options.length <= 2) return;
 
             onUpdateComponent(selectedComponent.id, {
-              multipleChoiceOptions: currentOptions.slice(0, -1),
+              options: selectedComponent.options.slice(0, -1),
             });
           }}
           className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -2242,18 +2239,13 @@ Underline
 
         <button
           type="button"
-          disabled={
-            (selectedComponent.multipleChoiceOptions?.length ?? 0) >= 5
-          }
+          disabled={selectedComponent.options.length >= 5}
           onClick={() => {
-            const currentOptions =
-              selectedComponent.multipleChoiceOptions ?? [];
-
-            if (currentOptions.length >= 5) return;
+            if (selectedComponent.options.length >= 5) return;
 
             onUpdateComponent(selectedComponent.id, {
-              multipleChoiceOptions: [
-                ...currentOptions,
+              options: [
+                ...selectedComponent.options,
                 {
                   id: crypto.randomUUID(),
                   text: '',
@@ -2266,27 +2258,24 @@ Underline
           + Add
         </button>
       </div>
+    </div>
 
-      {selectedComponent.type === 'response' &&
-  selectedComponent.responseType === 'multipleChoice' && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Choice labels
       </span>
 
       <select
-        value={
-          selectedComponent.multipleChoiceLabelStyle ?? 'A.'
-        }
-        onChange={(event) => {
+        value={selectedComponent.labelStyle ?? 'A.'}
+        onChange={(event) =>
           onUpdateComponent(selectedComponent.id, {
-            multipleChoiceLabelStyle: event.target.value as
+            labelStyle: event.target.value as
               | 'A.'
               | 'A)'
               | 'a.'
               | 'a)',
-          });
-        }}
+          })
+        }
         className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
       >
         <option value="A.">A. B. C.</option>
@@ -2295,61 +2284,50 @@ Underline
         <option value="a)">a) b) c)</option>
       </select>
     </div>
-  )}
 
-{selectedComponent.type === 'response' &&
-  selectedComponent.responseType === 'multipleChoice' && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Choice layout
       </span>
 
       <select
-        value={
-          selectedComponent.multipleChoiceLayout ?? 'vertical'
-        }
-        onChange={(event) => {
+        value={selectedComponent.layout ?? 'vertical'}
+        onChange={(event) =>
           onUpdateComponent(selectedComponent.id, {
-            multipleChoiceLayout: event.target.value as
+            layout: event.target.value as
               | 'vertical'
               | 'twoColumn',
-          });
-        }}
+          })
+        }
         className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
       >
         <option value="vertical">Vertical</option>
         <option value="twoColumn">2 columns</option>
       </select>
     </div>
-  )}
 
-{selectedComponent.type === 'response' &&
-  selectedComponent.responseType === 'multipleChoice' && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Choice marker
       </span>
 
       <select
-        value={
-          selectedComponent.multipleChoiceMarkerStyle ?? 'plain'
-        }
-        onChange={(event) => {
+        value={selectedComponent.markerStyle ?? 'plain'}
+        onChange={(event) =>
           onUpdateComponent(selectedComponent.id, {
-            multipleChoiceMarkerStyle: event.target.value as
+            markerStyle: event.target.value as
               | 'plain'
               | 'circle',
-          });
-        }}
+          })
+        }
         className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
       >
         <option value="plain">Plain label</option>
         <option value="circle">Letter in circle</option>
       </select>
     </div>
-  )}
-    </div>
-  )}
+  </div>
+)}
 
           <label className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
             <span className="text-sm font-semibold text-slate-800">

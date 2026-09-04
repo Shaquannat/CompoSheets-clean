@@ -2,7 +2,6 @@ export type ComponentType =
   | 'text'
   | 'question'
   | 'multipleChoice'
-  | 'response'
   | 'answerLines'
   | 'checkbox';
 
@@ -21,23 +20,6 @@ export type BaseWorksheetComponent = {
 attachmentPlacement?: 'below' | 'right';
 attachmentGap?: number;
 };
-
-export type ResponseType =
-  | 'multipleChoice'
-  | 'answerLines';
-
-  export type ResponseComponent =
-  BaseWorksheetComponent & {
-    type: 'response';
-    responseType?: ResponseType;
-
-    multipleChoiceOptions?: MultipleChoiceOption[];
-    multipleChoiceLabelStyle?: 'A.' | 'A)' | 'a.' | 'a)';
-    multipleChoiceLayout?: 'vertical' | 'twoColumn';
-    multipleChoiceMarkerStyle?: 'plain' | 'circle';
-    multipleChoiceDefaultStyle?: MultipleChoiceTextStyle;
-    multipleChoiceCorrectOptionId?: string;
-  };
 
 export type RichTextStyle = {
   bold?: boolean;
@@ -143,7 +125,6 @@ export type WorksheetComponent =
   | TextComponent
   | QuestionComponent
   | MultipleChoiceComponent
-  | ResponseComponent
   | AnswerLinesComponent
   | CheckboxComponent;
 
