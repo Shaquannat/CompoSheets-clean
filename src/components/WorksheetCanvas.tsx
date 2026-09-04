@@ -82,7 +82,8 @@ type WorksheetCanvasProps = {
 
   onMultipleChoiceSelectionChange?: (
     componentId: string,
-    optionId: string
+    optionId: string,
+    range?: { start: number; end: number } | null
   ) => void;
 
   onUpdateComponent: (

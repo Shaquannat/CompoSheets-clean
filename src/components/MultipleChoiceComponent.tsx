@@ -25,7 +25,8 @@ import {
   
     onSelectionChange?: (
         componentId: string,
-        optionId: string
+        optionId: string,
+        range?: { start: number; end: number } | null
       ) => void;
 
     onStartDragging: (
@@ -50,8 +51,77 @@ onStartDragging,
     onResizeStart,
   }: MultipleChoiceComponentProps) {
     const [isHovered, setIsHovered] = useState(false);
+
+    const [optionEmptyState, setOptionEmptyState] = useState<
+  Record<string, boolean>
+>({});
   
-    const optionInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+    const optionInputRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+    function captureOptionSelection(
+        element: HTMLElement,
+        optionId: string
+      ) {
+        const selection = window.getSelection();
+      
+        if (!selection || selection.rangeCount === 0) {
+          onSelectionChange?.(
+            component.id,
+            optionId,
+            null
+          );
+      
+          return;
+        }
+      
+        const range = selection.getRangeAt(0);
+      
+        if (
+          !element.contains(range.startContainer) ||
+          !element.contains(range.endContainer)
+        ) {
+          return;
+        }
+      
+        const beforeSelection = range.cloneRange();
+      
+        beforeSelection.selectNodeContents(element);
+        beforeSelection.setEnd(
+          range.startContainer,
+          range.startOffset
+        );
+      
+        const start =
+          beforeSelection.toString().length;
+      
+        const end =
+          start + range.toString().length;
+      
+        onSelectionChange?.(
+          component.id,
+          optionId,
+          {
+            start,
+            end,
+          }
+        );
+      }
+      
+      function placeCaretAtEnd(
+        element: HTMLElement
+      ) {
+        const selection = window.getSelection();
+      
+        if (!selection) return;
+      
+        const range = document.createRange();
+      
+        range.selectNodeContents(element);
+        range.collapse(false);
+      
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
 
     return (
       <div
@@ -202,130 +272,224 @@ onStartDragging,
                   </span>
                 )}
   
-                <input
-                  type="text"
-                  defaultValue={option.text}
-                  placeholder="Choice"
-                  ref={(element) => {
-                    optionInputRefs.current[index] = element;
-                  }}
-                  onFocus={() => {
-                    onSelect(component.id);
-                    onSelectionChange?.(
-                      component.id,
-                      option.id
-                    );
-                  }}
-                  onKeyDown={(event) => {
-                    if (
-                      (event.ctrlKey || event.metaKey) &&
-                      (
-                        event.key.toLowerCase() === 'z' ||
-                        event.key.toLowerCase() === 'y'
-                      )
-                    ) {
-                      event.stopPropagation();
-                      return;
-                    }
-                  
-                    if (
-                      event.ctrlKey ||
-                      event.metaKey ||
-                      event.altKey ||
-                      event.shiftKey
-                    ) {
-                      return;
-                    }
-                  
-                    let nextIndex: number | null = null;
-                  
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                  
-                      if (index < component.options.length - 1) {
-                        nextIndex = index + 1;
-                      } else {
-                        return;
-                      }
-                    }
-                  
-                    if (event.key === 'ArrowUp') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                  
-                      if (index > 0) {
-                        nextIndex = index - 1;
-                      } else {
-                        return;
-                      }
-                    }
-                  
-                    if (event.key === 'ArrowDown') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                  
-                      if (index < component.options.length - 1) {
-                        nextIndex = index + 1;
-                      } else {
-                        return;
-                      }
-                    }
-                  
-                    if (nextIndex === null) return;
-                  
-                    event.currentTarget.blur();
-                  
-                    requestAnimationFrame(() => {
-                      const nextInput =
-                        optionInputRefs.current[nextIndex];
-                  
-                      nextInput?.focus();
-                  
-                      if (nextInput) {
-                        const caretPosition =
-                          nextInput.value.length;
-                  
-                        nextInput.setSelectionRange(
-                          caretPosition,
-                          caretPosition
-                        );
-                      }
-                    });
-                  }}
-                  onClick={(event) =>
-                    event.stopPropagation()
-                  }
-                  onBlur={(event) => {
-                    const nextOptions =
-                      component.options.map(
-                        (currentOption) =>
-                          currentOption.id === option.id
-                            ? {
-                                ...currentOption,
-                                text: event.target.value,
-                              }
-                            : currentOption
-                      );
+  <div className="relative min-w-0 flex-1">
+  <span
+  data-multiple-choice-placeholder="true"
+  className="pointer-events-none absolute left-0 top-0 text-slate-300"
+  style={{
+    display:
+      (optionEmptyState[option.id] ??
+        option.text === '')
+        ? 'block'
+        : 'none',
+  }}
+>
+  Choice
+</span>
+
+  <div
+  ref={(element) => {
+    optionInputRefs.current[index] = element;
+  }}
+  contentEditable
+  suppressContentEditableWarning
+ 
+  onFocus={() => {
+    onSelect(component.id);
+
+    onSelectionChange?.(
+      component.id,
+      option.id
+    );
+  }}
+  onMouseUp={(event) => {
+    captureOptionSelection(
+      event.currentTarget,
+      option.id
+    );
+  }}
+  onKeyDown={(event) => {
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      (
+        event.key.toLowerCase() === 'z' ||
+        event.key.toLowerCase() === 'y'
+      )
+    ) {
+      event.stopPropagation();
+      return;
+    }
+
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      event.shiftKey
+    ) {
+      return;
+    }
+
+    let nextIndex: number | null = null;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (index < component.options.length - 1) {
+        nextIndex = index + 1;
+      } else {
+        return;
+      }
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (index > 0) {
+        nextIndex = index - 1;
+      } else {
+        return;
+      }
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (index < component.options.length - 1) {
+        nextIndex = index + 1;
+      } else {
+        return;
+      }
+    }
+
+    if (nextIndex === null) return;
+
+    event.currentTarget.blur();
+
+    requestAnimationFrame(() => {
+      const nextInput =
+        optionInputRefs.current[nextIndex];
+
+      nextInput?.focus();
+
+      if (nextInput) {
+        placeCaretAtEnd(nextInput);
+      }
+    });
+  }}
+  onKeyUp={(event) => {
+    captureOptionSelection(
+      event.currentTarget,
+      option.id
+    );
+  }}
+  onClick={(event) => {
+    event.stopPropagation();
+  }}
+  onInput={(event) => {
+    const currentText =
+      event.currentTarget.innerText
+        .replace(/\r\n/g, '\n')
+        .replace(/\n$/, '');
   
-                    onUpdateComponent(component.id, {
-                      options: nextOptions,
-                    });
-                  }}
-                  className="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none placeholder:text-slate-300"
-                  style={{
-                    fontFamily: 'inherit',
-                    fontSize: 'inherit',
-                    fontWeight: 'inherit',
-                    fontStyle: 'inherit',
-                    textDecoration: choiceStyle.underline
-  ? 'underline'
-  : 'none',
-                    color: 'inherit',
-                  }}
-                />
-              </div>
-            );
+    setOptionEmptyState((current) => ({
+      ...current,
+      [option.id]: currentText === '',
+    }));
+  }}
+  onBlur={(event) => {
+    const updatedText =
+      event.currentTarget.innerText
+        .replace(/\r\n/g, '\n')
+        .replace(/\n$/, '');
+
+    const nextOptions =
+      component.options.map(
+        (currentOption) => {
+          if (currentOption.id !== option.id) {
+            return currentOption;
+          }
+
+          const textChanged =
+            updatedText !== currentOption.text;
+
+          return {
+            ...currentOption,
+            text: updatedText,
+            richText: textChanged
+              ? updatedText
+                ? [{ text: updatedText }]
+                : []
+              : currentOption.richText,
+          };
+        }
+      );
+
+    onUpdateComponent(component.id, {
+      options: nextOptions,
+    });
+  }}
+  className="min-w-0 cursor-text border-0 bg-transparent p-0 outline-none"
+  style={{
+    minHeight: '1em',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    fontWeight: 'inherit',
+    fontStyle: 'inherit',
+    textDecoration: choiceStyle.underline
+      ? 'underline'
+      : 'none',
+    color: 'inherit',
+    whiteSpace: 'pre-wrap',
+  }}
+>
+  {option.richText && option.richText.length > 0
+    ? option.richText.map(
+        (segment, segmentIndex) => (
+          <span
+            key={segmentIndex}
+            style={{
+              fontWeight:
+                segment.style?.bold === undefined
+                  ? undefined
+                  : segment.style.bold
+                    ? 'bold'
+                    : 'normal',
+
+              fontStyle:
+                segment.style?.italic === undefined
+                  ? undefined
+                  : segment.style.italic
+                    ? 'italic'
+                    : 'normal',
+
+              textDecoration:
+                segment.style?.underline === undefined
+                  ? undefined
+                  : segment.style.underline
+                    ? 'underline'
+                    : 'none',
+
+              color: segment.style?.color,
+
+              fontFamily:
+                segment.style?.fontFamily,
+
+              fontSize:
+                segment.style?.fontSize,
+            }}
+          >
+            {segment.text}
+          </span>
+        )
+      )
+      : option.text}
+      </div>
+    </div>
+    </div>
+    );
           })}
         </div>
   

@@ -99,6 +99,8 @@ const findMatch =
   const [multipleChoiceSelection, setMultipleChoiceSelection] = useState<{
     componentId: string;
     optionId: string;
+    start?: number;
+    end?: number;
   } | null>(null);
 
   const selectedComponent =
@@ -2286,12 +2288,14 @@ activeFindMatch={findMatch}
             );
           }}
 
-onMultipleChoiceSelectionChange={(componentId, optionId) => {
-  setMultipleChoiceSelection({
-    componentId,
-    optionId,
-  });
-}}
+          onMultipleChoiceSelectionChange={(componentId, optionId, range) => {
+            setMultipleChoiceSelection({
+              componentId,
+              optionId,
+              start: range?.start,
+              end: range?.end,
+            });
+          }}
 
           onResizeStart={startResizing}
         />

@@ -27,6 +27,7 @@ export type RichTextStyle = {
   underline?: boolean;
   color?: string;
   fontFamily?: string;
+  fontSize?: number;
 };
 
 export type RichTextSegment = {
@@ -59,6 +60,7 @@ textColor: string;
   export type MultipleChoiceOption = {
     id: string;
     text: string;
+    richText?: RichTextSegment[];
     style?: MultipleChoiceTextStyle;
   };
 

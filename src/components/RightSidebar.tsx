@@ -195,6 +195,8 @@ type RightSidebarProps = {
   multipleChoiceSelection: {
     componentId: string;
     optionId: string;
+    start?: number;
+    end?: number;
   } | null;
 
   onUpdateComponent: (
