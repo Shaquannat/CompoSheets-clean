@@ -23,6 +23,11 @@ import {
       event?: ReactPointerEvent<HTMLElement>
     ) => void;
   
+    onSelectionChange?: (
+        componentId: string,
+        optionId: string
+      ) => void;
+
     onStartDragging: (
       event: ReactPointerEvent<HTMLButtonElement>,
       component: MultipleChoiceComponentType
@@ -39,8 +44,9 @@ import {
     isSelected,
     isGroupSelected,
     onUpdateComponent,
-    onSelect,
-    onStartDragging,
+onSelect,
+onSelectionChange,
+onStartDragging,
     onResizeStart,
   }: MultipleChoiceComponentProps) {
     const [isHovered, setIsHovered] = useState(false);
@@ -114,14 +120,36 @@ import {
               ? ')'
               : '.';
   
-            const choiceStyle =
-              component.defaultStyle ?? {
-                fontFamily: 'Arial',
-                fontSize: 16,
-                fontWeight: 'normal',
-                italic: false,
-                underline: false,
-                textColor: '#0F172A',
+              const choiceStyle = {
+                fontFamily:
+                  option.style?.fontFamily ??
+                  component.defaultStyle?.fontFamily ??
+                  'Arial',
+              
+                fontSize:
+                  option.style?.fontSize ??
+                  component.defaultStyle?.fontSize ??
+                  16,
+              
+                fontWeight:
+                  option.style?.fontWeight ??
+                  component.defaultStyle?.fontWeight ??
+                  'normal',
+              
+                italic:
+                  option.style?.italic ??
+                  component.defaultStyle?.italic ??
+                  false,
+              
+                underline:
+                  option.style?.underline ??
+                  component.defaultStyle?.underline ??
+                  false,
+              
+                textColor:
+                  option.style?.textColor ??
+                  component.defaultStyle?.textColor ??
+                  '#0F172A',
               };
   
             return (
@@ -135,15 +163,12 @@ import {
                   fontStyle: choiceStyle.italic
                     ? 'italic'
                     : 'normal',
-                  textDecoration: choiceStyle.underline
-                    ? 'underline'
-                    : 'none',
                   color: choiceStyle.textColor,
                 }}
               >
                 {component.markerStyle === 'circle' ? (
                   <span
-                    className="shrink-0 border border-slate-500"
+                  className="shrink-0 border"
                     style={{
                       width: 22,
                       height: 22,
@@ -157,12 +182,21 @@ import {
                       alignItems: 'center',
                       justifyContent: 'center',
                       textAlign: 'center',
+                      fontStyle: 'normal',
+                      textDecoration: 'none',
+                      borderColor: choiceStyle.textColor,
                     }}
                   >
                     {letter}
                   </span>
                 ) : (
-                  <span className="shrink-0">
+                    <span
+                    className="shrink-0"
+                    style={{
+                        fontStyle: 'normal',
+                        textDecoration: 'none',
+                      }}
+                  >
                     {letter}
                     {suffix}
                   </span>
@@ -174,6 +208,13 @@ import {
                   placeholder="Choice"
                   ref={(element) => {
                     optionInputRefs.current[index] = element;
+                  }}
+                  onFocus={() => {
+                    onSelect(component.id);
+                    onSelectionChange?.(
+                      component.id,
+                      option.id
+                    );
                   }}
                   onKeyDown={(event) => {
                     if (
@@ -277,7 +318,9 @@ import {
                     fontSize: 'inherit',
                     fontWeight: 'inherit',
                     fontStyle: 'inherit',
-                    textDecoration: 'inherit',
+                    textDecoration: choiceStyle.underline
+  ? 'underline'
+  : 'none',
                     color: 'inherit',
                   }}
                 />

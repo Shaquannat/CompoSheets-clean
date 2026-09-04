@@ -96,6 +96,11 @@ const findMatch =
     end: number;
   } | null>(null);
 
+  const [multipleChoiceSelection, setMultipleChoiceSelection] = useState<{
+    componentId: string;
+    optionId: string;
+  } | null>(null);
+
   const selectedComponent =
     components.find((component) => component.id === selectedComponentId) ??
     null;
@@ -2281,6 +2286,13 @@ activeFindMatch={findMatch}
             );
           }}
 
+onMultipleChoiceSelectionChange={(componentId, optionId) => {
+  setMultipleChoiceSelection({
+    componentId,
+    optionId,
+  });
+}}
+
           onResizeStart={startResizing}
         />
 
@@ -2290,6 +2302,7 @@ activeFindMatch={findMatch}
   textSelection={textSelection}
   questionSelection={questionSelection}
   checkboxSelection={checkboxSelection}
+  multipleChoiceSelection={multipleChoiceSelection}
   onUpdateComponent={updateComponent}
   onDuplicate={duplicateSelectedComponent}
   onDelete={

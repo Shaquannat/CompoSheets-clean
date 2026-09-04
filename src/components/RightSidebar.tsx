@@ -192,6 +192,11 @@ type RightSidebarProps = {
     end: number;
   } | null;
 
+  multipleChoiceSelection: {
+    componentId: string;
+    optionId: string;
+  } | null;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>,
@@ -206,10 +211,20 @@ export function RightSidebar({
   textSelection,
   questionSelection,
   checkboxSelection,
+  multipleChoiceSelection,
   onUpdateComponent,
   onDuplicate,
   onDelete,
 }: RightSidebarProps) {
+  const activeMultipleChoiceOption =
+    selectedComponent?.type === 'multipleChoice' &&
+    multipleChoiceSelection?.componentId === selectedComponent.id
+      ? selectedComponent.options.find(
+          (option) =>
+            option.id === multipleChoiceSelection.optionId
+        ) ?? null
+      : null;
+
   return (
     <aside className="hidden border-l border-slate-200 bg-white p-4 lg:block">
       <div className="mb-5">
@@ -2216,6 +2231,7 @@ Underline
 
 {selectedComponent.type === 'multipleChoice' && (
   <div className="space-y-4">
+   
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Choices
@@ -2343,6 +2359,297 @@ Underline
         <option value="circle">Letter in circle</option>
       </select>
     </div>
+    <div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Font family
+  </span>
+
+  <select
+    value={
+      activeMultipleChoiceOption?.style?.fontFamily ??
+      selectedComponent.defaultStyle?.fontFamily ??
+      'Arial'
+    }
+    onChange={(event) => {
+      if (!activeMultipleChoiceOption) return;
+
+      const newFontFamily = event.target.value;
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map((option) =>
+          option.id === activeMultipleChoiceOption.id
+            ? {
+                ...option,
+                style: {
+                  ...option.style,
+                  fontFamily: newFontFamily,
+                },
+              }
+            : option
+        ),
+      });
+    }}
+    disabled={!activeMultipleChoiceOption}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Courier New">Courier New</option>
+  </select>
+</div>
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Font size
+  </span>
+
+  <input
+    type="number"
+    min="8"
+    max="72"
+    value={
+      activeMultipleChoiceOption?.style?.fontSize ??
+      selectedComponent.defaultStyle?.fontSize ??
+      16
+    }
+    onChange={(event) => {
+      if (!activeMultipleChoiceOption) return;
+
+      const newFontSize = Number(event.target.value);
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map((option) =>
+          option.id === activeMultipleChoiceOption.id
+            ? {
+                ...option,
+                style: {
+                  ...option.style,
+                  fontSize: newFontSize,
+                },
+              }
+            : option
+        ),
+      });
+    }}
+    disabled={!activeMultipleChoiceOption}
+    className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+  />
+</div>
+
+<button
+  type="button"
+  onClick={() => {
+    if (!activeMultipleChoiceOption) return;
+
+    const currentFontWeight =
+      activeMultipleChoiceOption.style?.fontWeight ??
+      selectedComponent.defaultStyle?.fontWeight ??
+      'normal';
+
+    onUpdateComponent(selectedComponent.id, {
+      options: selectedComponent.options.map((option) =>
+        option.id === activeMultipleChoiceOption.id
+          ? {
+              ...option,
+              style: {
+                ...option.style,
+                fontWeight:
+                  currentFontWeight === 'bold'
+                    ? 'normal'
+                    : 'bold',
+              },
+            }
+          : option
+      ),
+    });
+  }}
+  disabled={!activeMultipleChoiceOption}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      activeMultipleChoiceOption?.style?.fontWeight ??
+      selectedComponent.defaultStyle?.fontWeight ??
+      'normal'
+    ) === 'bold'
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  } disabled:cursor-not-allowed disabled:opacity-40`}
+>
+  Bold
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    if (!activeMultipleChoiceOption) return;
+
+    const currentItalic =
+      activeMultipleChoiceOption.style?.italic ??
+      selectedComponent.defaultStyle?.italic ??
+      false;
+
+    onUpdateComponent(selectedComponent.id, {
+      options: selectedComponent.options.map((option) =>
+        option.id === activeMultipleChoiceOption.id
+          ? {
+              ...option,
+              style: {
+                ...option.style,
+                italic: !currentItalic,
+              },
+            }
+          : option
+      ),
+    });
+  }}
+  disabled={!activeMultipleChoiceOption}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      activeMultipleChoiceOption?.style?.italic ??
+      selectedComponent.defaultStyle?.italic ??
+      false
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  } disabled:cursor-not-allowed disabled:opacity-40`}
+>
+  Italic
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    if (!activeMultipleChoiceOption) return;
+
+    const currentUnderline =
+      activeMultipleChoiceOption.style?.underline ??
+      selectedComponent.defaultStyle?.underline ??
+      false;
+
+    onUpdateComponent(selectedComponent.id, {
+      options: selectedComponent.options.map((option) =>
+        option.id === activeMultipleChoiceOption.id
+          ? {
+              ...option,
+              style: {
+                ...option.style,
+                underline: !currentUnderline,
+              },
+            }
+          : option
+      ),
+    });
+  }}
+  disabled={!activeMultipleChoiceOption}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      activeMultipleChoiceOption?.style?.underline ??
+      selectedComponent.defaultStyle?.underline ??
+      false
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  } disabled:cursor-not-allowed disabled:opacity-40`}
+>
+  Underline
+</button>
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Text color
+  </span>
+
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0, 1fr) 92px',
+      gap: '8px',
+      alignItems: 'center',
+    }}
+  >
+    <input
+      type="color"
+      value={
+        activeMultipleChoiceOption?.style?.textColor ??
+        selectedComponent.defaultStyle?.textColor ??
+        '#0F172A'
+      }
+      onChange={(event) => {
+        if (!activeMultipleChoiceOption) return;
+
+        const newColor = event.target.value;
+
+        onUpdateComponent(selectedComponent.id, {
+          options: selectedComponent.options.map((option) =>
+            option.id === activeMultipleChoiceOption.id
+              ? {
+                  ...option,
+                  style: {
+                    ...option.style,
+                    textColor: newColor,
+                  },
+                }
+              : option
+          ),
+        });
+      }}
+      disabled={!activeMultipleChoiceOption}
+      className="h-10 w-full cursor-pointer rounded-md border border-slate-300 bg-white p-1 disabled:cursor-not-allowed disabled:opacity-40"
+      aria-label="Choose choice text color"
+    />
+
+    <input
+      key={
+        activeMultipleChoiceOption?.style?.textColor ??
+        selectedComponent.defaultStyle?.textColor ??
+        '#0F172A'
+      }
+      type="text"
+      defaultValue={(
+        activeMultipleChoiceOption?.style?.textColor ??
+        selectedComponent.defaultStyle?.textColor ??
+        '#0F172A'
+      ).toUpperCase()}
+      maxLength={7}
+      disabled={!activeMultipleChoiceOption}
+      className="h-[38px] w-[92px] rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        if (!activeMultipleChoiceOption) return;
+
+        const value = event.currentTarget.value.trim();
+
+        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          onUpdateComponent(selectedComponent.id, {
+            options: selectedComponent.options.map((option) =>
+              option.id === activeMultipleChoiceOption.id
+                ? {
+                    ...option,
+                    style: {
+                      ...option.style,
+                      textColor: value,
+                    },
+                  }
+                : option
+            ),
+          });
+        } else {
+          event.currentTarget.value = (
+            activeMultipleChoiceOption.style?.textColor ??
+            selectedComponent.defaultStyle?.textColor ??
+            '#0F172A'
+          ).toUpperCase();
+        }
+      }}
+    />
+  </div>
+</div>
   </div>
 )}
 

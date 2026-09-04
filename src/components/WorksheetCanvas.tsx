@@ -79,6 +79,12 @@ type WorksheetCanvasProps = {
     itemId: string,
     range: { start: number; end: number } | null
   ) => void;
+
+  onMultipleChoiceSelectionChange?: (
+    componentId: string,
+    optionId: string
+  ) => void;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>
@@ -107,6 +113,7 @@ activeFindMatch,
   onTextSelectionChange,
 onQuestionSelectionChange,
 onCheckboxSelectionChange,
+onMultipleChoiceSelectionChange,
 onUpdateComponent,
 }: WorksheetCanvasProps) {
   const selectedComponents = components.filter((component) =>
@@ -405,6 +412,7 @@ orderedQuestions.forEach((component) => {
           onUpdateComponent(id, changes)
         }
         onSelect={onSelectComponent}
+        onSelectionChange={onMultipleChoiceSelectionChange}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
       />
