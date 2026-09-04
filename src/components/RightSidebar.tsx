@@ -2433,10 +2433,57 @@ Underline
       return selectedFont ?? wholeChoiceFont;
     })()}
     onChange={(event) => {
-      if (!activeMultipleChoiceOption) return;
-
       const newFontFamily = event.target.value;
-
+    
+      // No specific choice active:
+      // apply font family to the entire Multiple Choice component.
+      if (!activeMultipleChoiceOption) {
+        const cleanedOptions =
+          selectedComponent.options.map((option) => {
+            const nextOptionStyle = {
+              ...(option.style ?? {}),
+            };
+    
+            delete nextOptionStyle.fontFamily;
+    
+            const cleanedRichText =
+              option.richText?.map((segment) => {
+                const nextStyle: RichTextStyle = {
+                  ...(segment.style ?? {}),
+                };
+    
+                delete nextStyle.fontFamily;
+    
+                return {
+                  ...segment,
+                  style:
+                    Object.keys(nextStyle).length > 0
+                      ? nextStyle
+                      : undefined,
+                };
+              });
+    
+            return {
+              ...option,
+              style:
+                Object.keys(nextOptionStyle).length > 0
+                  ? nextOptionStyle
+                  : undefined,
+              richText: cleanedRichText,
+            };
+          });
+    
+        onUpdateComponent(selectedComponent.id, {
+          defaultStyle: {
+            ...selectedComponent.defaultStyle,
+            fontFamily: newFontFamily,
+          },
+          options: cleanedOptions,
+        });
+    
+        return;
+      }
+    
       const hasSelection =
         multipleChoiceSelection?.componentId ===
           selectedComponent.id &&
@@ -2446,7 +2493,9 @@ Underline
         multipleChoiceSelection.end !== undefined &&
         multipleChoiceSelection.start !==
           multipleChoiceSelection.end;
-
+    
+      // Highlighted text:
+      // change only that text.
       if (hasSelection) {
         const baseSegments =
           activeMultipleChoiceOption.richText &&
@@ -2460,7 +2509,7 @@ Underline
                   },
                 ]
               : [];
-
+    
         const updatedRichText =
           applyStyleToRange(
             baseSegments,
@@ -2470,72 +2519,64 @@ Underline
               fontFamily: newFontFamily,
             }
           );
-
+    
         onUpdateComponent(selectedComponent.id, {
-          options:
-            selectedComponent.options.map(
-              (option) =>
-                option.id ===
-                activeMultipleChoiceOption.id
-                  ? {
-                      ...option,
-                      richText:
-                        updatedRichText,
-                    }
-                  : option
-            ),
+          options: selectedComponent.options.map(
+            (option) =>
+              option.id ===
+              activeMultipleChoiceOption.id
+                ? {
+                    ...option,
+                    richText: updatedRichText,
+                  }
+                : option
+          ),
         });
-
+    
         return;
       }
-
+    
+      // Specific choice active, no highlighted text:
+      // change the entire choice.
       onUpdateComponent(selectedComponent.id, {
-        options:
-          selectedComponent.options.map(
-            (option) => {
-              if (
-                option.id !==
-                activeMultipleChoiceOption.id
-              ) {
-                return option;
-              }
-
-              const cleanedRichText =
-                option.richText?.map(
-                  (segment) => {
-                    const nextStyle:
-                      RichTextStyle = {
-                      ...(segment.style ?? {}),
-                    };
-
-                    delete nextStyle.fontFamily;
-
-                    return {
-                      ...segment,
-                      style:
-                        Object.keys(nextStyle)
-                          .length > 0
-                          ? nextStyle
-                          : undefined,
-                    };
-                  }
-                );
-
-              return {
-                ...option,
-                style: {
-                  ...option.style,
-                  fontFamily:
-                    newFontFamily,
-                },
-                richText:
-                  cleanedRichText,
-              };
+        options: selectedComponent.options.map(
+          (option) => {
+            if (
+              option.id !==
+              activeMultipleChoiceOption.id
+            ) {
+              return option;
             }
-          ),
+    
+            const cleanedRichText =
+              option.richText?.map((segment) => {
+                const nextStyle: RichTextStyle = {
+                  ...(segment.style ?? {}),
+                };
+    
+                delete nextStyle.fontFamily;
+    
+                return {
+                  ...segment,
+                  style:
+                    Object.keys(nextStyle).length > 0
+                      ? nextStyle
+                      : undefined,
+                };
+              });
+    
+            return {
+              ...option,
+              style: {
+                ...option.style,
+                fontFamily: newFontFamily,
+              },
+              richText: cleanedRichText,
+            };
+          }
+        ),
       });
     }}
-    disabled={!activeMultipleChoiceOption}
     className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
   >
     <option value="" disabled>
@@ -2557,11 +2598,12 @@ Underline
 </div>
 
 <div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Font size
-  </span>
+<span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+  Font size
+</span>
 
-  <input
+<div className="grid grid-cols-2 gap-2">
+<input
     type="number"
     min="8"
     max="72"
@@ -2631,13 +2673,60 @@ Underline
       return selectedSize ?? wholeChoiceSize;
     })()}
     onChange={(event) => {
-      if (!activeMultipleChoiceOption) return;
-
       const newFontSize =
         Number(event.target.value);
-
+    
       if (!newFontSize) return;
-
+    
+      // No specific choice active:
+      // apply size to the entire Multiple Choice component.
+      if (!activeMultipleChoiceOption) {
+        const cleanedOptions =
+          selectedComponent.options.map((option) => {
+            const nextOptionStyle = {
+              ...(option.style ?? {}),
+            };
+    
+            delete nextOptionStyle.fontSize;
+    
+            const cleanedRichText =
+              option.richText?.map((segment) => {
+                const nextStyle: RichTextStyle = {
+                  ...(segment.style ?? {}),
+                };
+    
+                delete nextStyle.fontSize;
+    
+                return {
+                  ...segment,
+                  style:
+                    Object.keys(nextStyle).length > 0
+                      ? nextStyle
+                      : undefined,
+                };
+              });
+    
+            return {
+              ...option,
+              style:
+                Object.keys(nextOptionStyle).length > 0
+                  ? nextOptionStyle
+                  : undefined,
+              richText: cleanedRichText,
+            };
+          });
+    
+        onUpdateComponent(selectedComponent.id, {
+          defaultStyle: {
+            ...selectedComponent.defaultStyle,
+            fontSize: newFontSize,
+          },
+          options: cleanedOptions,
+        });
+    
+        return;
+      }
+    
       const hasSelection =
         multipleChoiceSelection?.componentId ===
           selectedComponent.id &&
@@ -2647,7 +2736,9 @@ Underline
         multipleChoiceSelection.end !== undefined &&
         multipleChoiceSelection.start !==
           multipleChoiceSelection.end;
-
+    
+      // Highlighted text:
+      // change only that selected text.
       if (hasSelection) {
         const baseSegments =
           activeMultipleChoiceOption.richText &&
@@ -2661,7 +2752,7 @@ Underline
                   },
                 ]
               : [];
-
+    
         const updatedRichText =
           applyStyleToRange(
             baseSegments,
@@ -2671,81 +2762,128 @@ Underline
               fontSize: newFontSize,
             }
           );
-
+    
         onUpdateComponent(selectedComponent.id, {
-          options:
-            selectedComponent.options.map(
-              (option) =>
-                option.id ===
-                activeMultipleChoiceOption.id
-                  ? {
-                      ...option,
-                      richText:
-                        updatedRichText,
-                    }
-                  : option
-            ),
+          options: selectedComponent.options.map(
+            (option) =>
+              option.id ===
+              activeMultipleChoiceOption.id
+                ? {
+                    ...option,
+                    richText: updatedRichText,
+                  }
+                : option
+          ),
         });
-
+    
         return;
       }
-
+    
+      // Specific choice active, no highlighted text:
+      // change that whole choice.
       onUpdateComponent(selectedComponent.id, {
-        options:
-          selectedComponent.options.map(
-            (option) => {
-              if (
-                option.id !==
-                activeMultipleChoiceOption.id
-              ) {
-                return option;
-              }
-
-              const cleanedRichText =
-                option.richText?.map(
-                  (segment) => {
-                    const nextStyle:
-                      RichTextStyle = {
-                      ...(segment.style ?? {}),
-                    };
-
-                    delete nextStyle.fontSize;
-
-                    return {
-                      ...segment,
-                      style:
-                        Object.keys(nextStyle)
-                          .length > 0
-                          ? nextStyle
-                          : undefined,
-                    };
-                  }
-                );
-
-              return {
-                ...option,
-                style: {
-                  ...option.style,
-                  fontSize:
-                    newFontSize,
-                },
-                richText:
-                  cleanedRichText,
-              };
+        options: selectedComponent.options.map(
+          (option) => {
+            if (
+              option.id !==
+              activeMultipleChoiceOption.id
+            ) {
+              return option;
             }
-          ),
+    
+            const cleanedRichText =
+              option.richText?.map((segment) => {
+                const nextStyle: RichTextStyle = {
+                  ...(segment.style ?? {}),
+                };
+    
+                delete nextStyle.fontSize;
+    
+                return {
+                  ...segment,
+                  style:
+                    Object.keys(nextStyle).length > 0
+                      ? nextStyle
+                      : undefined,
+                };
+              });
+    
+            return {
+              ...option,
+              style: {
+                ...option.style,
+                fontSize: newFontSize,
+              },
+              richText: cleanedRichText,
+            };
+          }
+        ),
       });
     }}
-    disabled={!activeMultipleChoiceOption}
     className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
   />
-</div>
 
 <button
   type="button"
   onClick={() => {
-    if (!activeMultipleChoiceOption) return;
-
+    const componentIsBold =
+      (
+        selectedComponent.defaultStyle?.fontWeight ??
+        'normal'
+      ) === 'bold';
+  
+    // No specific choice active:
+    // apply Bold to the entire Multiple Choice component.
+    if (!activeMultipleChoiceOption) {
+      const nextFontWeight =
+        componentIsBold ? 'normal' : 'bold';
+  
+      const cleanedOptions =
+        selectedComponent.options.map((option) => {
+          const nextOptionStyle = {
+            ...(option.style ?? {}),
+          };
+  
+          delete nextOptionStyle.fontWeight;
+  
+          const cleanedRichText =
+            option.richText?.map((segment) => {
+              const nextStyle: RichTextStyle = {
+                ...(segment.style ?? {}),
+              };
+  
+              delete nextStyle.bold;
+  
+              return {
+                ...segment,
+                style:
+                  Object.keys(nextStyle).length > 0
+                    ? nextStyle
+                    : undefined,
+              };
+            });
+  
+          return {
+            ...option,
+            style:
+              Object.keys(nextOptionStyle).length > 0
+                ? nextOptionStyle
+                : undefined,
+            richText: cleanedRichText,
+          };
+        });
+  
+      onUpdateComponent(selectedComponent.id, {
+        defaultStyle: {
+          ...selectedComponent.defaultStyle,
+          fontWeight: nextFontWeight,
+        },
+        options: cleanedOptions,
+      });
+  
+      return;
+    }
+  
     const hasSelection =
       multipleChoiceSelection?.componentId ===
         selectedComponent.id &&
@@ -2877,7 +3015,6 @@ onUpdateComponent(selectedComponent.id, {
   ),
 });
   }}
-  disabled={!activeMultipleChoiceOption}
   className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
     (
       multipleChoiceSelection?.componentId ===
@@ -2965,8 +3102,61 @@ onUpdateComponent(selectedComponent.id, {
 <button
   type="button"
   onClick={() => {
-    if (!activeMultipleChoiceOption) return;
-
+    const componentIsItalic =
+      selectedComponent.defaultStyle?.italic ??
+      false;
+  
+    // No specific choice active:
+    // apply Italic to the whole Multiple Choice component.
+    if (!activeMultipleChoiceOption) {
+      const nextItalic = !componentIsItalic;
+  
+      const cleanedOptions =
+        selectedComponent.options.map((option) => {
+          const nextOptionStyle = {
+            ...(option.style ?? {}),
+          };
+  
+          delete nextOptionStyle.italic;
+  
+          const cleanedRichText =
+            option.richText?.map((segment) => {
+              const nextStyle: RichTextStyle = {
+                ...(segment.style ?? {}),
+              };
+  
+              delete nextStyle.italic;
+  
+              return {
+                ...segment,
+                style:
+                  Object.keys(nextStyle).length > 0
+                    ? nextStyle
+                    : undefined,
+              };
+            });
+  
+          return {
+            ...option,
+            style:
+              Object.keys(nextOptionStyle).length > 0
+                ? nextOptionStyle
+                : undefined,
+            richText: cleanedRichText,
+          };
+        });
+  
+      onUpdateComponent(selectedComponent.id, {
+        defaultStyle: {
+          ...selectedComponent.defaultStyle,
+          italic: nextItalic,
+        },
+        options: cleanedOptions,
+      });
+  
+      return;
+    }
+  
     const hasSelection =
       multipleChoiceSelection?.componentId ===
         selectedComponent.id &&
@@ -3097,7 +3287,6 @@ onUpdateComponent(selectedComponent.id, {
       ),
     });
   }}
-  disabled={!activeMultipleChoiceOption}
   className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
     (() => {
       if (!activeMultipleChoiceOption) {
@@ -3177,7 +3366,7 @@ onUpdateComponent(selectedComponent.id, {
   type="button"
   onClick={() => {
     if (!activeMultipleChoiceOption) return;
-
+  
     const hasSelection =
       multipleChoiceSelection?.componentId ===
         selectedComponent.id &&
@@ -3384,6 +3573,9 @@ onUpdateComponent(selectedComponent.id, {
 >
   Underline
 </button>
+
+</div>
+</div>
 
 <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
