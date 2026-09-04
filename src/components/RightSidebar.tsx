@@ -2227,9 +2227,18 @@ Underline
           disabled={selectedComponent.options.length <= 2}
           onClick={() => {
             if (selectedComponent.options.length <= 2) return;
-
+          
+            const nextOptions =
+              selectedComponent.options.slice(0, -1);
+          
+            const rowCount =
+              selectedComponent.layout === 'twoColumn'
+                ? Math.ceil(nextOptions.length / 2)
+                : nextOptions.length;
+          
             onUpdateComponent(selectedComponent.id, {
-              options: selectedComponent.options.slice(0, -1),
+              options: nextOptions,
+              height: 8 + rowCount * 32,
             });
           }}
           className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
@@ -2242,15 +2251,23 @@ Underline
           disabled={selectedComponent.options.length >= 5}
           onClick={() => {
             if (selectedComponent.options.length >= 5) return;
-
+          
+            const nextOptions = [
+              ...selectedComponent.options,
+              {
+                id: crypto.randomUUID(),
+                text: '',
+              },
+            ];
+          
+            const rowCount =
+              selectedComponent.layout === 'twoColumn'
+                ? Math.ceil(nextOptions.length / 2)
+                : nextOptions.length;
+          
             onUpdateComponent(selectedComponent.id, {
-              options: [
-                ...selectedComponent.options,
-                {
-                  id: crypto.randomUUID(),
-                  text: '',
-                },
-              ],
+              options: nextOptions,
+              height: 8 + rowCount * 32,
             });
           }}
           className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"

@@ -1,4 +1,5 @@
 import {
+    useRef,
     useState,
     type PointerEvent as ReactPointerEvent,
   } from 'react';
@@ -44,6 +45,8 @@ import {
   }: MultipleChoiceComponentProps) {
     const [isHovered, setIsHovered] = useState(false);
   
+    const optionInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
     return (
       <div
         data-worksheet-component="true"
@@ -169,6 +172,86 @@ import {
                   type="text"
                   defaultValue={option.text}
                   placeholder="Choice"
+                  ref={(element) => {
+                    optionInputRefs.current[index] = element;
+                  }}
+                  onKeyDown={(event) => {
+                    if (
+                      (event.ctrlKey || event.metaKey) &&
+                      (
+                        event.key.toLowerCase() === 'z' ||
+                        event.key.toLowerCase() === 'y'
+                      )
+                    ) {
+                      event.stopPropagation();
+                      return;
+                    }
+                  
+                    if (
+                      event.ctrlKey ||
+                      event.metaKey ||
+                      event.altKey ||
+                      event.shiftKey
+                    ) {
+                      return;
+                    }
+                  
+                    let nextIndex: number | null = null;
+                  
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                  
+                      if (index < component.options.length - 1) {
+                        nextIndex = index + 1;
+                      } else {
+                        return;
+                      }
+                    }
+                  
+                    if (event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                  
+                      if (index > 0) {
+                        nextIndex = index - 1;
+                      } else {
+                        return;
+                      }
+                    }
+                  
+                    if (event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                  
+                      if (index < component.options.length - 1) {
+                        nextIndex = index + 1;
+                      } else {
+                        return;
+                      }
+                    }
+                  
+                    if (nextIndex === null) return;
+                  
+                    event.currentTarget.blur();
+                  
+                    requestAnimationFrame(() => {
+                      const nextInput =
+                        optionInputRefs.current[nextIndex];
+                  
+                      nextInput?.focus();
+                  
+                      if (nextInput) {
+                        const caretPosition =
+                          nextInput.value.length;
+                  
+                        nextInput.setSelectionRange(
+                          caretPosition,
+                          caretPosition
+                        );
+                      }
+                    });
+                  }}
                   onClick={(event) =>
                     event.stopPropagation()
                   }
