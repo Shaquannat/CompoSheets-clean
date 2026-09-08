@@ -414,6 +414,42 @@ const findMatch =
       setSelectedComponentIds([match.componentId]);
     }
 
+    function getNextComponentY() {
+      const page = pageRef.current;
+    
+      if (page) {
+        const renderedComponents = Array.from(
+          page.querySelectorAll<HTMLElement>(
+            '[data-worksheet-component="true"]'
+          )
+        );
+    
+        if (renderedComponents.length > 0) {
+          const lowestRenderedBottom = Math.max(
+            ...renderedComponents.map(
+              (element) =>
+                element.offsetTop + element.offsetHeight
+            )
+          );
+    
+          return lowestRenderedBottom + 16;
+        }
+      }
+    
+      if (components.length === 0) {
+        return 64;
+      }
+    
+      const lowestStoredBottom = Math.max(
+        ...components.map(
+          (component) =>
+            component.y + component.height
+        )
+      );
+    
+      return lowestStoredBottom + 16;
+    }
+
   function addTextComponent() {
     const newComponent: TextComponent = {
       id: crypto.randomUUID(),
@@ -421,7 +457,7 @@ const findMatch =
       text: '',
       richText: [],
       x: 64,
-      y: 64 + components.length * 60,
+      y: getNextComponentY(),
       width: 500,
       height: 48,
       fontSize: 16,
@@ -453,7 +489,7 @@ textColor: '#0F172A',
       numberingMode: 'continue',
 numberingStart: 1,
       x: 64,
-      y: 64 + components.length * 60,
+      y: getNextComponentY(),
       width: 500,
       height: 48,
       fontSize: 16,
@@ -506,7 +542,7 @@ textColor: '#0F172A',
       },
   
       x: 64,
-      y: 64 + components.length * 60,
+      y: getNextComponentY(),
       width: 500,
       height: 120,
       rotation: 0,
@@ -532,7 +568,7 @@ textColor: '#0F172A',
       id: crypto.randomUUID(),
       type: 'answerLines',
       x: 64,
-      y: 64 + components.length * 60,
+      y: getNextComponentY(),
       width: 500,
       height: 40,
       lineCount: 1,
@@ -561,7 +597,7 @@ textColor: '#0F172A',
       id: crypto.randomUUID(),
       type: 'checkbox',
       x: 64,
-      y: 64 + components.length * 60,
+      y: getNextComponentY(),
       width: 300,
       height: 48,
       rotation: 0,
