@@ -1922,9 +1922,11 @@ resizeState.current = {
       }
       
       if (
-        component.type === 'answerLines' ||
-        component.type === 'checkbox'
-      ) {
+  component.type === 'answerLines' ||
+  component.type === 'checkbox' ||
+  component.type === 'question' ||
+  component.type === 'multipleChoice'
+) {
         setComponents((currentComponents) =>
           currentComponents.map((currentComponent) =>
             currentComponent.id === component.id

@@ -496,22 +496,23 @@ onStartDragging,
         {isSelected &&
           !isGroupSelected &&
           !component.locked && (
-            <button
-              type="button"
-              aria-label="Resize multiple choice"
-              title="Drag to resize"
-              onPointerDown={(event) =>
-                onResizeStart(event, component)
-              }
-              className="absolute flex h-4 w-4 cursor-se-resize items-center justify-center rounded-sm border border-violet-600 bg-white text-[10px] text-violet-600"
-              style={{
-                right: '-8px',
-                bottom: '-8px',
-                zIndex: 9999,
-              }}
-            >
-              ↘
-            </button>
+         <button
+  type="button"
+  aria-label="Resize multiple choice width"
+  title="Drag to resize width"
+  onPointerDown={(event) =>
+    onResizeStart(event, component)
+  }
+  className="absolute flex h-4 w-4 cursor-ew-resize items-center justify-center rounded-sm border border-violet-600 bg-white text-[10px] text-violet-600"
+  style={{
+    right: '-8px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 9999,
+  }}
+>
+  ↔
+</button>
           )}
       </div>
     );
