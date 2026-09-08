@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+
 import type {
   WorksheetComponent,
   RichTextSegment,
@@ -226,6 +228,13 @@ export function RightSidebar({
             option.id === multipleChoiceSelection.optionId
         ) ?? null
       : null;
+
+        const multipleChoiceHexSelectionRef = useRef<{
+    componentId: string;
+    optionId: string;
+    start: number;
+    end: number;
+  } | null>(null);
 
   return (
     <aside className="hidden border-l border-slate-200 bg-white p-4 lg:block">
@@ -3655,10 +3664,57 @@ onUpdateComponent(selectedComponent.id, {
         return wholeChoiceColor;
       })()}
       onChange={(event) => {
-        if (!activeMultipleChoiceOption) return;
-
         const newColor = event.target.value;
-
+      
+        // No specific choice active:
+        // apply color to the entire Multiple Choice component.
+        if (!activeMultipleChoiceOption) {
+          const cleanedOptions =
+            selectedComponent.options.map((option) => {
+              const nextOptionStyle = {
+                ...(option.style ?? {}),
+              };
+      
+              delete nextOptionStyle.textColor;
+      
+              const cleanedRichText =
+                option.richText?.map((segment) => {
+                  const nextStyle: RichTextStyle = {
+                    ...(segment.style ?? {}),
+                  };
+      
+                  delete nextStyle.color;
+      
+                  return {
+                    ...segment,
+                    style:
+                      Object.keys(nextStyle).length > 0
+                        ? nextStyle
+                        : undefined,
+                  };
+                });
+      
+              return {
+                ...option,
+                style:
+                  Object.keys(nextOptionStyle).length > 0
+                    ? nextOptionStyle
+                    : undefined,
+                richText: cleanedRichText,
+              };
+            });
+      
+          onUpdateComponent(selectedComponent.id, {
+            defaultStyle: {
+              ...selectedComponent.defaultStyle,
+              textColor: newColor,
+            },
+            options: cleanedOptions,
+          });
+      
+          return;
+        }
+      
         const hasSelection =
           multipleChoiceSelection?.componentId ===
             selectedComponent.id &&
@@ -3762,7 +3818,6 @@ onUpdateComponent(selectedComponent.id, {
           }
         );
       }}
-      disabled={!activeMultipleChoiceOption}
       className="h-10 w-full cursor-pointer rounded-md border border-slate-300 bg-white p-1 disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Choose choice text color"
     />
@@ -3892,23 +3947,150 @@ onUpdateComponent(selectedComponent.id, {
         return wholeChoiceColor.toUpperCase();
       })()}
       maxLength={7}
-      disabled={!activeMultipleChoiceOption}
       className="h-[38px] w-[92px] rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
+      onPointerDown={() => {
+        const selection =
+          multipleChoiceSelection;
+
+        if (
+          selection?.componentId ===
+            selectedComponent.id &&
+          selection.start !== undefined &&
+          selection.end !== undefined &&
+          selection.start !== selection.end
+        ) {
+          multipleChoiceHexSelectionRef.current = {
+            componentId: selection.componentId,
+            optionId: selection.optionId,
+            start: selection.start,
+            end: selection.end,
+          };
+        } else {
+          multipleChoiceHexSelectionRef.current =
+            null;
+        }
+      }}
+            onFocus={(event) => {
+        event.currentTarget.select();
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter') {
           event.currentTarget.blur();
         }
       }}
       onBlur={(event) => {
-        if (!activeMultipleChoiceOption) return;
+        const rawValue =
+  event.currentTarget.value.trim();
 
-        const value =
-          event.currentTarget.value.trim();
+const value =
+  rawValue.startsWith('#')
+    ? rawValue
+    : `#${rawValue}`;
 
-        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+  return;
+}
+
+event.currentTarget.value =
+  value.toUpperCase();
+        const savedSelection =
+    multipleChoiceHexSelectionRef.current
+      ?.componentId === selectedComponent.id
+      ? multipleChoiceHexSelectionRef.current
+      : null;
+
+  multipleChoiceHexSelectionRef.current = null;
+
+  if (savedSelection) {
+    const selectedOption =
+      selectedComponent.options.find(
+        (option) =>
+          option.id === savedSelection.optionId
+      );
+
+    if (selectedOption) {
+      const baseSegments =
+        selectedOption.richText &&
+        selectedOption.richText.length > 0
+          ? selectedOption.richText
+          : selectedOption.text
+            ? [{ text: selectedOption.text }]
+            : [];
+
+      const updatedRichText =
+        applyStyleToRange(
+          baseSegments,
+          savedSelection.start,
+          savedSelection.end,
+          {
+            color: value,
+          }
+        );
+
+      onUpdateComponent(selectedComponent.id, {
+        options: selectedComponent.options.map(
+          (option) =>
+            option.id === selectedOption.id
+              ? {
+                  ...option,
+                  richText: updatedRichText,
+                }
+              : option
+        ),
+      });
+
+      return;
+    }
+  }
+        // No specific choice active:
+        // apply color to the entire Multiple Choice component.
+        if (!activeMultipleChoiceOption) {
+          const cleanedOptions =
+            selectedComponent.options.map((option) => {
+              const nextOptionStyle = {
+                ...(option.style ?? {}),
+              };
+      
+              delete nextOptionStyle.textColor;
+      
+              const cleanedRichText =
+                option.richText?.map((segment) => {
+                  const nextStyle: RichTextStyle = {
+                    ...(segment.style ?? {}),
+                  };
+      
+                  delete nextStyle.color;
+      
+                  return {
+                    ...segment,
+                    style:
+                      Object.keys(nextStyle).length > 0
+                        ? nextStyle
+                        : undefined,
+                  };
+                });
+      
+              return {
+                ...option,
+                style:
+                  Object.keys(nextOptionStyle).length > 0
+                    ? nextOptionStyle
+                    : undefined,
+                richText: cleanedRichText,
+              };
+            });
+      
+          onUpdateComponent(selectedComponent.id, {
+            defaultStyle: {
+              ...selectedComponent.defaultStyle,
+              textColor: value,
+            },
+            options: cleanedOptions,
+          });
+      
           return;
         }
-
+      
         const hasSelection =
           multipleChoiceSelection?.componentId ===
             selectedComponent.id &&
