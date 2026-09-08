@@ -267,33 +267,6 @@ const findMatch =
         itemId,
         lastText: nextText,
       };
-
-      setComponents((currentComponents) =>
-  currentComponents.map((currentComponent) => {
-    if (
-      currentComponent.id !== componentId ||
-      currentComponent.type !== 'checkbox'
-    ) {
-      return currentComponent;
-    }
-
-    return {
-      ...currentComponent,
-      items: currentComponent.items.map(
-        (currentItem) =>
-          currentItem.id === itemId
-            ? {
-                ...currentItem,
-                text: nextText,
-                richText: nextText
-                  ? [{ text: nextText }]
-                  : [],
-              }
-            : currentItem
-      ),
-    };
-  })
-);
     }
 
     function findMatchingComponent(query: string) {
@@ -1508,6 +1481,14 @@ setComponents((currentComponents) =>
           pasteCopiedComponent();
           return;
         }
+
+        if (
+  event.key === 'Backspace' &&
+  !isEditableTarget(event.target)
+) {
+  event.preventDefault();
+  return;
+}
 
         if (
           event.key === 'Delete' &&

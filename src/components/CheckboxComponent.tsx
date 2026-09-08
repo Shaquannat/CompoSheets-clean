@@ -79,6 +79,7 @@ onSelectionChange,
   const activeItemIdRef = useRef<string | null>(null);
 const caretOffsetRef = useRef(0);
 const previousItemTextRef = useRef('');
+const skipNextBlurCommitRef = useRef(false);
 
   function updateItem(
     itemId: string,
@@ -578,9 +579,45 @@ onMouseLeave={() => setIsHovered(false)}
     );
   }}
 
-  onBlur={() => {
-    activeItemIdRef.current = null;
-  }}
+  onBlur={(event) => {
+  const updatedText =
+    getEditableText(event.currentTarget);
+
+  activeItemIdRef.current = null;
+
+  if (skipNextBlurCommitRef.current) {
+    skipNextBlurCommitRef.current = false;
+    return;
+  }
+
+  const currentItem =
+    component.items.find(
+      (currentItem) =>
+        currentItem.id === item.id
+    );
+
+  if (
+    !currentItem ||
+    updatedText === currentItem.text
+  ) {
+    return;
+  }
+
+  onUpdateComponent(component.id, {
+    items: component.items.map(
+      (currentItem) =>
+        currentItem.id === item.id
+          ? {
+              ...currentItem,
+              text: updatedText,
+              richText: updatedText
+                ? [{ text: updatedText }]
+                : [],
+            }
+          : currentItem
+    ),
+  });
+}}
 
   onKeyDown={(event) => {
     if (
@@ -672,79 +709,109 @@ onMouseLeave={() => setIsHovered(false)}
     }
 
     if (event.key === 'Enter') {
-      event.preventDefault();
+  event.preventDefault();
 
-      const newItem: CheckboxItem = {
-        id: crypto.randomUUID(),
-        text: '',
-        richText: [],
-        checked: false,
-        markStyle: component.markStyle,
-        markColor: component.markColor,
-        showPlaceholder: true,
-      };
+  const currentText =
+    getEditableText(event.currentTarget);
 
-      const currentIndex =
-        component.items.findIndex(
-          (currentItem) =>
-            currentItem.id === item.id
-        );
+  const newItem: CheckboxItem = {
+    id: crypto.randomUUID(),
+    text: '',
+    richText: [],
+    checked: false,
+    markStyle: component.markStyle,
+    markColor: component.markColor,
+    showPlaceholder: true,
+  };
 
-      const nextItems = [
-        ...component.items,
-      ];
+  const currentIndex =
+    component.items.findIndex(
+      (currentItem) =>
+        currentItem.id === item.id
+    );
 
-      nextItems.splice(
-        currentIndex + 1,
-        0,
-        newItem
+  const nextItems =
+    component.items.map(
+      (currentItem) =>
+        currentItem.id === item.id
+          ? {
+              ...currentItem,
+              text: currentText,
+              richText: currentText
+                ? [{ text: currentText }]
+                : [],
+            }
+          : currentItem
+    );
+
+  nextItems.splice(
+    currentIndex + 1,
+    0,
+    newItem
+  );
+
+  skipNextBlurCommitRef.current = true;
+
+  onUpdateComponent(component.id, {
+    items: nextItems,
+  });
+
+  focusItem(newItem.id, 'start');
+
+  return;
+}
+if (
+  event.key === 'Backspace' &&
+  getEditableText(event.currentTarget) === ''
+) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (component.items.length <= 1) {
+    return;
+  }
+
+  const currentIndex =
+    component.items.findIndex(
+      (currentItem) =>
+        currentItem.id === item.id
+    );
+
+  const previousItem =
+    component.items[currentIndex - 1];
+
+  const nextItem =
+    component.items[currentIndex + 1];
+
+  const focusTarget =
+    previousItem ?? nextItem;
+
+  const nextItems =
+    component.items.filter(
+      (currentItem) =>
+        currentItem.id !== item.id
+    );
+
+  skipNextBlurCommitRef.current = true;
+  activeItemIdRef.current = null;
+
+  event.currentTarget.blur();
+
+  requestAnimationFrame(() => {
+    onUpdateComponent(component.id, {
+      items: nextItems,
+    });
+
+    if (focusTarget) {
+      focusItem(
+        focusTarget.id,
+        previousItem ? 'end' : 'start'
       );
-
-      onUpdateComponent(component.id, {
-        items: nextItems,
-      });
-
-      focusItem(newItem.id, 'start');
-
-      return;
     }
+  });
 
-    if (
-      event.key === 'Backspace' &&
-      getEditableText(event.currentTarget) === '' &&
-      component.items.length > 1
-    ) {
-      event.preventDefault();
-
-      const currentIndex =
-        component.items.findIndex(
-          (currentItem) =>
-            currentItem.id === item.id
-        );
-
-      const previousItem =
-        component.items[currentIndex - 1];
-
-      const nextItem =
-        component.items[currentIndex + 1];
-
-      const focusTarget =
-        previousItem ?? nextItem;
-
-      onUpdateComponent(component.id, {
-        items: component.items.filter(
-          (currentItem) =>
-            currentItem.id !== item.id
-        ),
-      });
-
-      if (focusTarget) {
-        focusItem(
-          focusTarget.id,
-          previousItem ? 'end' : 'start'
-        );
-      }
-    }
+  return;
+}
   }}
 >
 {item.richText.length > 0
@@ -759,7 +826,7 @@ onMouseLeave={() => setIsHovered(false)}
 
       return (
         <span
-          key={`${segment.text}-${index}`}
+          key={index}
           style={{
             fontWeight: segment.style?.bold
               ? 700
