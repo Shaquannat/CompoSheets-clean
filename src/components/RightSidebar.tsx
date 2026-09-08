@@ -2304,72 +2304,74 @@ Underline
       </div>
     </div>
 
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Choice labels
-      </span>
+    <div className="grid grid-cols-2 gap-2">
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Choice labels
+    </span>
 
-      <select
-        value={selectedComponent.labelStyle ?? 'A.'}
-        onChange={(event) =>
-          onUpdateComponent(selectedComponent.id, {
-            labelStyle: event.target.value as
-              | 'A.'
-              | 'A)'
-              | 'a.'
-              | 'a)',
-          })
-        }
-        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
-      >
-        <option value="A.">A. B. C.</option>
-        <option value="A)">A) B) C)</option>
-        <option value="a.">a. b. c.</option>
-        <option value="a)">a) b) c)</option>
-      </select>
-    </div>
+    <select
+      value={selectedComponent.labelStyle ?? 'A.'}
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          labelStyle: event.target.value as
+            | 'A.'
+            | 'A)'
+            | 'a.'
+            | 'a)',
+        })
+      }
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+    >
+      <option value="A.">A. B. C.</option>
+      <option value="A)">A) B) C)</option>
+      <option value="a.">a. b. c.</option>
+      <option value="a)">a) b) c)</option>
+    </select>
+  </div>
 
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Choice layout
-      </span>
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Choice marker
+    </span>
 
-      <select
-        value={selectedComponent.layout ?? 'vertical'}
-        onChange={(event) =>
-          onUpdateComponent(selectedComponent.id, {
-            layout: event.target.value as
-              | 'vertical'
-              | 'twoColumn',
-          })
-        }
-        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
-      >
-        <option value="vertical">Vertical</option>
-        <option value="twoColumn">2 columns</option>
-      </select>
-    </div>
+    <select
+      value={selectedComponent.markerStyle ?? 'plain'}
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          markerStyle: event.target.value as
+            | 'plain'
+            | 'circle',
+        })
+      }
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+    >
+      <option value="plain">Plain label</option>
+      <option value="circle">Letter in circle</option>
+    </select>
+  </div>
+</div>
 
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Choice marker
-      </span>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Choice layout
+  </span>
 
-      <select
-        value={selectedComponent.markerStyle ?? 'plain'}
-        onChange={(event) =>
-          onUpdateComponent(selectedComponent.id, {
-            markerStyle: event.target.value as
-              | 'plain'
-              | 'circle',
-          })
-        }
-        className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
-      >
-        <option value="plain">Plain label</option>
-        <option value="circle">Letter in circle</option>
-      </select>
-    </div>
+  <select
+    value={selectedComponent.layout ?? 'vertical'}
+    onChange={(event) =>
+      onUpdateComponent(selectedComponent.id, {
+        layout: event.target.value as
+          | 'vertical'
+          | 'twoColumn',
+      })
+    }
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="vertical">Vertical</option>
+    <option value="twoColumn">2 columns</option>
+  </select>
+</div>
     <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Font family
