@@ -220,6 +220,79 @@ export function RightSidebar({
   onDuplicate,
   onDelete,
 }: RightSidebarProps) {
+  function addMatchingRelationship() {
+  if (
+    !selectedComponent ||
+    selectedComponent.type !== 'matching'
+  ) {
+    return;
+  }
+
+  const leftItemId = crypto.randomUUID();
+  const rightItemId = crypto.randomUUID();
+
+  onUpdateComponent(selectedComponent.id, {
+    leftItems: [
+      ...selectedComponent.leftItems,
+      {
+        id: leftItemId,
+        contentType: 'text',
+        text: '',
+      },
+    ],
+
+    rightItems: [
+      ...selectedComponent.rightItems,
+      {
+        id: rightItemId,
+        contentType: 'text',
+        text: '',
+      },
+    ],
+
+    relationships: [
+      ...selectedComponent.relationships,
+      {
+        leftItemId,
+        rightItemId,
+      },
+    ],
+  });
+}
+
+function removeMatchingRelationship() {
+  if (
+    !selectedComponent ||
+    selectedComponent.type !== 'matching' ||
+    selectedComponent.relationships.length <= 1
+  ) {
+    return;
+  }
+
+  const relationshipToRemove =
+    selectedComponent.relationships[
+      selectedComponent.relationships.length - 1
+    ];
+
+  onUpdateComponent(selectedComponent.id, {
+    relationships:
+      selectedComponent.relationships.slice(0, -1),
+
+    leftItems:
+      selectedComponent.leftItems.filter(
+        (item) =>
+          item.id !==
+          relationshipToRemove.leftItemId
+      ),
+
+    rightItems:
+      selectedComponent.rightItems.filter(
+        (item) =>
+          item.id !==
+          relationshipToRemove.rightItemId
+      ),
+  });
+}
   const activeMultipleChoiceOption =
     selectedComponent?.type === 'multipleChoice' &&
     multipleChoiceSelection?.componentId === selectedComponent.id
@@ -299,6 +372,108 @@ export function RightSidebar({
           : selectedComponent.type}
             </div>
           </div>
+
+          {selectedComponent.type === 'matching' && (
+  <div className="space-y-4">
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Activity Format
+      </span>
+
+      <div className="grid gap-2">
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                mode: 'matchColumns',
+                activityStyle: 'drawLines',
+                connectorStyle: 'none',
+                showFirstMatch: false,
+                targetBorderStyle: 'dashed',
+              },
+            })
+          }
+          className={`rounded-lg border px-3 py-3 text-sm ${
+            selectedComponent.settings.mode === 'matchColumns'
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <div className="text-left">
+            <div className="font-semibold">
+              Match Across Columns
+            </div>
+
+            <div className="mt-1 text-xs font-normal leading-4 text-slate-500">
+              Connect each item to a choice in the other column.
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                mode: 'rowRelationship',
+                betweenStyle: 'none',
+                customBetweenText: '',
+                circleSideChoice: false,
+              },
+            })
+          }
+          className={`rounded-lg border px-3 py-3 text-sm ${
+            selectedComponent.settings.mode === 'rowRelationship'
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <div className="text-left">
+            <div className="font-semibold">
+              Relate Each Row
+            </div>
+
+            <div className="mt-1 text-xs font-normal leading-4 text-slate-500">
+              Compare, choose, or complete the relationship within each row.
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        {selectedComponent.settings.mode === 'matchColumns'
+          ? 'Pairs'
+          : 'Rows'}
+      </span>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={removeMatchingRelationship}
+          disabled={selectedComponent.relationships.length <= 1}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          −
+        </button>
+
+        <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
+          {selectedComponent.relationships.length}
+        </div>
+
+        <button
+          type="button"
+          onClick={addMatchingRelationship}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           {selectedComponent.type === 'text' && (
   <div className="space-y-4">

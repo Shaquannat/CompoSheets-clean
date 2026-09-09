@@ -158,7 +158,7 @@ import {
             </div>
           )}
   
-          <div className="space-y-2">
+  <div className="space-y-4">
             {Array.from(
               { length: rowCount },
               (_, index) => {
