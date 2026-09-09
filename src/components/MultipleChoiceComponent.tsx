@@ -2,6 +2,7 @@ import {
     useRef,
     useState,
     type PointerEvent as ReactPointerEvent,
+    type ReactNode,
   } from 'react';
   
   import type {
@@ -12,6 +13,18 @@ import {
     component: MultipleChoiceComponentType;
     isSelected: boolean;
     isGroupSelected: boolean;
+
+    findMatches?: {
+      optionId: string;
+      start: number;
+      end: number;
+    }[];
+    
+    activeFindMatch?: {
+      optionId: string;
+      start: number;
+      end: number;
+    } | null;
   
     onUpdateComponent: (
       id: string,
@@ -44,6 +57,8 @@ import {
     component,
     isSelected,
     isGroupSelected,
+    findMatches = [],
+activeFindMatch,
     onUpdateComponent,
 onSelect,
 onSelectionChange,
@@ -121,6 +136,82 @@ onStartDragging,
       
         selection.removeAllRanges();
         selection.addRange(range);
+      }
+
+      function renderMultipleChoiceTextWithFindHighlight(
+        text: string,
+        offset: number,
+        optionId: string
+      ) {
+        const optionMatches = findMatches.filter(
+          (match) => match.optionId === optionId
+        );
+      
+        if (optionMatches.length === 0) {
+          return text;
+        }
+      
+        const segmentStart = offset;
+        const segmentEnd = offset + text.length;
+      
+        const overlappingMatches = optionMatches
+          .filter(
+            (match) =>
+              match.end > segmentStart &&
+              match.start < segmentEnd
+          )
+          .sort((a, b) => a.start - b.start);
+      
+        if (overlappingMatches.length === 0) {
+          return text;
+        }
+      
+        const parts: ReactNode[] = [];
+        let cursor = 0;
+      
+        for (const match of overlappingMatches) {
+          const localStart = Math.max(
+            0,
+            match.start - segmentStart
+          );
+      
+          const localEnd = Math.min(
+            text.length,
+            match.end - segmentStart
+          );
+      
+          if (localStart > cursor) {
+            parts.push(
+              text.slice(cursor, localStart)
+            );
+          }
+      
+          const isActive =
+            activeFindMatch?.optionId === optionId &&
+            activeFindMatch.start === match.start &&
+            activeFindMatch.end === match.end;
+      
+          parts.push(
+            <mark
+              key={`${optionId}-${match.start}-${match.end}-${offset}`}
+              style={{
+                backgroundColor: isActive
+                  ? '#FACC15'
+                  : '#FEF08A',
+              }}
+            >
+              {text.slice(localStart, localEnd)}
+            </mark>
+          );
+      
+          cursor = Math.max(cursor, localEnd);
+        }
+      
+        if (cursor < text.length) {
+          parts.push(text.slice(cursor));
+        }
+      
+        return <>{parts}</>;
       }
 
     return (
@@ -481,11 +572,25 @@ onStartDragging,
                 segment.style?.fontSize,
             }}
           >
-            {segment.text}
+            {renderMultipleChoiceTextWithFindHighlight(
+  segment.text,
+  option.richText
+    ?.slice(0, segmentIndex)
+    .reduce(
+      (total, currentSegment) =>
+        total + currentSegment.text.length,
+      0
+    ) ?? 0,
+  option.id
+)}
           </span>
         )
       )
-      : option.text}
+      : renderMultipleChoiceTextWithFindHighlight(
+        option.text,
+        0,
+        option.id
+      )}
       </div>
     </div>
     </div>

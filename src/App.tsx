@@ -342,6 +342,24 @@ const findMatch =
           );
         }
     
+        if (component.type === 'multipleChoice') {
+          for (const option of component.options) {
+            const visibleOptionText =
+              option.richText &&
+              option.richText.length > 0
+                ? option.richText
+                    .map((segment) => segment.text)
+                    .join('')
+                : option.text;
+        
+            collectMatches(
+              visibleOptionText,
+              component.id,
+              option.id
+            );
+          }
+        }
+        
         if (component.type === 'checkbox') {
           for (const item of component.items) {
             const visibleItemText =

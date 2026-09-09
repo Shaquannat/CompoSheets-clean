@@ -409,6 +409,28 @@ orderedQuestions.forEach((component) => {
           selectedComponentIds.includes(component.id)
         }
         isGroupSelected={isGroupSelected}
+        findMatches={findMatches
+          .filter(
+            (match) =>
+              match.componentId === component.id &&
+              match.itemId
+          )
+          .map((match) => ({
+            optionId: match.itemId as string,
+            start: match.start,
+            end: match.end,
+          }))}
+        
+        activeFindMatch={
+          activeFindMatch?.componentId === component.id &&
+          activeFindMatch.itemId
+            ? {
+                optionId: activeFindMatch.itemId,
+                start: activeFindMatch.start,
+                end: activeFindMatch.end,
+              }
+            : null
+        }
         onUpdateComponent={(id, changes) =>
           onUpdateComponent(id, changes)
         }
