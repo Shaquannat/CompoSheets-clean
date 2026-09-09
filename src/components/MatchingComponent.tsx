@@ -194,71 +194,54 @@ import {
                         </span>
                       )}
   
-                      {leftItem && (
-  <span
-    contentEditable
-    suppressContentEditableWarning
-    data-matching-item-id={leftItem.id}
-    data-matching-side="left"
-    data-placeholder={
-  leftItem.contentType === 'text' ||
-  leftItem.contentType === 'textImage'
-    ? 'Type item'
-    : undefined
-}
-className="min-w-0 flex-1 rounded px-1 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:bg-violet-50"
-    onBlur={(event) => {
-      const nextText =
-        event.currentTarget.textContent ?? '';
+  {leftItem && (
+  <div className="relative min-w-0 flex-1">
+    <span
+      data-matching-placeholder="true"
+      className="pointer-events-none absolute left-1 top-0 text-slate-400"
+      style={{
+        display:
+          (leftItem.contentType === 'text' ||
+            leftItem.contentType === 'textImage') &&
+          !(leftItem.text ?? '')
+            ? 'block'
+            : 'none',
+      }}
+    >
+      Type item
+    </span>
 
-      if (nextText === (leftItem.text ?? '')) {
-        return;
-      }
-
-      onUpdateComponent(component.id, {
-        leftItems: component.leftItems.map(
-          (item) =>
-            item.id === leftItem.id
-              ? {
-                  ...item,
-                  text: nextText,
-                }
-              : item
-        ),
-      });
-    }}
-  >
-    {leftItem.text ?? ''}
-  </span>
-)}
-                    </div>
-  
-                    <div className="min-w-0">
-  {rightItem && (
     <span
       contentEditable
       suppressContentEditableWarning
-      data-matching-item-id={rightItem.id}
-      data-matching-side="right"
-      data-placeholder={
-  rightItem.contentType === 'text' ||
-  rightItem.contentType === 'textImage'
-    ? 'Type match'
-    : undefined
-}
-      className="block rounded px-1 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus:bg-violet-50"
+      data-matching-item-id={leftItem.id}
+      data-matching-side="left"
+      className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
+      onInput={(event) => {
+        const placeholder =
+          event.currentTarget.parentElement?.querySelector<HTMLElement>(
+            '[data-matching-placeholder="true"]'
+          );
+
+        if (placeholder) {
+          placeholder.style.display =
+            (event.currentTarget.textContent ?? '').length > 0
+              ? 'none'
+              : 'block';
+        }
+      }}
       onBlur={(event) => {
         const nextText =
           event.currentTarget.textContent ?? '';
 
-        if (nextText === (rightItem.text ?? '')) {
+        if (nextText === (leftItem.text ?? '')) {
           return;
         }
 
         onUpdateComponent(component.id, {
-          rightItems: component.rightItems.map(
+          leftItems: component.leftItems.map(
             (item) =>
-              item.id === rightItem.id
+              item.id === leftItem.id
                 ? {
                     ...item,
                     text: nextText,
@@ -268,8 +251,73 @@ className="min-w-0 flex-1 rounded px-1 outline-none empty:before:pointer-events-
         });
       }}
     >
-      {rightItem.text ?? ''}
+      {leftItem.text ?? ''}
     </span>
+  </div>
+)}
+                    </div>
+  
+<div className="min-w-0">
+  {rightItem && (
+    <div className="relative min-w-0">
+      <span
+        data-matching-placeholder="true"
+        className="pointer-events-none absolute left-1 top-0 text-slate-400"
+        style={{
+          display:
+            (rightItem.contentType === 'text' ||
+              rightItem.contentType === 'textImage') &&
+            !(rightItem.text ?? '')
+              ? 'block'
+              : 'none',
+        }}
+      >
+        Type match
+      </span>
+
+      <span
+        contentEditable
+        suppressContentEditableWarning
+        data-matching-item-id={rightItem.id}
+        data-matching-side="right"
+        className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
+        onInput={(event) => {
+          const placeholder =
+            event.currentTarget.parentElement?.querySelector<HTMLElement>(
+              '[data-matching-placeholder="true"]'
+            );
+
+          if (placeholder) {
+            placeholder.style.display =
+              (event.currentTarget.textContent ?? '').length > 0
+                ? 'none'
+                : 'block';
+          }
+        }}
+        onBlur={(event) => {
+          const nextText =
+            event.currentTarget.textContent ?? '';
+
+          if (nextText === (rightItem.text ?? '')) {
+            return;
+          }
+
+          onUpdateComponent(component.id, {
+            rightItems: component.rightItems.map(
+              (item) =>
+                item.id === rightItem.id
+                  ? {
+                      ...item,
+                      text: nextText,
+                    }
+                  : item
+            ),
+          });
+        }}
+      >
+        {rightItem.text ?? ''}
+      </span>
+    </div>
   )}
 </div>
                   </div>
