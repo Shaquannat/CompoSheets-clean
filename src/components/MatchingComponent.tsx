@@ -88,6 +88,9 @@ import {
       component.rightItems.length
     );
   
+    const isRowRelationship =
+  component.settings.mode === 'rowRelationship';
+
     return (
       <div
         data-worksheet-component="true"
@@ -181,82 +184,114 @@ import {
                       rightItem?.id ??
                       index
                     }
-                    className="grid items-center gap-8"
-                    style={{
-                      gridTemplateColumns:
-                        'minmax(0, 1fr) minmax(0, 1fr)',
-                    }}
+                    className="grid items-center"
+style={{
+  gridTemplateColumns: isRowRelationship
+    ? 'minmax(0, 1fr) 80px minmax(0, 1fr)'
+    : 'minmax(0, 1fr) minmax(0, 1fr)',
+  columnGap: isRowRelationship
+    ? '16px'
+    : '32px',
+}}
                   >
-                    <div className="flex min-w-0 items-center gap-2">
-                      {leftLabel && (
-                        <span className="shrink-0">
-                          {leftLabel}
-                        </span>
-                      )}
-  
+                  <div className="flex min-w-0 items-center gap-2">
+  {leftLabel && (
+    <span className="shrink-0">
+      {leftLabel}
+    </span>
+  )}
+
   {leftItem && (
-  <div className="relative min-w-0 flex-1">
-    <span
-      data-matching-placeholder="true"
-      className="pointer-events-none absolute left-1 top-0 text-slate-400"
-      style={{
-        display:
-          (leftItem.contentType === 'text' ||
-            leftItem.contentType === 'textImage') &&
-          !(leftItem.text ?? '')
-            ? 'block'
-            : 'none',
-      }}
-    >
-      Type item
-    </span>
+    <div className="relative min-w-0 flex-1">
+      <span
+        data-matching-placeholder="true"
+        className="pointer-events-none absolute left-1 top-0 text-slate-400"
+        style={{
+          display:
+            (leftItem.contentType === 'text' ||
+              leftItem.contentType === 'textImage') &&
+            !(leftItem.text ?? '')
+              ? 'block'
+              : 'none',
+        }}
+      >
+        Type item
+      </span>
 
-    <span
-      contentEditable
-      suppressContentEditableWarning
-      data-matching-item-id={leftItem.id}
-      data-matching-side="left"
-      className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
-      onInput={(event) => {
-        const placeholder =
-          event.currentTarget.parentElement?.querySelector<HTMLElement>(
-            '[data-matching-placeholder="true"]'
-          );
+      <span
+        contentEditable
+        suppressContentEditableWarning
+        data-matching-item-id={leftItem.id}
+        data-matching-side="left"
+        className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
+        onInput={(event) => {
+          const placeholder =
+            event.currentTarget.parentElement?.querySelector<HTMLElement>(
+              '[data-matching-placeholder="true"]'
+            );
 
-        if (placeholder) {
-          placeholder.style.display =
-            (event.currentTarget.textContent ?? '').length > 0
-              ? 'none'
-              : 'block';
-        }
-      }}
-      onBlur={(event) => {
-        const nextText =
-          event.currentTarget.textContent ?? '';
+          if (placeholder) {
+            placeholder.style.display =
+              (event.currentTarget.textContent ?? '').length > 0
+                ? 'none'
+                : 'block';
+          }
+        }}
+        onBlur={(event) => {
+          const nextText =
+            event.currentTarget.textContent ?? '';
 
-        if (nextText === (leftItem.text ?? '')) {
-          return;
-        }
+          if (nextText === (leftItem.text ?? '')) {
+            return;
+          }
 
-        onUpdateComponent(component.id, {
-          leftItems: component.leftItems.map(
-            (item) =>
-              item.id === leftItem.id
-                ? {
-                    ...item,
-                    text: nextText,
-                  }
-                : item
-          ),
-        });
-      }}
-    >
-      {leftItem.text ?? ''}
-    </span>
+          onUpdateComponent(component.id, {
+            leftItems: component.leftItems.map(
+              (item) =>
+                item.id === leftItem.id
+                  ? {
+                      ...item,
+                      text: nextText,
+                    }
+                  : item
+            ),
+          });
+        }}
+      >
+        {leftItem.text ?? ''}
+      </span>
+    </div>
+  )}
+</div>
+
+{component.settings.mode === 'rowRelationship' && (
+  <div className="flex min-h-8 items-center justify-center text-center">
+    {component.settings.betweenStyle === 'line' && (
+      <div className="w-full border-t border-slate-500" />
+    )}
+
+    {component.settings.betweenStyle === 'arrow' && (
+      <span className="text-lg">
+        →
+      </span>
+    )}
+
+    {component.settings.betweenStyle === 'writeLine' && (
+      <div className="w-full border-b border-slate-500" />
+    )}
+
+    {component.settings.betweenStyle === 'writeBox' && (
+      <div className="h-8 w-full rounded border border-slate-500" />
+    )}
+
+    {component.settings.betweenStyle === 'custom' && (
+      <span>
+        {component.settings.customBetweenText ?? ''}
+      </span>
+    )}
   </div>
 )}
-                    </div>
-  
+
 <div className="min-w-0">
   {rightItem && (
     <div className="relative min-w-0">
@@ -320,7 +355,7 @@ import {
     </div>
   )}
 </div>
-                  </div>
+  </div>
                 );
               }
             )}

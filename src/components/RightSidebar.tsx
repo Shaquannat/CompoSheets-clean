@@ -442,6 +442,76 @@ function removeMatchingRelationship() {
       </div>
     </div>
 
+    {selectedComponent.settings.mode === 'rowRelationship' && (
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Between Items
+        </span>
+
+        <select
+          value={selectedComponent.settings.betweenStyle}
+          onChange={(event) =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                ...selectedComponent.settings,
+                betweenStyle: event.target.value as
+                  | 'none'
+                  | 'line'
+                  | 'arrow'
+                  | 'writeLine'
+                  | 'writeBox'
+                  | 'custom',
+              },
+            })
+          }
+          className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+        >
+          <option value="none">
+            Nothing
+          </option>
+
+          <option value="line">
+            Line
+          </option>
+
+          <option value="arrow">
+            Arrow
+          </option>
+
+          <option value="writeLine">
+            Student writes on a line
+          </option>
+
+          <option value="writeBox">
+            Student writes in a box
+          </option>
+
+          <option value="custom">
+            Custom symbol or text
+          </option>
+        </select>
+
+        {selectedComponent.settings.betweenStyle === 'custom' && (
+          <input
+            type="text"
+            value={
+              selectedComponent.settings.customBetweenText ?? ''
+            }
+            onChange={(event) =>
+              onUpdateComponent(selectedComponent.id, {
+                settings: {
+                  ...selectedComponent.settings,
+                  customBetweenText: event.target.value,
+                },
+              })
+            }
+            placeholder="Example: =, >, <, causes"
+            className="mt-2 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+          />
+        )}
+      </div>
+    )}
+    
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         {selectedComponent.settings.mode === 'matchColumns'
