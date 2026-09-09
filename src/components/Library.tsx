@@ -4,6 +4,7 @@ type LibraryProps = {
   onAddText: () => void;
   onAddQuestion: () => void;
   onAddMultipleChoice: () => void;
+  onAddMatching: () => void;
   onAddAnswerLines: () => void;
   onAddCheckbox: () => void;
 };
@@ -12,6 +13,7 @@ export function Library({
   onAddText,
   onAddQuestion,
   onAddMultipleChoice,
+  onAddMatching,
   onAddAnswerLines,
   onAddCheckbox,
 }: LibraryProps) {
@@ -19,6 +21,7 @@ export function Library({
     { icon: 'T', label: 'Text' },
     { icon: 'Q', label: 'Question' },
     { icon: 'A', label: 'Multiple Choice' },
+    { icon: '↔', label: 'Matching' },
     { icon: '—', label: 'Answer Lines' },
     { icon: '☐', label: 'Checkbox' },
     { icon: '▦', label: 'Table' },
@@ -48,8 +51,10 @@ export function Library({
                 : tool.label === 'Question'
                   ? onAddQuestion
                   : tool.label === 'Multiple Choice'
-                    ? onAddMultipleChoice
-                    : tool.label === 'Answer Lines'
+  ? onAddMultipleChoice
+  : tool.label === 'Matching'
+    ? onAddMatching
+    : tool.label === 'Answer Lines'
                       ? onAddAnswerLines
                       : tool.label === 'Checkbox'
                         ? onAddCheckbox

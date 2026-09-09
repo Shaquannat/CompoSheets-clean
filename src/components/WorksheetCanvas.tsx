@@ -4,6 +4,7 @@ import type { WorksheetComponent } from '../types/worksheet';
 import { TextComponent } from './TextComponent';
 import { QuestionComponent } from './QuestionComponent';
 import { MultipleChoiceComponent } from './MultipleChoiceComponent';
+import { MatchingComponent } from './MatchingComponent';
 import { AnswerLinesComponent } from './AnswerLinesComponent';
 import { CheckboxComponent } from './CheckboxComponent';
 
@@ -438,6 +439,24 @@ orderedQuestions.forEach((component) => {
         onSelectionChange={onMultipleChoiceSelectionChange}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
+      />
+    );
+  }
+
+  if (component.type === 'matching') {
+    return (
+      <MatchingComponent
+        key={component.id}
+        component={component}
+        isSelected={
+          component.id === selectedComponentId ||
+          selectedComponentIds.includes(component.id)
+        }
+        isGroupSelected={isGroupSelected}
+        onSelect={onSelectComponent}
+        onStartDragging={onStartDragging}
+        onResizeStart={onResizeStart}
+        onUpdateComponent={onUpdateComponent}
       />
     );
   }

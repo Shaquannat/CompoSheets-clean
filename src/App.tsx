@@ -11,6 +11,7 @@ import type {
   TextComponent,
   QuestionComponent,
   MultipleChoiceComponent,
+  MatchingComponent,
   WorksheetComponent,
 } from './types/worksheet';
 
@@ -359,7 +360,7 @@ const findMatch =
             );
           }
         }
-        
+
         if (component.type === 'checkbox') {
           for (const item of component.items) {
             const visibleItemText =
@@ -553,6 +554,75 @@ textColor: '#0F172A',
     setSelectedComponentId(newComponent.id);
     setSelectedComponentIds([newComponent.id]);
   }
+
+function addMatchingComponent() {
+  const leftItemId = crypto.randomUUID();
+  const rightItemId = crypto.randomUUID();
+
+  const newComponent: MatchingComponent = {
+    id: crypto.randomUUID(),
+    type: 'matching',
+
+    leftItems: [
+      {
+        id: leftItemId,
+        contentType: 'text',
+        text: '',
+      },
+    ],
+
+    rightItems: [
+      {
+        id: rightItemId,
+        contentType: 'text',
+        text: '',
+      },
+    ],
+
+    relationships: [
+      {
+        leftItemId,
+        rightItemId,
+      },
+    ],
+
+    showHeadings: false,
+    leftHeading: 'Column A',
+    rightHeading: 'Column B',
+
+    leftLabelStyle: 'none',
+
+    settings: {
+      mode: 'matchColumns',
+      activityStyle: 'drawLines',
+      connectorStyle: 'none',
+      showFirstMatch: false,
+      targetBorderStyle: 'dashed',
+    },
+
+    x: 64,
+    y: getNextComponentY(),
+    width: 500,
+    height: 56,
+    rotation: 0,
+    locked: false,
+    layer: components.length + 1,
+  };
+
+  setComponents((currentComponents) => {
+    saveHistory(currentComponents);
+
+    return [
+      ...currentComponents,
+      newComponent,
+    ];
+  });
+
+  setSelectedComponentId(newComponent.id);
+  setSelectedComponentIds([
+    newComponent.id,
+  ]);
+}
 
   function addAnswerLinesComponent() {
     const newComponent: AnswerLinesComponent = {
@@ -1957,11 +2027,12 @@ resizeState.current = {
       }
       
       if (
-  component.type === 'answerLines' ||
-  component.type === 'checkbox' ||
-  component.type === 'question' ||
-  component.type === 'multipleChoice'
-) {
+        component.type === 'answerLines' ||
+        component.type === 'checkbox' ||
+        component.type === 'question' ||
+        component.type === 'multipleChoice' ||
+        component.type === 'matching'
+      ) {
         setComponents((currentComponents) =>
           currentComponents.map((currentComponent) =>
             currentComponent.id === component.id
@@ -2229,6 +2300,7 @@ resizeState.current = {
   onAddText={addTextComponent}
   onAddQuestion={addQuestionComponent}
   onAddMultipleChoice={addMultipleChoiceComponent}
+  onAddMatching={addMatchingComponent}
   onAddAnswerLines={addAnswerLinesComponent}
   onAddCheckbox={addCheckboxComponent}
 />

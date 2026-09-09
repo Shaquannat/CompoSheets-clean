@@ -2,6 +2,7 @@ export type ComponentType =
   | 'text'
   | 'question'
   | 'multipleChoice'
+  | 'matching'
   | 'answerLines'
   | 'checkbox';
 
@@ -77,6 +78,95 @@ textColor: string;
     correctOptionId?: string;
   };
 
+  export type MatchingContentType =
+  | 'text'
+  | 'image'
+  | 'textImage'
+  | 'blank';
+
+export type MatchingItem = {
+  id: string;
+  contentType: MatchingContentType;
+  text?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  blankBorderStyle?: 'none' | 'dashed' | 'solid';
+};
+
+export type MatchingRelationship = {
+  leftItemId: string;
+  rightItemId: string;
+
+  // Used later for row-relationship activities
+  // such as 7 [ ] 4 where the answer is ">".
+  correctBetweenValue?: string;
+
+  // Used later for activities where the student
+  // circles the correct item on the left or right.
+  correctSide?: 'left' | 'right';
+};
+
+export type MatchColumnsSettings = {
+  mode: 'matchColumns';
+
+  activityStyle: 'drawLines' | 'cutPaste';
+
+  connectorStyle:
+    | 'none'
+    | 'line'
+    | 'arrow';
+
+  showFirstMatch: boolean;
+
+  targetBorderStyle:
+    | 'none'
+    | 'dashed'
+    | 'solid';
+};
+
+export type RowRelationshipSettings = {
+  mode: 'rowRelationship';
+
+  betweenStyle:
+    | 'none'
+    | 'line'
+    | 'arrow'
+    | 'writeLine'
+    | 'writeBox'
+    | 'custom';
+
+  customBetweenText?: string;
+
+  circleSideChoice: boolean;
+};
+
+export type MatchingComponent =
+  BaseWorksheetComponent & {
+    type: 'matching';
+
+    leftItems: MatchingItem[];
+    rightItems: MatchingItem[];
+
+    relationships: MatchingRelationship[];
+
+    showHeadings: boolean;
+    leftHeading: string;
+    rightHeading: string;
+
+    leftLabelStyle:
+      | 'none'
+      | '1.'
+      | '1)'
+      | 'A.'
+      | 'A)'
+      | 'a.'
+      | 'a)';
+
+    settings:
+      | MatchColumnsSettings
+      | RowRelationshipSettings;
+  };
+
 export type QuestionComponent = BaseWorksheetComponent & {
   type: 'question';
   question: string;
@@ -127,6 +217,7 @@ export type WorksheetComponent =
   | TextComponent
   | QuestionComponent
   | MultipleChoiceComponent
+  | MatchingComponent
   | AnswerLinesComponent
   | CheckboxComponent;
 
