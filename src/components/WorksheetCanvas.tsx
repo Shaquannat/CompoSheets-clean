@@ -13,6 +13,11 @@ type WorksheetCanvasProps = {
   selectedComponentId: string | null;
   selectedComponentIds: string[];
 
+  matchingRowSelection: {
+  componentId: string;
+  leftItemId: string;
+} | null;
+
   selectionBox: {
     startX: number;
     startY: number;
@@ -87,6 +92,11 @@ type WorksheetCanvasProps = {
     range?: { start: number; end: number } | null
   ) => void;
 
+  onMatchingRowSelect?: (
+    componentId: string,
+    leftItemId: string
+  ) => void;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>
@@ -97,6 +107,7 @@ export function WorksheetCanvas({
   components,
   selectedComponentId,
   selectedComponentIds,
+  matchingRowSelection,
   selectionBox,
   findMatch,
   findMatches = [],
@@ -116,6 +127,7 @@ activeFindMatch,
 onQuestionSelectionChange,
 onCheckboxSelectionChange,
 onMultipleChoiceSelectionChange,
+onMatchingRowSelect,
 onUpdateComponent,
 }: WorksheetCanvasProps) {
   const selectedComponents = components.filter((component) =>
@@ -453,7 +465,15 @@ orderedQuestions.forEach((component) => {
           selectedComponentIds.includes(component.id)
         }
         isGroupSelected={isGroupSelected}
+
+        activeRowLeftItemId={
+  matchingRowSelection?.componentId === component.id
+    ? matchingRowSelection.leftItemId
+    : null
+}
+
         onSelect={onSelectComponent}
+        onRowSelect={onMatchingRowSelect}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
         onUpdateComponent={onUpdateComponent}

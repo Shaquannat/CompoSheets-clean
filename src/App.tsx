@@ -104,6 +104,11 @@ const findMatch =
     end?: number;
   } | null>(null);
 
+  const [matchingRowSelection, setMatchingRowSelection] = useState<{
+    componentId: string;
+    leftItemId: string;
+  } | null>(null);
+
   const selectedComponent =
     components.find((component) => component.id === selectedComponentId) ??
     null;
@@ -2309,6 +2314,7 @@ resizeState.current = {
           components={components}
           selectedComponentId={selectedComponentId}
           selectedComponentIds={selectedComponentIds}
+          matchingRowSelection={matchingRowSelection}
           selectionBox={selectionBox}
           findMatch={findMatch}
           findMatches={findMatches}
@@ -2406,6 +2412,13 @@ activeFindMatch={findMatch}
             });
           }}
 
+          onMatchingRowSelect={(componentId, leftItemId) => {
+            setMatchingRowSelection({
+              componentId,
+              leftItemId,
+            });
+          }}
+          
           onResizeStart={startResizing}
         />
 

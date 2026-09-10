@@ -11,10 +11,16 @@ import {
     component: MatchingComponentType;
     isSelected: boolean;
     isGroupSelected: boolean;
+    activeRowLeftItemId?: string | null;
   
     onSelect: (
       id: string,
       event?: ReactPointerEvent<HTMLElement>
+    ) => void;
+
+    onRowSelect?: (
+      componentId: string,
+      leftItemId: string
     ) => void;
   
     onStartDragging: (
@@ -75,7 +81,9 @@ import {
     component,
     isSelected,
     isGroupSelected,
+    activeRowLeftItemId,
     onSelect,
+    onRowSelect,
     onStartDragging,
     onResizeStart,
     onUpdateComponent,
@@ -170,7 +178,7 @@ import {
   
                 const rightItem =
                   component.rightItems[index];
-  
+
                 const leftLabel =
                   getLeftLabel(
                     index,
@@ -184,7 +192,29 @@ import {
                       rightItem?.id ??
                       index
                     }
-                    className="grid items-center"
+                    data-matching-row-id={
+                      isRowRelationship
+                        ? leftItem?.id
+                        : undefined
+                    }
+                    onPointerDown={() => {
+                      if (
+                        isRowRelationship &&
+                        leftItem
+                      ) {
+                        onRowSelect?.(
+                          component.id,
+                          leftItem.id
+                        );
+                      }
+                    }}
+                    className={`grid items-center rounded-md px-1 py-1 ${
+                      isRowRelationship &&
+                      isSelected &&
+                      activeRowLeftItemId === leftItem?.id
+                        ? 'bg-violet-100 ring-1 ring-violet-400'
+                        : ''
+                    }`}
 style={{
   gridTemplateColumns: isRowRelationship
     ? 'minmax(0, 1fr) 80px minmax(0, 1fr)'
