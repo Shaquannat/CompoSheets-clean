@@ -2429,6 +2429,7 @@ activeFindMatch={findMatch}
   questionSelection={questionSelection}
   checkboxSelection={checkboxSelection}
   multipleChoiceSelection={multipleChoiceSelection}
+  matchingRowSelection={matchingRowSelection}
   onUpdateComponent={updateComponent}
   onDuplicate={duplicateSelectedComponent}
   onDelete={

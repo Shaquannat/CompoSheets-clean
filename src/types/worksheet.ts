@@ -97,11 +97,25 @@ export type MatchingRelationship = {
   leftItemId: string;
   rightItemId: string;
 
-  // Used later for row-relationship activities
-  // such as 7 [ ] 4 where the answer is ">".
+  // Per-row display/action shown between the
+  // left and right items in Relate Each Row.
+  betweenStyle?:
+    | 'none'
+    | 'arrow'
+    | 'writeLine'
+    | 'writeBox'
+    | 'custom';
+
+arrowStyle?: 'outline' | 'solid';
+
+  // Used when betweenStyle is "custom".
+  customBetweenText?: string;
+
+  // Correct response for write-line, write-box,
+  // comparison, or other between-item activities.
   correctBetweenValue?: string;
 
-  // Used later for activities where the student
+  // Used for activities where the student
   // circles the correct item on the left or right.
   correctSide?: 'left' | 'right';
 };

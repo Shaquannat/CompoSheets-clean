@@ -179,6 +179,12 @@ import {
                 const rightItem =
                   component.rightItems[index];
 
+                  const rowRelationship =
+  component.relationships.find(
+    (relationship) =>
+      relationship.leftItemId === leftItem?.id
+  );
+
                 const leftLabel =
                   getLeftLabel(
                     index,
@@ -216,12 +222,9 @@ import {
                         : ''
                     }`}
 style={{
-  gridTemplateColumns: isRowRelationship
-    ? 'minmax(0, 1fr) 80px minmax(0, 1fr)'
-    : 'minmax(0, 1fr) minmax(0, 1fr)',
-  columnGap: isRowRelationship
-    ? '16px'
-    : '32px',
+  gridTemplateColumns:
+  'minmax(0, 1fr) 144px minmax(0, 1fr)',
+columnGap: '8px',
 }}
                   >
                   <div className="flex min-w-0 items-center gap-2">
@@ -294,29 +297,70 @@ style={{
   )}
 </div>
 
+{component.settings.mode === 'matchColumns' && (
+  <div
+    className="min-h-10 w-full"
+    aria-hidden="true"
+  />
+)}
+
 {component.settings.mode === 'rowRelationship' && (
-  <div className="flex min-h-8 items-center justify-center text-center">
-    {component.settings.betweenStyle === 'line' && (
-      <div className="w-full border-t border-slate-500" />
+  <div
+    className="flex min-h-10 w-full items-center justify-center text-center"
+  >
+    {rowRelationship?.betweenStyle === 'arrow' && (
+  <svg
+    width="88"
+    height="46"
+    viewBox="0 0 88 46"
+    aria-hidden="true"
+  >
+    <path
+      d="M3 14 H52 V5 L85 23 L52 41 V32 H3 Z"
+      fill={
+        (rowRelationship.arrowStyle ?? 'outline') ===
+        'solid'
+          ? '#334155'
+          : 'none'
+      }
+      stroke="#334155"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+  </svg>
+)}
+
+    {rowRelationship?.betweenStyle === 'writeLine' && (
+      <div
+        style={{
+          width: '112px',
+height: '32px',
+          borderBottom: '2px solid #334155',
+          boxSizing: 'border-box',
+        }}
+      />
     )}
 
-    {component.settings.betweenStyle === 'arrow' && (
-      <span className="text-lg">
-        →
-      </span>
+    {rowRelationship?.betweenStyle === 'writeBox' && (
+      <div
+        style={{
+          width: '112px',
+height: '42px',
+          border: '2px solid #334155',
+          borderRadius: '4px',
+          boxSizing: 'border-box',
+        }}
+      />
     )}
 
-    {component.settings.betweenStyle === 'writeLine' && (
-      <div className="w-full border-b border-slate-500" />
-    )}
-
-    {component.settings.betweenStyle === 'writeBox' && (
-      <div className="h-8 w-full rounded border border-slate-500" />
-    )}
-
-    {component.settings.betweenStyle === 'custom' && (
-      <span>
-        {component.settings.customBetweenText ?? ''}
+    {rowRelationship?.betweenStyle === 'custom' && (
+      <span
+        style={{
+          fontSize: '22px',
+          lineHeight: 1.1,
+        }}
+      >
+        {rowRelationship.customBetweenText ?? ''}
       </span>
     )}
   </div>

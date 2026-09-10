@@ -201,6 +201,11 @@ type RightSidebarProps = {
     end?: number;
   } | null;
 
+  matchingRowSelection: {
+  componentId: string;
+  leftItemId: string;
+} | null;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>,
@@ -216,6 +221,7 @@ export function RightSidebar({
   questionSelection,
   checkboxSelection,
   multipleChoiceSelection,
+  matchingRowSelection,
   onUpdateComponent,
   onDuplicate,
   onDelete,
@@ -442,36 +448,48 @@ function removeMatchingRelationship() {
       </div>
     </div>
 
-    {selectedComponent.settings.mode === 'rowRelationship' && (
-      <div>
-        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-          Between Items
-        </span>
+  {selectedComponent.settings.mode === 'rowRelationship' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Between Items
+    </span>
 
+    {matchingRowSelection?.componentId === selectedComponent.id ? (
+      <>
         <select
-          value={selectedComponent.settings.betweenStyle}
-          onChange={(event) =>
-            onUpdateComponent(selectedComponent.id, {
-              settings: {
-                ...selectedComponent.settings,
-                betweenStyle: event.target.value as
-                  | 'none'
-                  | 'line'
-                  | 'arrow'
-                  | 'writeLine'
-                  | 'writeBox'
-                  | 'custom',
-              },
-            })
+          value={
+            selectedComponent.relationships.find(
+              (relationship) =>
+                relationship.leftItemId ===
+                matchingRowSelection.leftItemId
+            )?.betweenStyle ?? 'none'
           }
+          onChange={(event) => {
+            const nextStyle = event.target.value as
+              | 'none'
+              | 'arrow'
+              | 'writeLine'
+              | 'writeBox'
+              | 'custom';
+
+            onUpdateComponent(selectedComponent.id, {
+              relationships:
+                selectedComponent.relationships.map(
+                  (relationship) =>
+                    relationship.leftItemId ===
+                    matchingRowSelection.leftItemId
+                      ? {
+                          ...relationship,
+                          betweenStyle: nextStyle,
+                        }
+                      : relationship
+                ),
+            });
+          }}
           className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
         >
           <option value="none">
-            Nothing
-          </option>
-
-          <option value="line">
-            Line
+            None
           </option>
 
           <option value="arrow">
@@ -491,26 +509,48 @@ function removeMatchingRelationship() {
           </option>
         </select>
 
-        {selectedComponent.settings.betweenStyle === 'custom' && (
+        {selectedComponent.relationships.find(
+          (relationship) =>
+            relationship.leftItemId ===
+            matchingRowSelection.leftItemId
+        )?.betweenStyle === 'custom' && (
           <input
             type="text"
             value={
-              selectedComponent.settings.customBetweenText ?? ''
+              selectedComponent.relationships.find(
+                (relationship) =>
+                  relationship.leftItemId ===
+                  matchingRowSelection.leftItemId
+              )?.customBetweenText ?? ''
             }
             onChange={(event) =>
               onUpdateComponent(selectedComponent.id, {
-                settings: {
-                  ...selectedComponent.settings,
-                  customBetweenText: event.target.value,
-                },
+                relationships:
+                  selectedComponent.relationships.map(
+                    (relationship) =>
+                      relationship.leftItemId ===
+                      matchingRowSelection.leftItemId
+                        ? {
+                            ...relationship,
+                            customBetweenText:
+                              event.target.value,
+                          }
+                        : relationship
+                  ),
               })
             }
             placeholder="Example: =, >, <, causes"
             className="mt-2 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
           />
         )}
+      </>
+    ) : (
+      <div className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500">
+        Select a row to change its between-item setting.
       </div>
     )}
+  </div>
+)}
     
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
