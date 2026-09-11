@@ -329,7 +329,7 @@ columnGap: '8px',
           : 'none'
       }
       stroke="#334155"
-      strokeWidth="2"
+      strokeWidth={rowRelationship.arrowStrokeWidth ?? 2}
       strokeLinejoin="round"
     />
   </svg>

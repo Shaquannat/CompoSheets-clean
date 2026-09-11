@@ -571,6 +571,74 @@ function removeMatchingRelationship() {
   </div>
 )}
 
+{(() => {
+  const selectedRelationship =
+    selectedComponent.relationships.find(
+      (relationship) =>
+        relationship.leftItemId ===
+        matchingRowSelection.leftItemId
+    );
+
+  const isOutlineArrow =
+    selectedRelationship?.betweenStyle === 'arrow' &&
+    (selectedRelationship.arrowStyle ?? 'outline') ===
+      'outline';
+
+  if (!isOutlineArrow) {
+    return null;
+  }
+
+  const currentStrokeWidth =
+    selectedRelationship.arrowStrokeWidth ?? 2;
+
+  return (
+    <div className="mt-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+          Outline Thickness
+        </span>
+
+        <span className="text-xs font-medium text-slate-600">
+          {currentStrokeWidth}px
+        </span>
+      </div>
+
+      <input
+        type="range"
+        min="1"
+        max="4"
+        step="0.25"
+        value={currentStrokeWidth}
+        onChange={(event) => {
+          const arrowStrokeWidth = Number(
+            event.target.value
+          );
+
+          onUpdateComponent(selectedComponent.id, {
+            relationships:
+              selectedComponent.relationships.map(
+                (relationship) =>
+                  relationship.leftItemId ===
+                  matchingRowSelection.leftItemId
+                    ? {
+                        ...relationship,
+                        arrowStrokeWidth,
+                      }
+                    : relationship
+              ),
+          });
+        }}
+        className="w-full accent-violet-600"
+      />
+
+      <div className="mt-1 flex justify-between text-[10px] text-slate-400">
+        <span>1</span>
+        <span>4</span>
+      </div>
+    </div>
+  );
+})()}
+
         {selectedComponent.relationships.find(
           (relationship) =>
             relationship.leftItemId ===
