@@ -509,6 +509,99 @@ function removeMatchingRelationship() {
           </option>
         </select>
 
+{(() => {
+  const selectedRelationship =
+    selectedComponent.relationships.find(
+      (relationship) =>
+        relationship.leftItemId ===
+        matchingRowSelection.leftItemId
+    );
+
+  if (
+    !selectedRelationship ||
+    (selectedRelationship.betweenStyle ?? 'none') === 'none'
+  ) {
+    return null;
+  }
+
+  const currentColor =
+    selectedRelationship.betweenColor ?? '#334155';
+
+  return (
+    <div className="mt-3">
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Color
+      </span>
+
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          value={currentColor}
+          onChange={(event) => {
+            const betweenColor = event.target.value;
+
+            onUpdateComponent(selectedComponent.id, {
+              relationships:
+                selectedComponent.relationships.map(
+                  (relationship) =>
+                    relationship.leftItemId ===
+                    matchingRowSelection.leftItemId
+                      ? {
+                          ...relationship,
+                          betweenColor,
+                        }
+                      : relationship
+                ),
+            });
+          }}
+          className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+        />
+
+<input
+  key={currentColor}
+  type="text"
+  defaultValue={currentColor.toUpperCase()}
+  maxLength={7}
+  style={{
+    width: '92px',
+    height: '38px',
+    boxSizing: 'border-box',
+  }}
+  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+  aria-label="Relationship color hex value"
+  onKeyDown={(event) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  }}
+  onBlur={(event) => {
+    const value = event.currentTarget.value.trim();
+
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      onUpdateComponent(selectedComponent.id, {
+        relationships:
+          selectedComponent.relationships.map(
+            (relationship) =>
+              relationship.leftItemId ===
+              matchingRowSelection.leftItemId
+                ? {
+                    ...relationship,
+                    betweenColor: value,
+                  }
+                : relationship
+          ),
+      });
+    } else {
+      event.currentTarget.value =
+        currentColor.toUpperCase();
+    }
+  }}
+/>
+      </div>
+    </div>
+  );
+})()}
+
         {selectedComponent.relationships.find(
   (relationship) =>
     relationship.leftItemId ===

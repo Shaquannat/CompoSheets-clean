@@ -108,6 +108,7 @@ export type MatchingRelationship = {
 
 arrowStyle?: 'outline' | 'solid';
 arrowStrokeWidth?: number;
+betweenColor?: string;
 
   // Used when betweenStyle is "custom".
   customBetweenText?: string;

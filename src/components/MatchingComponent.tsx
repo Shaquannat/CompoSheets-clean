@@ -323,12 +323,11 @@ columnGap: '8px',
     <path
       d="M3 14 H52 V5 L85 23 L52 41 V32 H3 Z"
       fill={
-        (rowRelationship.arrowStyle ?? 'outline') ===
-        'solid'
-          ? '#334155'
+        (rowRelationship.arrowStyle ?? 'outline') === 'solid'
+          ? rowRelationship.betweenColor ?? '#334155'
           : 'none'
       }
-      stroke="#334155"
+      stroke={rowRelationship.betweenColor ?? '#334155'}
       strokeWidth={rowRelationship.arrowStrokeWidth ?? 2}
       strokeLinejoin="round"
     />
@@ -340,7 +339,9 @@ columnGap: '8px',
         style={{
           width: '112px',
 height: '32px',
-          borderBottom: '2px solid #334155',
+borderBottom: `2px solid ${
+  rowRelationship.betweenColor ?? '#334155'
+}`,
           boxSizing: 'border-box',
         }}
       />
@@ -351,7 +352,9 @@ height: '32px',
         style={{
           width: '112px',
 height: '42px',
-          border: '2px solid #334155',
+border: `2px solid ${
+  rowRelationship.betweenColor ?? '#334155'
+}`,
           borderRadius: '4px',
           boxSizing: 'border-box',
         }}
@@ -363,6 +366,7 @@ height: '42px',
         style={{
           fontSize: '22px',
           lineHeight: 1.1,
+          color: rowRelationship.betweenColor ?? '#334155',
         }}
       >
         {rowRelationship.customBetweenText ?? ''}
