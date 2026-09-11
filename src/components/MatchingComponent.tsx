@@ -169,7 +169,12 @@ import {
             </div>
           )}
   
-  <div className="space-y-4">
+  <div
+  className="flex flex-col"
+  style={{
+    gap: `${component.rowSpacing ?? 16}px`,
+  }}
+>
             {Array.from(
               { length: rowCount },
               (_, index) => {
@@ -324,7 +329,7 @@ columnGap: '8px',
           : 'none'
       }
       stroke="#334155"
-      strokeWidth="3"
+      strokeWidth="2"
       strokeLinejoin="round"
     />
   </svg>

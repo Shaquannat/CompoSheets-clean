@@ -166,6 +166,7 @@ export type MatchingComponent =
     showHeadings: boolean;
     leftHeading: string;
     rightHeading: string;
+    rowSpacing?: number;
 
     leftLabelStyle:
       | 'none'

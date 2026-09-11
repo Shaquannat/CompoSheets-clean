@@ -510,6 +510,68 @@ function removeMatchingRelationship() {
         </select>
 
         {selectedComponent.relationships.find(
+  (relationship) =>
+    relationship.leftItemId ===
+    matchingRowSelection.leftItemId
+)?.betweenStyle === 'arrow' && (
+  <div className="mt-3">
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Arrow Style
+    </span>
+
+    <div className="grid grid-cols-2 gap-2">
+      {(['outline', 'solid'] as const).map(
+        (arrowStyle) => {
+          const currentArrowStyle =
+            selectedComponent.relationships.find(
+              (relationship) =>
+                relationship.leftItemId ===
+                matchingRowSelection.leftItemId
+            )?.arrowStyle ?? 'outline';
+
+          const isActive =
+            currentArrowStyle === arrowStyle;
+
+          return (
+            <button
+              key={arrowStyle}
+              type="button"
+              onClick={() => {
+                onUpdateComponent(
+                  selectedComponent.id,
+                  {
+                    relationships:
+                      selectedComponent.relationships.map(
+                        (relationship) =>
+                          relationship.leftItemId ===
+                          matchingRowSelection.leftItemId
+                            ? {
+                                ...relationship,
+                                arrowStyle,
+                              }
+                            : relationship
+                      ),
+                  }
+                );
+              }}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700'
+              }`}
+            >
+              {arrowStyle === 'outline'
+                ? 'Outline'
+                : 'Solid'}
+            </button>
+          );
+        }
+      )}
+    </div>
+  </div>
+)}
+
+        {selectedComponent.relationships.find(
           (relationship) =>
             relationship.leftItemId ===
             matchingRowSelection.leftItemId
@@ -552,6 +614,50 @@ function removeMatchingRelationship() {
   </div>
 )}
     
+    <div className="mb-4">
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Row Spacing
+  </span>
+
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          rowSpacing: Math.max(
+            4,
+            (selectedComponent.rowSpacing ?? 16) - 4
+          ),
+        })
+      }
+      disabled={(selectedComponent.rowSpacing ?? 16) <= 4}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      −
+    </button>
+
+    <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+      {selectedComponent.rowSpacing ?? 16}
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          rowSpacing: Math.min(
+            64,
+            (selectedComponent.rowSpacing ?? 16) + 4
+          ),
+        })
+      }
+      disabled={(selectedComponent.rowSpacing ?? 16) >= 64}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      +
+    </button>
+  </div>
+</div>
+ 
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         {selectedComponent.settings.mode === 'matchColumns'
