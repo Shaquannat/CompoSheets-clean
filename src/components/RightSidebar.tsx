@@ -206,6 +206,12 @@ type RightSidebarProps = {
   leftItemId: string;
 } | null;
 
+matchingItemSelection: {
+  componentId: string;
+  itemId: string;
+  side: 'left' | 'right';
+} | null;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>,
@@ -222,6 +228,7 @@ export function RightSidebar({
   checkboxSelection,
   multipleChoiceSelection,
   matchingRowSelection,
+  matchingItemSelection,
   onUpdateComponent,
   onDuplicate,
   onDelete,
@@ -307,6 +314,18 @@ function removeMatchingRelationship() {
             option.id === multipleChoiceSelection.optionId
         ) ?? null
       : null;
+
+const activeMatchingItem =
+  selectedComponent?.type === 'matching' &&
+  matchingItemSelection?.componentId === selectedComponent.id
+    ? matchingItemSelection.side === 'left'
+      ? selectedComponent.leftItems.find(
+          (item) => item.id === matchingItemSelection.itemId
+        ) ?? null
+      : selectedComponent.rightItems.find(
+          (item) => item.id === matchingItemSelection.itemId
+        ) ?? null
+    : null;
 
         const multipleChoiceHexSelectionRef = useRef<{
     componentId: string;
@@ -447,6 +466,57 @@ function removeMatchingRelationship() {
         </button>
       </div>
     </div>
+
+{activeMatchingItem && matchingItemSelection && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Entry Box
+    </span>
+
+    <select
+      value={activeMatchingItem.borderStyle ?? 'none'}
+      onChange={(event) => {
+        const borderStyle = event.target.value as
+          | 'none'
+          | 'dashed'
+          | 'solid';
+
+        if (matchingItemSelection.side === 'left') {
+          onUpdateComponent(selectedComponent.id, {
+            leftItems: selectedComponent.leftItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      borderStyle,
+                    }
+                  : item
+            ),
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: selectedComponent.rightItems.map(
+            (item) =>
+              item.id === activeMatchingItem.id
+                ? {
+                    ...item,
+                    borderStyle,
+                  }
+                : item
+          ),
+        });
+      }}
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+    >
+      <option value="none">None</option>
+      <option value="dashed">Dashed</option>
+      <option value="solid">Solid</option>
+    </select>
+  </div>
+)}
 
   {selectedComponent.settings.mode === 'rowRelationship' && (
   <div>

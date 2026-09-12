@@ -90,6 +90,7 @@ export type MatchingItem = {
   text?: string;
   imageSrc?: string;
   imageAlt?: string;
+  borderStyle?: 'none' | 'dashed' | 'solid';
   blankBorderStyle?: 'none' | 'dashed' | 'solid';
 };
 

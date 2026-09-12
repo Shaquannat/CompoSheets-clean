@@ -12,6 +12,9 @@ import {
     isSelected: boolean;
     isGroupSelected: boolean;
     activeRowLeftItemId?: string | null;
+
+    activeItemId?: string | null;
+activeItemSide?: 'left' | 'right' | null;
   
     onSelect: (
       id: string,
@@ -22,6 +25,12 @@ import {
       componentId: string,
       leftItemId: string
     ) => void;
+
+    onItemSelect?: (
+  componentId: string,
+  itemId: string,
+  side: 'left' | 'right'
+) => void;
   
     onStartDragging: (
       event: ReactPointerEvent<HTMLButtonElement>,
@@ -82,8 +91,11 @@ import {
     isSelected,
     isGroupSelected,
     activeRowLeftItemId,
+    activeItemId,
+activeItemSide,
     onSelect,
     onRowSelect,
+    onItemSelect,
     onStartDragging,
     onResizeStart,
     onUpdateComponent,
@@ -240,10 +252,31 @@ columnGap: '8px',
   )}
 
   {leftItem && (
-    <div className="relative min-w-0 flex-1">
+    <div
+    onPointerDown={() => {
+  onItemSelect?.(
+    component.id,
+    leftItem.id,
+    'left'
+  );
+}}
+    className={`relative min-w-0 flex-1 rounded-md ${
+  leftItem.borderStyle === 'solid'
+    ? 'border border-slate-700'
+    : leftItem.borderStyle === 'dashed'
+      ? 'border border-dashed border-slate-700'
+      : ''
+} ${
+  isSelected &&
+  activeItemId === leftItem.id &&
+  activeItemSide === 'left'
+    ? 'ring-2 ring-violet-500 ring-offset-1'
+    : ''
+}`}
+  >
       <span
         data-matching-placeholder="true"
-        className="pointer-events-none absolute left-1 top-0 text-slate-400"
+        className="pointer-events-none absolute left-2 top-1 text-slate-400"
         style={{
           display:
             (leftItem.contentType === 'text' ||
@@ -261,7 +294,7 @@ columnGap: '8px',
         suppressContentEditableWarning
         data-matching-item-id={leftItem.id}
         data-matching-side="left"
-        className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
+        className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -383,10 +416,31 @@ textDecoration: rowRelationship.customBetweenUnderline
 
 <div className="min-w-0">
   {rightItem && (
-    <div className="relative min-w-0">
+    <div
+    onPointerDown={() => {
+  onItemSelect?.(
+    component.id,
+    rightItem.id,
+    'right'
+  );
+}}
+  className={`relative min-w-0 rounded-md ${
+  rightItem.borderStyle === 'solid'
+    ? 'border border-slate-700'
+    : rightItem.borderStyle === 'dashed'
+      ? 'border border-dashed border-slate-700'
+      : ''
+} ${
+  isSelected &&
+  activeItemId === rightItem.id &&
+  activeItemSide === 'right'
+    ? 'ring-2 ring-violet-500 ring-offset-1'
+    : ''
+}`}
+  >
       <span
         data-matching-placeholder="true"
-        className="pointer-events-none absolute left-1 top-0 text-slate-400"
+        className="pointer-events-none absolute left-2 top-1 text-slate-400"
         style={{
           display:
             (rightItem.contentType === 'text' ||
@@ -404,7 +458,7 @@ textDecoration: rowRelationship.customBetweenUnderline
         suppressContentEditableWarning
         data-matching-item-id={rightItem.id}
         data-matching-side="right"
-        className="relative block min-h-[1.5em] w-full rounded px-1 outline-none focus:bg-violet-50"
+        className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(

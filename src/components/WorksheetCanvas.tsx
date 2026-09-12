@@ -13,6 +13,12 @@ type WorksheetCanvasProps = {
   selectedComponentId: string | null;
   selectedComponentIds: string[];
 
+  matchingItemSelection: {
+  componentId: string;
+  itemId: string;
+  side: 'left' | 'right';
+} | null;
+
   matchingRowSelection: {
   componentId: string;
   leftItemId: string;
@@ -97,6 +103,12 @@ type WorksheetCanvasProps = {
     leftItemId: string
   ) => void;
 
+  onMatchingItemSelect?: (
+  componentId: string,
+  itemId: string,
+  side: 'left' | 'right'
+) => void;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>
@@ -107,6 +119,7 @@ export function WorksheetCanvas({
   components,
   selectedComponentId,
   selectedComponentIds,
+  matchingItemSelection,
   matchingRowSelection,
   selectionBox,
   findMatch,
@@ -128,6 +141,7 @@ onQuestionSelectionChange,
 onCheckboxSelectionChange,
 onMultipleChoiceSelectionChange,
 onMatchingRowSelect,
+onMatchingItemSelect,
 onUpdateComponent,
 }: WorksheetCanvasProps) {
   const selectedComponents = components.filter((component) =>
@@ -472,8 +486,20 @@ orderedQuestions.forEach((component) => {
     : null
 }
 
+activeItemId={
+  matchingItemSelection?.componentId === component.id
+    ? matchingItemSelection.itemId
+    : null
+}
+activeItemSide={
+  matchingItemSelection?.componentId === component.id
+    ? matchingItemSelection.side
+    : null
+}
+
         onSelect={onSelectComponent}
         onRowSelect={onMatchingRowSelect}
+        onItemSelect={onMatchingItemSelect}
         onStartDragging={onStartDragging}
         onResizeStart={onResizeStart}
         onUpdateComponent={onUpdateComponent}
