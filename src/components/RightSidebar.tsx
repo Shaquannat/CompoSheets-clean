@@ -732,41 +732,122 @@ function removeMatchingRelationship() {
   );
 })()}
 
-        {selectedComponent.relationships.find(
+{selectedComponent.relationships.find(
+  (relationship) =>
+    relationship.leftItemId ===
+    matchingRowSelection.leftItemId
+)?.betweenStyle === 'custom' && (
+  <div className="mt-3 space-y-3">
+    <input
+      type="text"
+      value={
+        selectedComponent.relationships.find(
           (relationship) =>
             relationship.leftItemId ===
             matchingRowSelection.leftItemId
-        )?.betweenStyle === 'custom' && (
-          <input
-            type="text"
-            value={
-              selectedComponent.relationships.find(
+        )?.customBetweenText ?? ''
+      }
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          relationships:
+            selectedComponent.relationships.map(
+              (relationship) =>
+                relationship.leftItemId ===
+                matchingRowSelection.leftItemId
+                  ? {
+                      ...relationship,
+                      customBetweenText:
+                        event.target.value,
+                    }
+                  : relationship
+            ),
+        })
+      }
+      placeholder="Example: =, >, <, causes"
+      className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+    />
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          const currentRelationship =
+            selectedComponent.relationships.find(
+              (relationship) =>
+                relationship.leftItemId ===
+                matchingRowSelection.leftItemId
+            );
+
+          onUpdateComponent(selectedComponent.id, {
+            relationships:
+              selectedComponent.relationships.map(
                 (relationship) =>
                   relationship.leftItemId ===
                   matchingRowSelection.leftItemId
-              )?.customBetweenText ?? ''
-            }
-            onChange={(event) =>
-              onUpdateComponent(selectedComponent.id, {
-                relationships:
-                  selectedComponent.relationships.map(
-                    (relationship) =>
-                      relationship.leftItemId ===
-                      matchingRowSelection.leftItemId
-                        ? {
-                            ...relationship,
-                            customBetweenText:
-                              event.target.value,
-                          }
-                        : relationship
-                  ),
-              })
-            }
-            placeholder="Example: =, >, <, causes"
-            className="mt-2 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
-          />
-        )}
-      </>
+                    ? {
+                        ...relationship,
+                        customBetweenBold:
+                          !currentRelationship?.customBetweenBold,
+                      }
+                    : relationship
+              ),
+          });
+        }}
+        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+          selectedComponent.relationships.find(
+            (relationship) =>
+              relationship.leftItemId ===
+              matchingRowSelection.leftItemId
+          )?.customBetweenBold
+            ? 'border-violet-500 bg-violet-50 text-violet-700'
+            : 'border-slate-300 bg-white text-slate-700'
+        }`}
+      >
+        Bold
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          const currentRelationship =
+            selectedComponent.relationships.find(
+              (relationship) =>
+                relationship.leftItemId ===
+                matchingRowSelection.leftItemId
+            );
+
+          onUpdateComponent(selectedComponent.id, {
+            relationships:
+              selectedComponent.relationships.map(
+                (relationship) =>
+                  relationship.leftItemId ===
+                  matchingRowSelection.leftItemId
+                    ? {
+                        ...relationship,
+                        customBetweenUnderline:
+                          !currentRelationship?.customBetweenUnderline,
+                      }
+                    : relationship
+              ),
+          });
+        }}
+        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+          selectedComponent.relationships.find(
+            (relationship) =>
+              relationship.leftItemId ===
+              matchingRowSelection.leftItemId
+          )?.customBetweenUnderline
+            ? 'border-violet-500 bg-violet-50 text-violet-700'
+            : 'border-slate-300 bg-white text-slate-700'
+        }`}
+      >
+        Underline
+      </button>
+    </div>
+  </div>
+)}
+    
+    </>
     ) : (
       <div className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500">
         Select a row to change its between-item setting.
@@ -774,7 +855,7 @@ function removeMatchingRelationship() {
     )}
   </div>
 )}
-    
+
     <div className="mb-4">
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Row Spacing

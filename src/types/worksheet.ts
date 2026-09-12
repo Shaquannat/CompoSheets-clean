@@ -112,6 +112,8 @@ betweenColor?: string;
 
   // Used when betweenStyle is "custom".
   customBetweenText?: string;
+  customBetweenBold?: boolean;
+customBetweenUnderline?: boolean;
 
   // Correct response for write-line, write-box,
   // comparison, or other between-item activities.

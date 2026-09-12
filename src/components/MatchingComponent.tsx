@@ -367,6 +367,12 @@ border: `2px solid ${
           fontSize: '22px',
           lineHeight: 1.1,
           color: rowRelationship.betweenColor ?? '#334155',
+          fontWeight: rowRelationship.customBetweenBold
+  ? 700
+  : 400,
+textDecoration: rowRelationship.customBetweenUnderline
+  ? 'underline'
+  : 'none',
         }}
       >
         {rowRelationship.customBetweenText ?? ''}
