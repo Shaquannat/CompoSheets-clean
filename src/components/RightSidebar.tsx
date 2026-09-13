@@ -580,6 +580,108 @@ const activeMatchingItem =
     </div>
   </div>
 )}
+<div className="mt-3">
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Border Color
+  </span>
+
+  <div className="flex items-center gap-3">
+    <input
+      type="color"
+      value={activeMatchingItem.borderColor ?? '#334155'}
+      onChange={(event) => {
+        const borderColor = event.target.value;
+
+        if (matchingItemSelection.side === 'left') {
+          onUpdateComponent(selectedComponent.id, {
+            leftItems: selectedComponent.leftItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      borderColor,
+                    }
+                  : item
+            ),
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: selectedComponent.rightItems.map(
+            (item) =>
+              item.id === activeMatchingItem.id
+                ? {
+                    ...item,
+                    borderColor,
+                  }
+                : item
+          ),
+        });
+      }}
+      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      aria-label="Entry border color"
+    />
+
+    <input
+      key={activeMatchingItem.borderColor ?? '#334155'}
+      type="text"
+      defaultValue={(activeMatchingItem.borderColor ?? '#334155').toUpperCase()}
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Entry border color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const value = event.currentTarget.value.trim();
+
+        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          event.currentTarget.value =
+            (activeMatchingItem.borderColor ?? '#334155').toUpperCase();
+
+          return;
+        }
+
+        if (matchingItemSelection.side === 'left') {
+          onUpdateComponent(selectedComponent.id, {
+            leftItems: selectedComponent.leftItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      borderColor: value,
+                    }
+                  : item
+            ),
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: selectedComponent.rightItems.map(
+            (item) =>
+              item.id === activeMatchingItem.id
+                ? {
+                    ...item,
+                    borderColor: value,
+                  }
+                : item
+          ),
+        });
+      }}
+    />
+  </div>
+</div>
   </div>
 )}
 

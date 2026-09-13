@@ -284,6 +284,11 @@ style={{
           ? '2.5px'
           : '1px'
       : undefined,
+      borderColor:
+  leftItem.borderStyle === 'solid' ||
+  leftItem.borderStyle === 'dashed'
+    ? leftItem.borderColor ?? '#334155'
+    : undefined,
 }}
 
   >
@@ -461,6 +466,11 @@ style={{
           ? '2.5px'
           : '1px'
       : undefined,
+      borderColor:
+  rightItem.borderStyle === 'solid' ||
+  rightItem.borderStyle === 'dashed'
+    ? rightItem.borderColor ?? '#334155'
+    : undefined,
 }}
 
   >
