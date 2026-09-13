@@ -91,6 +91,7 @@ export type MatchingItem = {
   imageSrc?: string;
   imageAlt?: string;
   borderStyle?: 'none' | 'dashed' | 'solid';
+  borderThickness?: 'thin' | 'medium' | 'thick';
   blankBorderStyle?: 'none' | 'dashed' | 'solid';
 };
 

@@ -515,6 +515,71 @@ const activeMatchingItem =
       <option value="dashed">Dashed</option>
       <option value="solid">Solid</option>
     </select>
+    {(activeMatchingItem.borderStyle === 'solid' ||
+  activeMatchingItem.borderStyle === 'dashed') && (
+  <div className="mt-3">
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Thickness
+    </span>
+
+    <div className="grid grid-cols-3 gap-2">
+      {(['thin', 'medium', 'thick'] as const).map(
+        (borderThickness) => {
+          const isActive =
+            (activeMatchingItem.borderThickness ?? 'thin') ===
+            borderThickness;
+
+          return (
+            <button
+              key={borderThickness}
+              type="button"
+              onClick={() => {
+                if (matchingItemSelection.side === 'left') {
+                  onUpdateComponent(selectedComponent.id, {
+                    leftItems: selectedComponent.leftItems.map(
+                      (item) =>
+                        item.id === activeMatchingItem.id
+                          ? {
+                              ...item,
+                              borderThickness,
+                            }
+                          : item
+                    ),
+                  });
+
+                  return;
+                }
+
+                onUpdateComponent(selectedComponent.id, {
+                  rightItems: selectedComponent.rightItems.map(
+                    (item) =>
+                      item.id === activeMatchingItem.id
+                        ? {
+                            ...item,
+                            borderThickness,
+                          }
+                        : item
+                  ),
+                });
+              }}
+              className={`rounded-lg border px-2 py-2 text-sm font-medium ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700'
+              }`}
+            >
+              {borderThickness === 'thin'
+                ? 'Thin'
+                : borderThickness === 'medium'
+                  ? 'Medium'
+                  : 'Thick'}
+            </button>
+          );
+        }
+      )}
+    </div>
+  </div>
+)}
   </div>
 )}
 

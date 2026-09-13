@@ -273,6 +273,19 @@ columnGap: '8px',
     ? 'ring-2 ring-violet-500 ring-offset-1'
     : ''
 }`}
+
+style={{
+  borderWidth:
+    leftItem.borderStyle === 'solid' ||
+    leftItem.borderStyle === 'dashed'
+      ? leftItem.borderThickness === 'thick'
+        ? '4px'
+        : leftItem.borderThickness === 'medium'
+          ? '2.5px'
+          : '1px'
+      : undefined,
+}}
+
   >
       <span
         data-matching-placeholder="true"
@@ -437,6 +450,19 @@ textDecoration: rowRelationship.customBetweenUnderline
     ? 'ring-2 ring-violet-500 ring-offset-1'
     : ''
 }`}
+
+style={{
+  borderWidth:
+    rightItem.borderStyle === 'solid' ||
+    rightItem.borderStyle === 'dashed'
+      ? rightItem.borderThickness === 'thick'
+        ? '4px'
+        : rightItem.borderThickness === 'medium'
+          ? '2.5px'
+          : '1px'
+      : undefined,
+}}
+
   >
       <span
         data-matching-placeholder="true"
