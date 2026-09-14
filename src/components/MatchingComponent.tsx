@@ -1,7 +1,9 @@
 import {
-    useState,
-    type PointerEvent as ReactPointerEvent,
-  } from 'react';
+  useLayoutEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
   
   import type {
     MatchingComponent as MatchingComponentType,
@@ -102,6 +104,14 @@ activeItemSide,
   }: MatchingComponentProps) {
     const [isHovered, setIsHovered] =
       useState(false);
+      const componentRef = useRef<HTMLDivElement | null>(null);
+
+const [exampleLine, setExampleLine] = useState<{
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+} | null>(null);
   
       const isRowRelationship =
       component.settings.mode === 'rowRelationship';
@@ -112,10 +122,70 @@ activeItemSide,
           component.leftItems.length,
           component.rightItems.length
         );
+useLayoutEffect(() => {
+  if (
+    component.settings.mode !== 'matchColumns' ||
+    !component.settings.showFirstMatch
+  ) {
+    setExampleLine(null);
+    return;
+  }
 
+  const container = componentRef.current;
+  const firstRelationship = component.relationships[0];
+
+  if (!container || !firstRelationship) {
+    setExampleLine(null);
+    return;
+  }
+
+  const leftDot =
+    container.querySelector<HTMLElement>(
+      `[data-matching-dot-side="left"][data-matching-dot-item-id="${firstRelationship.leftItemId}"]`
+    );
+
+  const rightDot =
+    container.querySelector<HTMLElement>(
+      `[data-matching-dot-side="right"][data-matching-dot-item-id="${firstRelationship.rightItemId}"]`
+    );
+
+  if (!leftDot || !rightDot) {
+    setExampleLine(null);
+    return;
+  }
+
+  const containerRect =
+    container.getBoundingClientRect();
+
+  const leftRect =
+    leftDot.getBoundingClientRect();
+
+  const rightRect =
+    rightDot.getBoundingClientRect();
+
+  setExampleLine({
+    x1:
+      leftRect.left +
+      leftRect.width / 2 -
+      containerRect.left,
+    y1:
+      leftRect.top +
+      leftRect.height / 2 -
+      containerRect.top,
+    x2:
+      rightRect.left +
+      rightRect.width / 2 -
+      containerRect.left,
+    y2:
+      rightRect.top +
+      rightRect.height / 2 -
+      containerRect.top,
+  });
+}, [component]);
     return (
       <div
-        data-worksheet-component="true"
+  ref={componentRef}
+  data-worksheet-component="true"
         className="absolute"
         style={{
           left: component.x,
@@ -164,6 +234,29 @@ activeItemSide,
             </button>
           )}
   
+  {exampleLine && (
+  <svg
+    className="pointer-events-none absolute inset-0"
+    style={{
+      width: '100%',
+      height: '100%',
+      overflow: 'visible',
+      zIndex: 1,
+    }}
+    aria-hidden="true"
+  >
+    <line
+      x1={exampleLine.x1}
+      y1={exampleLine.y1}
+      x2={exampleLine.x2}
+      y2={exampleLine.y2}
+      stroke="#334155"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+)}
+
         <div className="px-3 py-2">
           {component.showHeadings && (
             <div
@@ -384,7 +477,9 @@ if (placeholder) {
     aria-hidden="true"
   >
     <span
-      style={{
+  data-matching-dot-side="left"
+  data-matching-dot-item-id={leftItem?.id}
+  style={{
         width: '10px',
         height: '10px',
         borderRadius: '50%',
@@ -397,7 +492,9 @@ if (placeholder) {
     />
 
     <span
-      style={{
+  data-matching-dot-side="right"
+  data-matching-dot-item-id={rightItem?.id}
+  style={{
         width: '10px',
         height: '10px',
         borderRadius: '50%',

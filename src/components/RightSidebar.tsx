@@ -530,6 +530,36 @@ const activeMatchingItem =
 {selectedComponent.settings.mode === 'matchColumns' && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Example Match
+    </span>
+
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          settings: {
+            ...selectedComponent.settings,
+            showFirstMatch:
+              !selectedComponent.settings.showFirstMatch,
+          },
+        })
+      }
+      className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+        selectedComponent.settings.showFirstMatch
+          ? 'border-violet-500 bg-violet-50 text-violet-700'
+          : 'border-slate-300 bg-white text-slate-700'
+      }`}
+    >
+      {selectedComponent.settings.showFirstMatch
+        ? 'Example On'
+        : 'Example Off'}
+    </button>
+  </div>
+)}
+
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
       Choice Order
     </span>
 
