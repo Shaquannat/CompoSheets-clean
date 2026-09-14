@@ -327,6 +327,15 @@ const activeMatchingItem =
         ) ?? null
     : null;
 
+    const activeMatchingRightIndex =
+  selectedComponent?.type === 'matching' &&
+  matchingItemSelection?.componentId === selectedComponent.id &&
+  matchingItemSelection.side === 'right'
+    ? selectedComponent.rightItems.findIndex(
+        (item) => item.id === matchingItemSelection.itemId
+      )
+    : -1;
+
         const multipleChoiceHexSelectionRef = useRef<{
     componentId: string;
     optionId: string;
@@ -545,6 +554,78 @@ const activeMatchingItem =
     >
       Shuffle Choices
     </button>
+  </div>
+)}
+
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Move Selected Choice
+    </span>
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        disabled={activeMatchingRightIndex <= 0}
+        onClick={() => {
+          if (activeMatchingRightIndex <= 0) {
+            return;
+          }
+
+          const nextItems = [...selectedComponent.rightItems];
+
+          [
+            nextItems[activeMatchingRightIndex - 1],
+            nextItems[activeMatchingRightIndex],
+          ] = [
+            nextItems[activeMatchingRightIndex],
+            nextItems[activeMatchingRightIndex - 1],
+          ];
+
+          onUpdateComponent(selectedComponent.id, {
+            rightItems: nextItems,
+          });
+        }}
+        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Move Up
+      </button>
+
+      <button
+        type="button"
+        disabled={
+          activeMatchingRightIndex === -1 ||
+          activeMatchingRightIndex >=
+            selectedComponent.rightItems.length - 1
+        }
+        onClick={() => {
+          if (
+            activeMatchingRightIndex === -1 ||
+            activeMatchingRightIndex >=
+              selectedComponent.rightItems.length - 1
+          ) {
+            return;
+          }
+
+          const nextItems = [...selectedComponent.rightItems];
+
+          [
+            nextItems[activeMatchingRightIndex],
+            nextItems[activeMatchingRightIndex + 1],
+          ] = [
+            nextItems[activeMatchingRightIndex + 1],
+            nextItems[activeMatchingRightIndex],
+          ];
+
+          onUpdateComponent(selectedComponent.id, {
+            rightItems: nextItems,
+          });
+        }}
+        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Move Down
+      </button>
+    </div>
   </div>
 )}
 
