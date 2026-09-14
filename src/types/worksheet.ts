@@ -95,6 +95,7 @@ export type MatchingItem = {
   borderColor?: string;
   textColor?: string;
   backgroundColor?: string;
+  cornerStyle?: 'square' | 'rounded';
   blankBorderStyle?: 'none' | 'dashed' | 'solid';
 };
 

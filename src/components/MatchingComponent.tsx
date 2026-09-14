@@ -260,7 +260,11 @@ columnGap: '8px',
     'left'
   );
 }}
-    className={`relative min-w-0 flex-1 rounded-md ${
+className={`relative min-w-0 flex-1 ${
+  (leftItem.cornerStyle ?? 'rounded') === 'rounded'
+    ? 'rounded-md'
+    : 'rounded-none'
+} ${
   leftItem.borderStyle === 'solid'
     ? 'border border-slate-700'
     : leftItem.borderStyle === 'dashed'
@@ -446,7 +450,11 @@ textDecoration: rowRelationship.customBetweenUnderline
     'right'
   );
 }}
-  className={`relative min-w-0 rounded-md ${
+  className={`relative min-w-0 ${
+  (rightItem.cornerStyle ?? 'rounded') === 'rounded'
+    ? 'rounded-md'
+    : 'rounded-none'
+} ${
   rightItem.borderStyle === 'solid'
     ? 'border border-slate-700'
     : rightItem.borderStyle === 'dashed'

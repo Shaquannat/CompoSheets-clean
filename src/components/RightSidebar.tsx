@@ -895,6 +895,65 @@ const activeMatchingItem =
   </div>
 )}
 
+{activeMatchingItem && matchingItemSelection && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Corner Style
+    </span>
+
+    <div className="grid grid-cols-2 gap-2">
+      {(['square', 'rounded'] as const).map((cornerStyle) => {
+        const isActive =
+          (activeMatchingItem.cornerStyle ?? 'rounded') ===
+          cornerStyle;
+
+        return (
+          <button
+            key={cornerStyle}
+            type="button"
+            onClick={() => {
+              if (matchingItemSelection.side === 'left') {
+                onUpdateComponent(selectedComponent.id, {
+                  leftItems: selectedComponent.leftItems.map(
+                    (item) =>
+                      item.id === activeMatchingItem.id
+                        ? {
+                            ...item,
+                            cornerStyle,
+                          }
+                        : item
+                  ),
+                });
+
+                return;
+              }
+
+              onUpdateComponent(selectedComponent.id, {
+                rightItems: selectedComponent.rightItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          cornerStyle,
+                        }
+                      : item
+                ),
+              });
+            }}
+            className={`rounded-lg border px-3 py-2 text-sm font-medium ${
+              isActive
+                ? 'border-violet-500 bg-violet-50 text-violet-700'
+                : 'border-slate-300 bg-white text-slate-700'
+            }`}
+          >
+            {cornerStyle === 'square' ? 'Square' : 'Rounded'}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+)}
+
   {selectedComponent.settings.mode === 'rowRelationship' && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
