@@ -313,6 +313,9 @@ style={{
         data-matching-item-id={leftItem.id}
         data-matching-side="left"
         className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
+        style={{
+          color: leftItem.textColor ?? '#334155',
+        }}
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -495,6 +498,9 @@ style={{
         data-matching-item-id={rightItem.id}
         data-matching-side="right"
         className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
+        style={{
+          color: rightItem.textColor ?? '#334155',
+        }}
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(

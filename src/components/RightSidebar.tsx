@@ -685,6 +685,111 @@ const activeMatchingItem =
   </div>
 )}
 
+{activeMatchingItem && matchingItemSelection && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Text Color
+    </span>
+
+    <div className="flex items-center gap-3">
+      <input
+        type="color"
+        value={activeMatchingItem.textColor ?? '#334155'}
+        onChange={(event) => {
+          const textColor = event.target.value;
+
+          if (matchingItemSelection.side === 'left') {
+            onUpdateComponent(selectedComponent.id, {
+              leftItems: selectedComponent.leftItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        textColor,
+                      }
+                    : item
+              ),
+            });
+
+            return;
+          }
+
+          onUpdateComponent(selectedComponent.id, {
+            rightItems: selectedComponent.rightItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      textColor,
+                    }
+                  : item
+            ),
+          });
+        }}
+        className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+        aria-label="Entry text color"
+      />
+
+      <input
+        key={activeMatchingItem.textColor ?? '#334155'}
+        type="text"
+        defaultValue={(activeMatchingItem.textColor ?? '#334155').toUpperCase()}
+        maxLength={7}
+        style={{
+          width: '92px',
+          height: '38px',
+          boxSizing: 'border-box',
+        }}
+        className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+        aria-label="Entry text color hex value"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.currentTarget.blur();
+          }
+        }}
+        onBlur={(event) => {
+          const value = event.currentTarget.value.trim();
+
+          if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+            event.currentTarget.value =
+              (activeMatchingItem.textColor ?? '#334155').toUpperCase();
+
+            return;
+          }
+
+          if (matchingItemSelection.side === 'left') {
+            onUpdateComponent(selectedComponent.id, {
+              leftItems: selectedComponent.leftItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        textColor: value,
+                      }
+                    : item
+              ),
+            });
+
+            return;
+          }
+
+          onUpdateComponent(selectedComponent.id, {
+            rightItems: selectedComponent.rightItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      textColor: value,
+                    }
+                  : item
+            ),
+          });
+        }}
+      />
+    </div>
+  </div>
+)}
+
   {selectedComponent.settings.mode === 'rowRelationship' && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">

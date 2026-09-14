@@ -93,6 +93,7 @@ export type MatchingItem = {
   borderStyle?: 'none' | 'dashed' | 'solid';
   borderThickness?: 'thin' | 'medium' | 'thick';
   borderColor?: string;
+  textColor?: string;
   blankBorderStyle?: 'none' | 'dashed' | 'solid';
 };
 
