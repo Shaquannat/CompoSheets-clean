@@ -299,7 +299,7 @@ style={{
   >
       <span
         data-matching-placeholder="true"
-        className="pointer-events-none absolute left-2 top-1 text-slate-400"
+className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
         style={{
           display:
             (leftItem.contentType === 'text' ||
@@ -321,6 +321,15 @@ style={{
         style={{
           color: leftItem.textColor ?? '#334155',
         }}
+
+        onFocus={(event) => {
+  const placeholder =
+    event.currentTarget.previousElementSibling as HTMLElement | null;
+
+  if (!event.currentTarget.innerText.trim() && placeholder) {
+    placeholder.style.display = 'block';
+  }
+}}
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -335,6 +344,12 @@ style={{
           }
         }}
         onBlur={(event) => {
+        const placeholder =
+  event.currentTarget.previousElementSibling as HTMLElement | null;
+
+if (placeholder) {
+  placeholder.style.display = 'none';
+}
           const nextText =
             event.currentTarget.textContent ?? '';
 
@@ -489,8 +504,7 @@ style={{
   >
       <span
         data-matching-placeholder="true"
-        className="pointer-events-none absolute left-2 top-1 text-slate-400"
-        style={{
+className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"        style={{
           display:
             (rightItem.contentType === 'text' ||
               rightItem.contentType === 'textImage') &&
@@ -511,6 +525,14 @@ style={{
         style={{
           color: rightItem.textColor ?? '#334155',
         }}
+        onFocus={(event) => {
+  const placeholder =
+    event.currentTarget.previousElementSibling as HTMLElement | null;
+
+  if (!event.currentTarget.innerText.trim() && placeholder) {
+    placeholder.style.display = 'block';
+  }
+}}
         onInput={(event) => {
           const placeholder =
             event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -525,6 +547,12 @@ style={{
           }
         }}
         onBlur={(event) => {
+        const placeholder =
+  event.currentTarget.previousElementSibling as HTMLElement | null;
+
+if (placeholder) {
+  placeholder.style.display = 'none';
+}
           const nextText =
             event.currentTarget.textContent ?? '';
 

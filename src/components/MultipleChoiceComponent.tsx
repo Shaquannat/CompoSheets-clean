@@ -379,6 +379,7 @@ onStartDragging,
 </span>
 
   <div
+  key={`${option.id}-${option.text}`}
   ref={(element) => {
     optionInputRefs.current[index] = element;
   }}
