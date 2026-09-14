@@ -497,6 +497,57 @@ const activeMatchingItem =
   </div>
 )}
 
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Choice Order
+    </span>
+
+    <button
+      type="button"
+      disabled={selectedComponent.rightItems.length < 2}
+      onClick={() => {
+        const currentItems = selectedComponent.rightItems;
+
+        if (currentItems.length < 2) {
+          return;
+        }
+
+        let shuffledItems = [...currentItems];
+
+        for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+          const randomIndex = Math.floor(
+            Math.random() * (index + 1)
+          );
+
+          [shuffledItems[index], shuffledItems[randomIndex]] = [
+            shuffledItems[randomIndex],
+            shuffledItems[index],
+          ];
+        }
+
+        const orderStayedSame = shuffledItems.every(
+          (item, index) => item.id === currentItems[index]?.id
+        );
+
+        if (orderStayedSame) {
+          shuffledItems = [
+            ...shuffledItems.slice(1),
+            shuffledItems[0],
+          ];
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: shuffledItems,
+        });
+      }}
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      Shuffle Choices
+    </button>
+  </div>
+)}
+
 {activeMatchingItem && matchingItemSelection && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
