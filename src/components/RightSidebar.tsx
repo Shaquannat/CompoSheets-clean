@@ -467,6 +467,36 @@ const activeMatchingItem =
       </div>
     </div>
 
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Connection Dots
+    </span>
+
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          settings: {
+            ...selectedComponent.settings,
+            connectionDots:
+              !(selectedComponent.settings.connectionDots ?? false),
+          },
+        })
+      }
+      className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+        selectedComponent.settings.connectionDots
+          ? 'border-violet-500 bg-violet-50 text-violet-700'
+          : 'border-slate-300 bg-white text-slate-700'
+      }`}
+    >
+      {selectedComponent.settings.connectionDots
+        ? 'Dots On'
+        : 'Dots Off'}
+    </button>
+  </div>
+)}
+
 {activeMatchingItem && matchingItemSelection && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">

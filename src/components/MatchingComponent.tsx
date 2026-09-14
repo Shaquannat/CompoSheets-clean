@@ -378,9 +378,35 @@ if (placeholder) {
 
 {component.settings.mode === 'matchColumns' && (
   <div
-    className="min-h-10 w-full"
+    className="flex min-h-10 w-full items-center justify-between"
     aria-hidden="true"
-  />
+  >
+    <span
+      style={{
+        width: '10px',
+        height: '10px',
+        borderRadius: '50%',
+        backgroundColor:
+          component.settings.connectionDots && leftItem
+            ? '#334155'
+            : 'transparent',
+        flexShrink: 0,
+      }}
+    />
+
+    <span
+      style={{
+        width: '10px',
+        height: '10px',
+        borderRadius: '50%',
+        backgroundColor:
+          component.settings.connectionDots && rightItem
+            ? '#334155'
+            : 'transparent',
+        flexShrink: 0,
+      }}
+    />
+  </div>
 )}
 
 {component.settings.mode === 'rowRelationship' && (

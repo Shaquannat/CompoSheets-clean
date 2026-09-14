@@ -142,6 +142,8 @@ export type MatchColumnsSettings = {
 
   showFirstMatch: boolean;
 
+  connectionDots?: boolean;
+
   targetBorderStyle:
     | 'none'
     | 'dashed'
