@@ -273,6 +273,27 @@ export function RightSidebar({
   });
 }
 
+function addMatchingDistractor() {
+  if (
+    !selectedComponent ||
+    selectedComponent.type !== 'matching' ||
+    selectedComponent.settings.mode !== 'matchColumns'
+  ) {
+    return;
+  }
+
+  onUpdateComponent(selectedComponent.id, {
+    rightItems: [
+      ...selectedComponent.rightItems,
+      {
+        id: crypto.randomUUID(),
+        contentType: 'text',
+        text: '',
+      },
+    ],
+  });
+}
+
 function removeMatchingRelationship() {
   if (
     !selectedComponent ||
@@ -626,6 +647,22 @@ const activeMatchingItem =
         Move Down
       </button>
     </div>
+  </div>
+)}
+
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Extra Choices
+    </span>
+
+    <button
+      type="button"
+      onClick={addMatchingDistractor}
+      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+    >
+      Add Distractor
+    </button>
   </div>
 )}
 

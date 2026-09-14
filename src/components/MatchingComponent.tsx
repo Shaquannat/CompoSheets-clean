@@ -103,13 +103,15 @@ activeItemSide,
     const [isHovered, setIsHovered] =
       useState(false);
   
-    const rowCount = Math.max(
-      component.leftItems.length,
-      component.rightItems.length
-    );
-  
-    const isRowRelationship =
-  component.settings.mode === 'rowRelationship';
+      const isRowRelationship =
+      component.settings.mode === 'rowRelationship';
+    
+    const rowCount = isRowRelationship
+      ? component.relationships.length
+      : Math.max(
+          component.leftItems.length,
+          component.rightItems.length
+        );
 
     return (
       <div
