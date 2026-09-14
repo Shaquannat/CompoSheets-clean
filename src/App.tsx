@@ -608,7 +608,7 @@ function addMatchingComponent() {
       activityStyle: 'drawLines',
       connectorStyle: 'none',
       showFirstMatch: false,
-      targetBorderStyle: 'dashed',
+      targetBorderStyle: 'solid',
     },
 
     x: 64,

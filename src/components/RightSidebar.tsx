@@ -445,7 +445,7 @@ const activeMatchingItem =
                 activityStyle: 'drawLines',
                 connectorStyle: 'none',
                 showFirstMatch: false,
-                targetBorderStyle: 'dashed',
+                targetBorderStyle: 'solid',
               },
             })
           }
@@ -496,6 +496,53 @@ const activeMatchingItem =
         </button>
       </div>
     </div>
+    {selectedComponent.settings.mode === 'matchColumns' && (
+  <div>
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Matching Style
+    </span>
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() =>
+          onUpdateComponent(selectedComponent.id, {
+            settings: {
+              ...selectedComponent.settings,
+              activityStyle: 'drawLines',
+            },
+          })
+        }
+        className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${
+          selectedComponent.settings.activityStyle === 'drawLines'
+            ? 'border-violet-500 bg-violet-50 text-violet-700'
+            : 'border-slate-300 bg-white text-slate-700'
+        }`}
+      >
+        Draw Lines
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          onUpdateComponent(selectedComponent.id, {
+            settings: {
+              ...selectedComponent.settings,
+              activityStyle: 'cutPaste',
+            },
+          })
+        }
+        className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${
+          selectedComponent.settings.activityStyle === 'cutPaste'
+            ? 'border-violet-500 bg-violet-50 text-violet-700'
+            : 'border-slate-300 bg-white text-slate-700'
+        }`}
+      >
+        Cut & Paste
+      </button>
+    </div>
+  </div>
+)}
 
 {selectedComponent.settings.mode === 'matchColumns' && (
   <div>

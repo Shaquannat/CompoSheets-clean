@@ -116,6 +116,10 @@ const [exampleLine, setExampleLine] = useState<{
       const isRowRelationship =
       component.settings.mode === 'rowRelationship';
     
+    const isCutPaste =
+  component.settings.mode === 'matchColumns' &&
+  component.settings.activityStyle === 'cutPaste';
+
     const rowCount = isRowRelationship
       ? component.relationships.length
       : Math.max(
@@ -334,9 +338,10 @@ useLayoutEffect(() => {
                         : ''
                     }`}
 style={{
-  gridTemplateColumns:
-  'minmax(0, 1fr) 144px minmax(0, 1fr)',
-columnGap: '8px',
+  gridTemplateColumns: isCutPaste
+    ? 'minmax(0, 1fr) minmax(0, 1fr)'
+    : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
+  columnGap: '8px',
 }}
                   >
                   <div className="flex min-w-0 items-center gap-2">
@@ -472,40 +477,64 @@ if (placeholder) {
 </div>
 
 {component.settings.mode === 'matchColumns' && (
-  <div
-    className="flex min-h-10 w-full items-center justify-between"
-    aria-hidden="true"
-  >
-    <span
-  data-matching-dot-side="left"
-  data-matching-dot-item-id={leftItem?.id}
-  style={{
-        width: '10px',
-        height: '10px',
-        borderRadius: '50%',
-        backgroundColor:
-          component.settings.connectionDots && leftItem
-            ? '#334155'
-            : 'transparent',
-        flexShrink: 0,
-      }}
-    />
+  <>
+    {isCutPaste ? (
+      <div className="flex min-h-10 w-full items-center justify-center">
+        {leftItem && (
+          <div
+            style={{
+              width: '112px',
+              height: '42px',
+              border:
+                component.settings.targetBorderStyle === 'none'
+                  ? 'none'
+                  : component.settings.targetBorderStyle === 'solid'
+                    ? '2px solid #334155'
+                    : '2px dashed #334155',
+              borderRadius: '0px',
+              boxSizing: 'border-box',
+            }}
+            aria-hidden="true"
+          />
+        )}
+      </div>
+    ) : (
+      <div
+        className="flex min-h-10 w-full items-center justify-between"
+        aria-hidden="true"
+      >
+        <span
+          data-matching-dot-side="left"
+          data-matching-dot-item-id={leftItem?.id}
+          style={{
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            backgroundColor:
+              component.settings.connectionDots && leftItem
+                ? '#334155'
+                : 'transparent',
+            flexShrink: 0,
+          }}
+        />
 
-    <span
-  data-matching-dot-side="right"
-  data-matching-dot-item-id={rightItem?.id}
-  style={{
-        width: '10px',
-        height: '10px',
-        borderRadius: '50%',
-        backgroundColor:
-          component.settings.connectionDots && rightItem
-            ? '#334155'
-            : 'transparent',
-        flexShrink: 0,
-      }}
-    />
-  </div>
+        <span
+          data-matching-dot-side="right"
+          data-matching-dot-item-id={rightItem?.id}
+          style={{
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            backgroundColor:
+              component.settings.connectionDots && rightItem
+                ? '#334155'
+                : 'transparent',
+            flexShrink: 0,
+          }}
+        />
+      </div>
+    )}
+  </>
 )}
 
 {component.settings.mode === 'rowRelationship' && (
@@ -580,7 +609,7 @@ textDecoration: rowRelationship.customBetweenUnderline
   </div>
 )}
 
-<div className="min-w-0">
+<div className={isCutPaste ? 'hidden' : 'min-w-0'}>
   {rightItem && (
     <div
     onPointerDown={() => {
@@ -623,6 +652,34 @@ style={{
   rightItem.borderStyle === 'dashed'
     ? rightItem.borderColor ?? '#334155'
     : undefined,
+    width: isCutPaste ? '112px' : undefined,
+height: isCutPaste ? '42px' : undefined,
+marginLeft: isCutPaste ? 'auto' : undefined,
+marginRight: isCutPaste ? 'auto' : undefined,
+borderWidth: isCutPaste
+  ? '2px'
+  : rightItem.borderStyle === 'solid' ||
+      rightItem.borderStyle === 'dashed'
+    ? rightItem.borderThickness === 'thick'
+      ? '4px'
+      : rightItem.borderThickness === 'medium'
+        ? '2.5px'
+        : '1px'
+    : undefined,
+borderStyle: isCutPaste
+  ? 'solid'
+  : rightItem.borderStyle === 'dashed'
+    ? 'dashed'
+    : rightItem.borderStyle === 'solid'
+      ? 'solid'
+      : undefined,
+borderColor: isCutPaste
+  ? '#334155'
+  : rightItem.borderStyle === 'solid' ||
+      rightItem.borderStyle === 'dashed'
+    ? rightItem.borderColor ?? '#334155'
+    : undefined,
+borderRadius: isCutPaste ? '4px' : undefined,
     backgroundColor: rightItem.backgroundColor ?? 'transparent',
 }}
 
@@ -706,11 +763,81 @@ if (placeholder) {
   </div>
                 );
               }
-            )}
-          </div>
-        </div>
-  
-        {isSelected &&
+              )}
+              </div>
+    
+              {isCutPaste && (
+                <div className="mt-6 border-t border-dashed border-slate-400 pt-4">
+                  <div className="mb-3 text-sm font-semibold text-slate-700">
+                    Cutout Choices
+                  </div>
+    
+                  <div className="flex flex-wrap gap-3">
+                    {component.rightItems.map((item) => (
+                      <div
+                        key={item.id}
+                        onPointerDown={() => {
+                          onItemSelect?.(
+                            component.id,
+                            item.id,
+                            'right'
+                          );
+                        }}
+                        style={{
+                          width: '112px',
+                          height: '42px',
+                          border: '2px dashed #334155',
+                          borderRadius: '0px',
+                          boxSizing: 'border-box',
+                          backgroundColor:
+                            item.backgroundColor ?? 'transparent',
+                          color:
+                            item.textColor ?? '#334155',
+                        }}
+                        className={`relative flex shrink-0 items-center justify-center px-2 text-center ${
+                          isSelected &&
+                          activeItemId === item.id &&
+                          activeItemSide === 'right'
+                            ? 'ring-2 ring-violet-500 ring-offset-1'
+                            : ''
+                        }`}
+                      >
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          className="w-full outline-none"
+                          onBlur={(event) => {
+                            const nextText =
+                              event.currentTarget.innerText;
+    
+                            if (nextText === (item.text ?? '')) {
+                              return;
+                            }
+    
+                            onUpdateComponent(component.id, {
+                              rightItems:
+                                component.rightItems.map(
+                                  (rightItem) =>
+                                    rightItem.id === item.id
+                                      ? {
+                                          ...rightItem,
+                                          text: nextText,
+                                        }
+                                      : rightItem
+                                ),
+                            });
+                          }}
+                        >
+                          {item.text ?? ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+    
+            {isSelected &&
           !isGroupSelected &&
           !component.locked && (
             <button
