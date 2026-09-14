@@ -289,6 +289,7 @@ style={{
   leftItem.borderStyle === 'dashed'
     ? leftItem.borderColor ?? '#334155'
     : undefined,
+    backgroundColor: leftItem.backgroundColor ?? 'transparent',
 }}
 
   >
@@ -474,6 +475,7 @@ style={{
   rightItem.borderStyle === 'dashed'
     ? rightItem.borderColor ?? '#334155'
     : undefined,
+    backgroundColor: rightItem.backgroundColor ?? 'transparent',
 }}
 
   >
