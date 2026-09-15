@@ -50,6 +50,10 @@ const checkboxInputHistoryRef = useRef<{
   'portrait' | 'landscape'
 >('portrait');
 
+const [worksheetView, setWorksheetView] = useState<
+  'student' | 'answerKey'
+>('student');
+
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
   );
@@ -2368,6 +2372,8 @@ resizeState.current = {
         <WorksheetCanvas
           components={components}
           pageOrientation={pageOrientation}
+          worksheetView={worksheetView}
+          onWorksheetViewChange={setWorksheetView}
           selectedComponentId={selectedComponentId}
           selectedComponentIds={selectedComponentIds}
           matchingItemSelection={matchingItemSelection}

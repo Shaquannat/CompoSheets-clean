@@ -11,6 +11,10 @@ import { CheckboxComponent } from './CheckboxComponent';
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
   pageOrientation: 'portrait' | 'landscape';
+  worksheetView: 'student' | 'answerKey';
+  onWorksheetViewChange: (
+  view: 'student' | 'answerKey'
+) => void;
   selectedComponentId: string | null;
   selectedComponentIds: string[];
 
@@ -119,6 +123,8 @@ type WorksheetCanvasProps = {
 export function WorksheetCanvas({
   components,
   pageOrientation,
+  worksheetView,
+  onWorksheetViewChange,
   selectedComponentId,
   selectedComponentIds,
   matchingItemSelection,
@@ -236,6 +242,36 @@ orderedQuestions.forEach((component) => {
           </div>
 
           <div className="flex items-center gap-2">
+          <div className="mr-2 flex overflow-hidden rounded-lg border border-slate-300 bg-white">
+  <button
+    type="button"
+    onClick={() =>
+      onWorksheetViewChange('student')
+    }
+    className={`min-h-10 px-3 text-sm font-medium ${
+      worksheetView === 'student'
+        ? 'bg-violet-600 text-white'
+        : 'text-slate-700 hover:bg-slate-50'
+    }`}
+  >
+    Student Copy
+  </button>
+
+  <button
+    type="button"
+    onClick={() =>
+      onWorksheetViewChange('answerKey')
+    }
+    className={`min-h-10 border-l border-slate-300 px-3 text-sm font-medium ${
+      worksheetView === 'answerKey'
+        ? 'bg-violet-600 text-white'
+        : 'text-slate-700 hover:bg-slate-50'
+    }`}
+  >
+    Answer Key
+  </button>
+</div>
+
             <button
               type="button"
               className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
