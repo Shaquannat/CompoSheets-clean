@@ -235,9 +235,26 @@ useLayoutEffect(() => {
     `${target.offsetWidth}px`
   );
 
+  container.style.removeProperty(
+    '--cut-paste-piece-height'
+  );
+
+  const pieces = Array.from(
+    container.querySelectorAll<HTMLElement>(
+      '[data-cut-paste-piece="true"]'
+    )
+  );
+
+  const tallestPieceHeight = Math.max(
+    42,
+    ...pieces.map(
+      (piece) => piece.offsetHeight
+    )
+  );
+
   container.style.setProperty(
     '--cut-paste-piece-height',
-    `${target.offsetHeight}px`
+    `${tallestPieceHeight}px`
   );
 }, [
   component,
@@ -562,7 +579,7 @@ if (placeholder) {
           <div
             style={{
               width: '100%',
-              height: '42px',
+              height: 'var(--cut-paste-piece-height, 42px)',
               border:
                 component.settings.targetBorderStyle === 'none'
                   ? 'none'
@@ -862,6 +879,7 @@ if (placeholder) {
                     {component.rightItems.map((item) => (
                       <div
                         key={item.id}
+                        data-cut-paste-piece="true"
                         onPointerDown={() => {
                           onItemSelect?.(
                             component.id,
@@ -871,7 +889,7 @@ if (placeholder) {
                         }}
                         style={{
                           width: 'var(--cut-paste-piece-width, 112px)',
-height: 'var(--cut-paste-piece-height, 42px)',
+                          minHeight: 'var(--cut-paste-piece-height, 42px)',
 border: '1px dashed #334155',
 marginRight: '-1px',
 marginBottom: '-1px',
@@ -894,6 +912,35 @@ marginBottom: '-1px',
                           contentEditable
                           suppressContentEditableWarning
                           className="w-full outline-none"
+                          onInput={() => {
+  const container = componentRef.current;
+
+  if (!container) {
+    return;
+  }
+
+  container.style.removeProperty(
+    '--cut-paste-piece-height'
+  );
+
+  const pieces = Array.from(
+    container.querySelectorAll<HTMLElement>(
+      '[data-cut-paste-piece="true"]'
+    )
+  );
+
+  const tallestPieceHeight = Math.max(
+    42,
+    ...pieces.map(
+      (piece) => piece.offsetHeight
+    )
+  );
+
+  container.style.setProperty(
+    '--cut-paste-piece-height',
+    `${tallestPieceHeight}px`
+  );
+}}
                           onBlur={(event) => {
                             const nextText =
                               event.currentTarget.innerText;
