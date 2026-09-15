@@ -120,12 +120,40 @@ const [exampleLine, setExampleLine] = useState<{
   component.settings.mode === 'matchColumns' &&
   component.settings.activityStyle === 'cutPaste';
 
+  const cutPastePairsPerRow =
+  isCutPaste
+    ? component.settings.pairsPerRow ?? 1
+    : 1;
+
+const cutPasteRowCount =
+  isCutPaste
+    ? Math.ceil(
+        component.leftItems.length /
+          cutPastePairsPerRow
+      )
+    : 0;
+
+    const cutPasteGroups =
+  isCutPaste
+    ? Array.from(
+        { length: cutPasteRowCount },
+        (_, rowIndex) =>
+          component.leftItems.slice(
+            rowIndex * cutPastePairsPerRow,
+            rowIndex * cutPastePairsPerRow +
+              cutPastePairsPerRow
+          )
+      )
+    : [];
+
     const rowCount = isRowRelationship
-      ? component.relationships.length
-      : Math.max(
-          component.leftItems.length,
-          component.rightItems.length
-        );
+  ? component.relationships.length
+  : isCutPaste
+    ? component.leftItems.length
+    : Math.max(
+        component.leftItems.length,
+        component.rightItems.length
+      );
 useLayoutEffect(() => {
   if (
     component.settings.mode !== 'matchColumns' ||
@@ -186,6 +214,36 @@ useLayoutEffect(() => {
       containerRect.top,
   });
 }, [component]);
+useLayoutEffect(() => {
+  if (!isCutPaste) {
+    return;
+  }
+
+  const container = componentRef.current;
+
+  const target =
+    container?.querySelector<HTMLElement>(
+      '[data-cut-paste-target="true"]'
+    );
+
+  if (!container || !target) {
+    return;
+  }
+
+  container.style.setProperty(
+    '--cut-paste-piece-width',
+    `${target.offsetWidth}px`
+  );
+
+  container.style.setProperty(
+    '--cut-paste-piece-height',
+    `${target.offsetHeight}px`
+  );
+}, [
+  component,
+  isCutPaste,
+  cutPastePairsPerRow,
+]);
     return (
       <div
   ref={componentRef}
@@ -281,10 +339,18 @@ useLayoutEffect(() => {
           )}
   
   <div
-  className="flex flex-col"
-  style={{
-    gap: `${component.rowSpacing ?? 16}px`,
-  }}
+  className={isCutPaste ? 'grid' : 'flex flex-col'}
+  style={
+    isCutPaste
+      ? {
+          gridTemplateColumns: `repeat(${cutPastePairsPerRow}, minmax(0, 1fr))`,
+          columnGap: '16px',
+          rowGap: `${component.rowSpacing ?? 16}px`,
+        }
+      : {
+          gap: `${component.rowSpacing ?? 16}px`,
+        }
+  }
 >
             {Array.from(
               { length: rowCount },
@@ -339,8 +405,10 @@ useLayoutEffect(() => {
                     }`}
 style={{
   gridTemplateColumns: isCutPaste
-    ? 'minmax(0, 1fr) minmax(0, 1fr)'
-    : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
+  ? cutPastePairsPerRow === 1
+    ? 'minmax(0, 1fr) 144px minmax(0, 1fr)'
+    : 'minmax(0, 1fr) minmax(0, 1fr)'
+  : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
   columnGap: '8px',
 }}
                   >
@@ -360,7 +428,11 @@ style={{
     'left'
   );
 }}
-className={`relative min-w-0 flex-1 ${
+className={`relative min-w-0 ${
+  isCutPaste
+    ? 'w-full'
+    : 'flex-1'
+} ${
   (leftItem.cornerStyle ?? 'rounded') === 'rounded'
     ? 'rounded-md'
     : 'rounded-none'
@@ -479,11 +551,17 @@ if (placeholder) {
 {component.settings.mode === 'matchColumns' && (
   <>
     {isCutPaste ? (
-      <div className="flex min-h-10 w-full items-center justify-center">
+      <div
+  className="flex min-h-10 w-full items-center justify-center"
+  style={{
+    gridColumn:
+      cutPastePairsPerRow === 1 ? 3 : undefined,
+  }}
+>
         {leftItem && (
           <div
             style={{
-              width: '112px',
+              width: '100%',
               height: '42px',
               border:
                 component.settings.targetBorderStyle === 'none'
@@ -494,6 +572,7 @@ if (placeholder) {
               borderRadius: '0px',
               boxSizing: 'border-box',
             }}
+            data-cut-paste-target="true"
             aria-hidden="true"
           />
         )}
@@ -767,12 +846,19 @@ if (placeholder) {
               </div>
     
               {isCutPaste && (
-                <div className="mt-6 border-t border-dashed border-slate-400 pt-4">
-                  <div className="mb-3 text-sm font-semibold text-slate-700">
-                    Cutout Choices
-                  </div>
-    
-                  <div className="flex flex-wrap gap-3">
+                <div className="mt-6 pt-2">
+                <div className="mb-2 flex items-center gap-2 text-slate-700">
+                  <span
+                    aria-hidden="true"
+                    className="text-lg leading-none"
+                  >
+                    ✂
+                  </span>
+              
+                  <div className="flex-1 border-t border-dashed border-slate-400" />
+                </div>
+              
+                <div className="flex flex-wrap justify-center gap-0">
                     {component.rightItems.map((item) => (
                       <div
                         key={item.id}
@@ -784,9 +870,11 @@ if (placeholder) {
                           );
                         }}
                         style={{
-                          width: '112px',
-                          height: '42px',
-                          border: '2px dashed #334155',
+                          width: 'var(--cut-paste-piece-width, 112px)',
+height: 'var(--cut-paste-piece-height, 42px)',
+border: '1px dashed #334155',
+marginRight: '-1px',
+marginBottom: '-1px',
                           borderRadius: '0px',
                           boxSizing: 'border-box',
                           backgroundColor:

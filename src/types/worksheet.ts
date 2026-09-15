@@ -132,18 +132,14 @@ customBetweenUnderline?: boolean;
 
 export type MatchColumnsSettings = {
   mode: 'matchColumns';
-
   activityStyle: 'drawLines' | 'cutPaste';
-
   connectorStyle:
     | 'none'
     | 'line'
     | 'arrow';
-
   showFirstMatch: boolean;
-
   connectionDots?: boolean;
-
+  pairsPerRow?: 1 | 2 | 3;
   targetBorderStyle:
     | 'none'
     | 'dashed'

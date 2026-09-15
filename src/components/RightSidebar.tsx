@@ -445,6 +445,7 @@ const activeMatchingItem =
                 activityStyle: 'drawLines',
                 connectorStyle: 'none',
                 showFirstMatch: false,
+                pairsPerRow: 1,
                 targetBorderStyle: 'solid',
               },
             })
@@ -543,6 +544,45 @@ const activeMatchingItem =
     </div>
   </div>
 )}
+
+{selectedComponent.settings.mode === 'matchColumns' &&
+  selectedComponent.settings.activityStyle === 'cutPaste' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Pairs Per Row
+      </span>
+
+      <div className="grid grid-cols-3 gap-2">
+        {([1, 2, 3] as const).map((pairsPerRow) => {
+          const isActive =
+            (selectedComponent.settings.pairsPerRow ?? 1) ===
+            pairsPerRow;
+
+          return (
+            <button
+              key={pairsPerRow}
+              type="button"
+              onClick={() =>
+                onUpdateComponent(selectedComponent.id, {
+                  settings: {
+                    ...selectedComponent.settings,
+                    pairsPerRow,
+                  },
+                })
+              }
+              className={`min-h-11 rounded-lg border px-2 text-sm font-semibold ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700'
+              }`}
+            >
+              {pairsPerRow}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
 
 {selectedComponent.settings.mode === 'matchColumns' && (
   <div>
