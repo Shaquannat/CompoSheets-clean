@@ -13,6 +13,7 @@ import {
     component: MatchingComponentType;
     isSelected: boolean;
     isGroupSelected: boolean;
+    worksheetView: 'student' | 'answerKey';
     activeRowLeftItemId?: string | null;
 
     activeItemId?: string | null;
@@ -92,6 +93,7 @@ activeItemSide?: 'left' | 'right' | null;
     component,
     isSelected,
     isGroupSelected,
+    worksheetView,
     activeRowLeftItemId,
     activeItemId,
 activeItemSide,
@@ -384,6 +386,14 @@ useLayoutEffect(() => {
       relationship.leftItemId === leftItem?.id
   );
 
+  const cutPasteAnswerItem =
+  isCutPaste && worksheetView === 'answerKey'
+    ? component.rightItems.find(
+        (item) =>
+          item.id === rowRelationship?.rightItemId
+      )
+    : undefined;
+
                 const leftLabel =
                   getLeftLabel(
                     index,
@@ -590,15 +600,35 @@ if (placeholder) {
               boxSizing: 'border-box',
             }}
             data-cut-paste-target="true"
-            data-cut-paste-left-item-id={leftItem.id}
+data-cut-paste-left-item-id={leftItem.id}
 data-cut-paste-correct-right-item-id={
-  component.relationships.find(
-    (relationship) =>
-      relationship.leftItemId === leftItem.id
-  )?.rightItemId
+  rowRelationship?.rightItemId
 }
-            aria-hidden="true"
+aria-hidden={
+  worksheetView === 'student'
+}
+>
+  {cutPasteAnswerItem && (
+    <div className="flex h-full w-full items-center justify-center px-2 text-center">
+      {(cutPasteAnswerItem.contentType === 'text' ||
+        cutPasteAnswerItem.contentType === 'textImage') && (
+        <span>
+          {cutPasteAnswerItem.text ?? ''}
+        </span>
+      )}
+
+      {(cutPasteAnswerItem.contentType === 'image' ||
+        cutPasteAnswerItem.contentType === 'textImage') &&
+        cutPasteAnswerItem.imageSrc && (
+          <img
+            src={cutPasteAnswerItem.imageSrc}
+            alt={cutPasteAnswerItem.imageAlt ?? ''}
+            className="max-h-full max-w-full object-contain"
           />
+        )}
+    </div>
+  )}
+</div>
         )}
       </div>
     ) : (
@@ -922,7 +952,7 @@ marginBottom: '-1px',
                           color:
                             item.textColor ?? '#334155',
                         }}
-                        className={`relative flex shrink-0 items-center justify-center px-2 text-center ${
+                        className={`group relative flex shrink-0 items-center justify-center px-2 text-center ${
                           isSelected &&
                           activeItemId === item.id &&
                           activeItemSide === 'right'
@@ -930,11 +960,54 @@ marginBottom: '-1px',
                             : ''
                         }`}
                       >
+                      {isSelected &&
+  worksheetView === 'student' &&
+  !(item.text ?? '').trim() && (
+    <span
+    data-cut-paste-placeholder="true"
+      data-editor-only="true"
+      className="pointer-events-none absolute inset-0 flex items-center justify-center px-2 text-center text-xs font-medium text-violet-500"
+    >
+      {(() => {
+        const relationship =
+          component.relationships.find(
+            (relationship) =>
+              relationship.rightItemId === item.id
+          );
+
+        if (!relationship) {
+          return 'Distractor';
+        }
+
+        const leftIndex =
+          component.leftItems.findIndex(
+            (leftItem) =>
+              leftItem.id ===
+              relationship.leftItemId
+          );
+
+        return leftIndex >= 0
+          ? `Answer for ${leftIndex + 1}`
+          : 'Answer';
+      })()}
+    </span>
+  )}
                         <span
                           contentEditable
                           suppressContentEditableWarning
                           className="w-full outline-none"
-                          onInput={() => {
+                          onInput={(event) => {
+                            const placeholder =
+  event.currentTarget.parentElement?.querySelector<HTMLElement>(
+    '[data-cut-paste-placeholder="true"]'
+  );
+
+if (placeholder) {
+  placeholder.style.display =
+    (event.currentTarget.textContent ?? '').trim().length > 0
+      ? 'none'
+      : 'flex';
+}
   const container = componentRef.current;
 
   if (!container) {

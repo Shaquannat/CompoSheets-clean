@@ -532,6 +532,7 @@ style={{
       <MatchingComponent
         key={component.id}
         component={component}
+        worksheetView={worksheetView}
         isSelected={
           component.id === selectedComponentId ||
           selectedComponentIds.includes(component.id)
