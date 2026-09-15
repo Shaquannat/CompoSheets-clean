@@ -590,6 +590,13 @@ if (placeholder) {
               boxSizing: 'border-box',
             }}
             data-cut-paste-target="true"
+            data-cut-paste-left-item-id={leftItem.id}
+data-cut-paste-correct-right-item-id={
+  component.relationships.find(
+    (relationship) =>
+      relationship.leftItemId === leftItem.id
+  )?.rightItemId
+}
             aria-hidden="true"
           />
         )}
@@ -880,6 +887,21 @@ if (placeholder) {
                       <div
                         key={item.id}
                         data-cut-paste-piece="true"
+                        data-cut-paste-right-item-id={item.id}
+                        data-cut-paste-correct-left-item-id={
+  component.relationships.find(
+    (relationship) =>
+      relationship.rightItemId === item.id
+  )?.leftItemId
+}
+data-cut-paste-distractor={
+  component.relationships.some(
+    (relationship) =>
+      relationship.rightItemId === item.id
+  )
+    ? undefined
+    : 'true'
+}
                         onPointerDown={() => {
                           onItemSelect?.(
                             component.id,
