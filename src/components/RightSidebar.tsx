@@ -600,7 +600,8 @@ const activeMatchingItem =
     </div>
   )}
 
-{selectedComponent.settings.mode === 'matchColumns' && (
+{selectedComponent.settings.mode === 'matchColumns' &&
+  selectedComponent.settings.activityStyle === 'drawLines' && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
       Connection Dots
@@ -630,7 +631,8 @@ const activeMatchingItem =
   </div>
 )}
 
-{selectedComponent.settings.mode === 'matchColumns' && (
+{selectedComponent.settings.mode === 'matchColumns' &&
+  selectedComponent.settings.activityStyle === 'drawLines' && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
       Example Match
