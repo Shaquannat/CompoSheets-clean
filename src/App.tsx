@@ -46,6 +46,10 @@ const checkboxInputHistoryRef = useRef<{
 } | null>(null);
 
   const [components, setComponents] = useState<WorksheetComponent[]>([]);
+  const [pageOrientation, setPageOrientation] = useState<
+  'portrait' | 'landscape'
+>('portrait');
+
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null
   );
@@ -729,6 +733,50 @@ markColor: '#0f172a',
     saveHistory(components);
     setComponents(nextComponents);
   }
+
+  function handlePageOrientationChange(
+  orientation: 'portrait' | 'landscape'
+) {
+  setPageOrientation(orientation);
+
+  if (orientation !== 'portrait') {
+    return;
+  }
+
+  setComponents((currentComponents) => {
+    const needsPairsFallback =
+      currentComponents.some(
+        (component) =>
+          component.type === 'matching' &&
+          component.settings.mode === 'matchColumns' &&
+          component.settings.pairsPerRow === 3
+      );
+
+    if (!needsPairsFallback) {
+      return currentComponents;
+    }
+
+    saveHistory(currentComponents);
+
+    return currentComponents.map((component) => {
+      if (
+        component.type !== 'matching' ||
+        component.settings.mode !== 'matchColumns' ||
+        component.settings.pairsPerRow !== 3
+      ) {
+        return component;
+      }
+
+      return {
+        ...component,
+        settings: {
+          ...component.settings,
+          pairsPerRow: 2,
+        },
+      };
+    });
+  });
+}
 
   function deleteSelectedComponent() {
     if (!selectedComponentId) return;
@@ -2319,6 +2367,7 @@ resizeState.current = {
 
         <WorksheetCanvas
           components={components}
+          pageOrientation={pageOrientation}
           selectedComponentId={selectedComponentId}
           selectedComponentIds={selectedComponentIds}
           matchingItemSelection={matchingItemSelection}
@@ -2439,6 +2488,8 @@ activeFindMatch={findMatch}
         />
 
 <RightSidebar
+  pageOrientation={pageOrientation}
+  onPageOrientationChange={handlePageOrientationChange}
   selectedComponent={selectedComponent}
   selectedComponentCount={selectedComponentIds.length}
   textSelection={textSelection}

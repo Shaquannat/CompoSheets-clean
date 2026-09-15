@@ -10,6 +10,7 @@ import { CheckboxComponent } from './CheckboxComponent';
 
 type WorksheetCanvasProps = {
   components: WorksheetComponent[];
+  pageOrientation: 'portrait' | 'landscape';
   selectedComponentId: string | null;
   selectedComponentIds: string[];
 
@@ -117,6 +118,7 @@ type WorksheetCanvasProps = {
 
 export function WorksheetCanvas({
   components,
+  pageOrientation,
   selectedComponentId,
   selectedComponentIds,
   matchingItemSelection,
@@ -214,14 +216,22 @@ orderedQuestions.forEach((component) => {
   return (
     <section className="min-w-0 overflow-auto bg-slate-200/70">
       <div className="flex min-h-full flex-col items-center px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mb-4 flex w-full max-w-[816px] flex-wrap items-center justify-between gap-3">
+      <div
+  className={`mb-4 flex w-full flex-wrap items-center justify-between gap-3 ${
+    pageOrientation === 'landscape'
+      ? 'max-w-[1056px]'
+      : 'max-w-[816px]'
+  }`}
+>
           <div>
             <h2 className="text-sm font-bold text-slate-800">
               Worksheet Canvas
             </h2>
 
             <p className="text-xs text-slate-500">
-              US Letter · Portrait · 8.5 × 11 inches
+            {pageOrientation === 'landscape'
+  ? 'US Letter · Landscape · 11 × 8.5 inches'
+  : 'US Letter · Portrait · 8.5 × 11 inches'}
             </p>
           </div>
 
@@ -246,11 +256,23 @@ orderedQuestions.forEach((component) => {
           </div>
         </div>
 
-        <div className="w-full max-w-[816px] pb-8">
+        <div
+  className={`w-full pb-8 ${
+    pageOrientation === 'landscape'
+      ? 'max-w-[1056px]'
+      : 'max-w-[816px]'
+  }`}
+>
           <article
             ref={pageRef}
             aria-label="Blank US Letter worksheet page"
-            className="relative mx-auto aspect-[8.5/11] w-full touch-none bg-white shadow-xl"
+            className="relative mx-auto w-full touch-none bg-white shadow-xl"
+style={{
+  aspectRatio:
+    pageOrientation === 'landscape'
+      ? '11 / 8.5'
+      : '8.5 / 11',
+}}
             onPointerDown={onStartSelectionBox}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}

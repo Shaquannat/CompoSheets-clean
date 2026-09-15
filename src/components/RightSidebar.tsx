@@ -212,6 +212,11 @@ matchingItemSelection: {
   side: 'left' | 'right';
 } | null;
 
+pageOrientation: 'portrait' | 'landscape';
+onPageOrientationChange: (
+  orientation: 'portrait' | 'landscape'
+) => void;
+
   onUpdateComponent: (
     id: string,
     changes: Partial<WorksheetComponent>,
@@ -229,6 +234,8 @@ export function RightSidebar({
   multipleChoiceSelection,
   matchingRowSelection,
   matchingItemSelection,
+  pageOrientation,
+onPageOrientationChange,
   onUpdateComponent,
   onDuplicate,
   onDelete,
@@ -558,22 +565,31 @@ const activeMatchingItem =
             (selectedComponent.settings.pairsPerRow ?? 1) ===
             pairsPerRow;
 
+            const isDisabled =
+  pairsPerRow === 3 &&
+  pageOrientation === 'portrait';
+
           return (
             <button
               key={pairsPerRow}
               type="button"
-              onClick={() =>
+              disabled={isDisabled}
+              onClick={() => {
+                if (isDisabled) return;
+              
                 onUpdateComponent(selectedComponent.id, {
                   settings: {
                     ...selectedComponent.settings,
                     pairsPerRow,
                   },
-                })
-              }
+                });
+              }}
               className={`min-h-11 rounded-lg border px-2 text-sm font-semibold ${
                 isActive
                   ? 'border-violet-500 bg-violet-50 text-violet-700'
-                  : 'border-slate-300 bg-white text-slate-700'
+                  : isDisabled
+  ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+  : 'border-slate-300 bg-white text-slate-700'
               }`}
             >
               {pairsPerRow}
@@ -5730,10 +5746,20 @@ event.currentTarget.value =
               Orientation
             </span>
 
-            <select className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700">
-              <option>Portrait</option>
-              <option>Landscape</option>
-            </select>
+            <select
+  value={pageOrientation}
+  onChange={(event) =>
+    onPageOrientationChange(
+      event.target.value as
+        | 'portrait'
+        | 'landscape'
+    )
+  }
+  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700"
+>
+  <option value="portrait">Portrait</option>
+  <option value="landscape">Landscape</option>
+</select>
           </label>
 
           <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3">
