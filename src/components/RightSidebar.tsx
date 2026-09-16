@@ -212,6 +212,8 @@ matchingItemSelection: {
   side: 'left' | 'right';
 } | null;
 
+worksheetView: 'student' | 'answerKey';
+
 pageOrientation: 'portrait' | 'landscape';
 onPageOrientationChange: (
   orientation: 'portrait' | 'landscape'
@@ -234,7 +236,8 @@ export function RightSidebar({
   multipleChoiceSelection,
   matchingRowSelection,
   matchingItemSelection,
-  pageOrientation,
+worksheetView,
+pageOrientation,
 onPageOrientationChange,
   onUpdateComponent,
   onDuplicate,
@@ -383,7 +386,11 @@ const activeMatchingItem =
         </p>
       </div>
 
-      {selectedComponentCount > 1 ? (
+      {worksheetView === 'answerKey' ? (
+  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+    Answer Key preview
+  </div>
+) : selectedComponentCount > 1 ? (
   <div className="space-y-5">
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -435,7 +442,8 @@ const activeMatchingItem =
             </div>
           </div>
 
-          {selectedComponent.type === 'matching' && (
+          {selectedComponent.type === 'matching' &&
+  worksheetView === 'student' && (
   <div className="space-y-4">
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">

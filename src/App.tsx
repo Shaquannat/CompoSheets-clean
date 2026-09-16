@@ -2495,6 +2495,7 @@ activeFindMatch={findMatch}
 
 <RightSidebar
   pageOrientation={pageOrientation}
+  worksheetView={worksheetView}
   onPageOrientationChange={handlePageOrientationChange}
   selectedComponent={selectedComponent}
   selectedComponentCount={selectedComponentIds.length}
