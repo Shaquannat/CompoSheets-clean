@@ -114,6 +114,16 @@ const [exampleLine, setExampleLine] = useState<{
   x2: number;
   y2: number;
 } | null>(null);
+
+const [answerKeyLines, setAnswerKeyLines] = useState<
+  {
+    key: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  }[]
+>([]);
   
       const isRowRelationship =
       component.settings.mode === 'rowRelationship';
@@ -217,6 +227,78 @@ useLayoutEffect(() => {
   });
 }, [component]);
 useLayoutEffect(() => {
+  if (
+    worksheetView !== 'answerKey' ||
+    component.settings.mode !== 'matchColumns' ||
+    component.settings.activityStyle !== 'drawLines'
+  ) {
+    setAnswerKeyLines([]);
+    return;
+  }
+
+  const container = componentRef.current;
+
+  if (!container) {
+    setAnswerKeyLines([]);
+    return;
+  }
+
+  const containerRect = container.getBoundingClientRect();
+
+  const nextLines = component.relationships
+    .map((relationship) => {
+      const leftDot =
+        container.querySelector<HTMLElement>(
+          `[data-matching-dot-side="left"][data-matching-dot-item-id="${relationship.leftItemId}"]`
+        );
+
+      const rightDot =
+        container.querySelector<HTMLElement>(
+          `[data-matching-dot-side="right"][data-matching-dot-item-id="${relationship.rightItemId}"]`
+        );
+
+      if (!leftDot || !rightDot) {
+        return null;
+      }
+
+      const leftRect = leftDot.getBoundingClientRect();
+      const rightRect = rightDot.getBoundingClientRect();
+
+      return {
+        key: `${relationship.leftItemId}-${relationship.rightItemId}`,
+        x1:
+          leftRect.left +
+          leftRect.width / 2 -
+          containerRect.left,
+        y1:
+          leftRect.top +
+          leftRect.height / 2 -
+          containerRect.top,
+        x2:
+          rightRect.left +
+          rightRect.width / 2 -
+          containerRect.left,
+        y2:
+          rightRect.top +
+          rightRect.height / 2 -
+          containerRect.top,
+      };
+    })
+    .filter(
+      (
+        line
+      ): line is {
+        key: string;
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+      } => line !== null
+    );
+
+  setAnswerKeyLines(nextLines);
+}, [component, worksheetView]);
+useLayoutEffect(() => {
   if (!isCutPaste) {
     return;
   }
@@ -315,7 +397,10 @@ useLayoutEffect(() => {
             </button>
           )}
   
-  {exampleLine && (
+  {worksheetView === 'student' &&
+  component.settings.mode === 'matchColumns' &&
+  component.settings.activityStyle === 'drawLines' &&
+  exampleLine && (
   <svg
     className="pointer-events-none absolute inset-0"
     style={{
@@ -333,10 +418,38 @@ useLayoutEffect(() => {
       y2={exampleLine.y2}
       stroke="#334155"
       strokeWidth="2"
+      strokeDasharray="6 5"
       strokeLinecap="round"
     />
   </svg>
 )}
+
+{worksheetView === 'answerKey' &&
+  answerKeyLines.length > 0 && (
+    <svg
+      className="pointer-events-none absolute inset-0"
+      style={{
+        width: '100%',
+        height: '100%',
+        overflow: 'visible',
+        zIndex: 1,
+      }}
+      aria-hidden="true"
+    >
+      {answerKeyLines.map((line) => (
+        <line
+          key={line.key}
+          x1={line.x1}
+          y1={line.y1}
+          x2={line.x2}
+          y2={line.y2}
+          stroke="#dc2626"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  )}
 
         <div className="px-3 py-2">
           {component.showHeadings && (
@@ -838,7 +951,30 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"     
               : 'none',
         }}
       >
-        Type match
+        {component.settings.mode === 'matchColumns' &&
+component.settings.activityStyle === 'drawLines'
+  ? (() => {
+      const relationship =
+        component.relationships.find(
+          (relationship) =>
+            relationship.rightItemId === rightItem.id
+        );
+
+      if (!relationship) {
+        return 'Distractor';
+      }
+
+      const leftIndex =
+        component.leftItems.findIndex(
+          (leftItem) =>
+            leftItem.id === relationship.leftItemId
+        );
+
+      return leftIndex >= 0
+        ? `Answer for ${leftIndex + 1}`
+        : 'Answer';
+    })()
+  : 'Type match'}
       </span>
 
       <span

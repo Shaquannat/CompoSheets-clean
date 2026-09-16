@@ -304,6 +304,36 @@ function addMatchingDistractor() {
   });
 }
 
+function removeMatchingDistractor() {
+  if (
+    !selectedComponent ||
+    selectedComponent.type !== 'matching' ||
+    selectedComponent.settings.mode !== 'matchColumns' ||
+    !matchingItemSelection ||
+    matchingItemSelection.componentId !== selectedComponent.id ||
+    matchingItemSelection.side !== 'right'
+  ) {
+    return;
+  }
+
+  const selectedRightItemId = matchingItemSelection.itemId;
+
+  const isDistractor = !selectedComponent.relationships.some(
+    (relationship) =>
+      relationship.rightItemId === selectedRightItemId
+  );
+
+  if (!isDistractor) {
+    return;
+  }
+
+  onUpdateComponent(selectedComponent.id, {
+    rightItems: selectedComponent.rightItems.filter(
+      (item) => item.id !== selectedRightItemId
+    ),
+  });
+}
+
 function removeMatchingRelationship() {
   if (
     !selectedComponent ||
@@ -799,13 +829,32 @@ const activeMatchingItem =
       Extra Choices
     </span>
 
-    <button
-      type="button"
-      onClick={addMatchingDistractor}
-      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-    >
-      Add Distractor
-    </button>
+    <div className="grid grid-cols-2 gap-2">
+  <button
+    type="button"
+    onClick={addMatchingDistractor}
+    className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+  >
+    + Add
+  </button>
+
+  <button
+    type="button"
+    disabled={
+      !matchingItemSelection ||
+      matchingItemSelection.componentId !== selectedComponent.id ||
+      matchingItemSelection.side !== 'right' ||
+      selectedComponent.relationships.some(
+        (relationship) =>
+          relationship.rightItemId === matchingItemSelection.itemId
+      )
+    }
+    onClick={removeMatchingDistractor}
+    className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    − Remove
+  </button>
+</div>
   </div>
 )}
 
