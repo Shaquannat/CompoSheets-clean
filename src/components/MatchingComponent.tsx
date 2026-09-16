@@ -591,13 +591,23 @@ if (placeholder) {
               width: '100%',
               height: 'var(--cut-paste-piece-height, 42px)',
               border:
-                component.settings.targetBorderStyle === 'none'
-                  ? 'none'
-                  : component.settings.targetBorderStyle === 'solid'
-                    ? '2px solid #334155'
-                    : '2px dashed #334155',
-              borderRadius: '0px',
-              boxSizing: 'border-box',
+  worksheetView === 'answerKey'
+    ? '1px dashed #334155'
+    : component.settings.targetBorderStyle === 'none'
+      ? 'none'
+      : component.settings.targetBorderStyle === 'solid'
+        ? '2px solid #334155'
+        : '2px dashed #334155',
+borderRadius: '0px',
+boxSizing: 'border-box',
+backgroundColor:
+  worksheetView === 'answerKey'
+    ? cutPasteAnswerItem?.backgroundColor ?? 'transparent'
+    : 'transparent',
+color:
+  worksheetView === 'answerKey'
+    ? '#dc2626'
+    : undefined,
             }}
             data-cut-paste-target="true"
 data-cut-paste-left-item-id={leftItem.id}
@@ -899,7 +909,7 @@ if (placeholder) {
               )}
               </div>
     
-              {isCutPaste && (
+              {isCutPaste && worksheetView === 'student' && (
                 <div className="mt-6 pt-2">
                 <div className="mb-2 flex items-center gap-2 text-slate-700">
                   <span
