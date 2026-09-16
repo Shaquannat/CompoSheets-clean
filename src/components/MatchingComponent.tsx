@@ -621,7 +621,7 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
               : 'none',
         }}
       >
-        Type item
+        {`Item ${index + 1}`}
       </span>
 
       <span
@@ -659,9 +659,12 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
         const placeholder =
   event.currentTarget.previousElementSibling as HTMLElement | null;
 
-if (placeholder) {
-  placeholder.style.display = 'none';
-}
+  if (placeholder) {
+    placeholder.style.display =
+      (event.currentTarget.textContent ?? '').trim().length > 0
+        ? 'none'
+        : 'block';
+  }
           const nextText =
             event.currentTarget.textContent ?? '';
 
@@ -971,10 +974,12 @@ component.settings.activityStyle === 'drawLines'
         );
 
       return leftIndex >= 0
-        ? `Answer for ${leftIndex + 1}`
+        ? `Answer for Item ${leftIndex + 1}`
         : 'Answer';
     })()
-  : 'Type match'}
+    : component.settings.mode === 'rowRelationship'
+    ? `Related Item ${index + 1}`
+    : 'Type match'}
       </span>
 
       <span
@@ -1011,9 +1016,12 @@ component.settings.activityStyle === 'drawLines'
         const placeholder =
   event.currentTarget.previousElementSibling as HTMLElement | null;
 
-if (placeholder) {
-  placeholder.style.display = 'none';
-}
+  if (placeholder) {
+    placeholder.style.display =
+      (event.currentTarget.textContent ?? '').trim().length > 0
+        ? 'none'
+        : 'block';
+  }
           const nextText =
             event.currentTarget.textContent ?? '';
 
@@ -1133,7 +1141,7 @@ marginBottom: '-1px',
           );
 
         return leftIndex >= 0
-          ? `Answer for ${leftIndex + 1}`
+          ? `Answer for Item ${leftIndex + 1}`
           : 'Answer';
       })()}
     </span>
@@ -1182,9 +1190,21 @@ if (placeholder) {
     `${tallestPieceHeight}px`
   );
 }}
-                          onBlur={(event) => {
-                            const nextText =
-                              event.currentTarget.innerText;
+onBlur={(event) => {
+  const placeholder =
+    event.currentTarget.parentElement?.querySelector<HTMLElement>(
+      '[data-cut-paste-placeholder="true"]'
+    );
+
+  if (placeholder) {
+    placeholder.style.display =
+      (event.currentTarget.textContent ?? '').trim().length > 0
+        ? 'none'
+        : 'flex';
+  }
+
+  const nextText =
+    event.currentTarget.innerText;
     
                             if (nextText === (item.text ?? '')) {
                               return;

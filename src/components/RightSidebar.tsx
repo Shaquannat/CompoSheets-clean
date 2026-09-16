@@ -590,6 +590,37 @@ const activeMatchingItem =
   </div>
 )}
 
+<div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        {selectedComponent.settings.mode === 'matchColumns'
+          ? 'Pairs'
+          : 'Rows'}
+      </span>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={removeMatchingRelationship}
+          disabled={selectedComponent.relationships.length <= 1}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          −
+        </button>
+
+        <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
+          {selectedComponent.relationships.length}
+        </div>
+
+        <button
+          type="button"
+          onClick={addMatchingRelationship}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
 {selectedComponent.settings.mode === 'matchColumns' &&
   selectedComponent.settings.activityStyle === 'cutPaste' && (
     <div>
@@ -597,15 +628,15 @@ const activeMatchingItem =
         Pairs Per Row
       </span>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="flex items-center gap-2">
         {([1, 2, 3] as const).map((pairsPerRow) => {
           const isActive =
             (selectedComponent.settings.pairsPerRow ?? 1) ===
             pairsPerRow;
 
-            const isDisabled =
-  pairsPerRow === 3 &&
-  pageOrientation === 'portrait';
+          const isDisabled =
+            pairsPerRow === 3 &&
+            pageOrientation === 'portrait';
 
           return (
             <button
@@ -614,7 +645,7 @@ const activeMatchingItem =
               disabled={isDisabled}
               onClick={() => {
                 if (isDisabled) return;
-              
+
                 onUpdateComponent(selectedComponent.id, {
                   settings: {
                     ...selectedComponent.settings,
@@ -622,12 +653,12 @@ const activeMatchingItem =
                   },
                 });
               }}
-              className={`min-h-11 rounded-lg border px-2 text-sm font-semibold ${
+              className={`flex h-9 w-12 items-center justify-center rounded-lg border text-sm font-semibold ${
                 isActive
                   ? 'border-violet-500 bg-violet-50 text-violet-700'
                   : isDisabled
-  ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-  : 'border-slate-300 bg-white text-slate-700'
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+                    : 'border-slate-300 bg-white text-slate-700'
               }`}
             >
               {pairsPerRow}
@@ -638,224 +669,268 @@ const activeMatchingItem =
     </div>
   )}
 
-{selectedComponent.settings.mode === 'matchColumns' &&
-  selectedComponent.settings.activityStyle === 'drawLines' && (
-  <div>
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Connection Dots
-    </span>
+<div className="mb-4">
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Row Spacing
+  </span>
+
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          rowSpacing: Math.max(
+            4,
+            (selectedComponent.rowSpacing ?? 16) - 4
+          ),
+        })
+      }
+      disabled={(selectedComponent.rowSpacing ?? 16) <= 4}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      −
+    </button>
+
+    <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+      {selectedComponent.rowSpacing ?? 16}
+    </div>
 
     <button
       type="button"
       onClick={() =>
         onUpdateComponent(selectedComponent.id, {
-          settings: {
-            ...selectedComponent.settings,
-            connectionDots:
-              !(selectedComponent.settings.connectionDots ?? false),
-          },
+          rowSpacing: Math.min(
+            64,
+            (selectedComponent.rowSpacing ?? 16) + 4
+          ),
         })
       }
-      className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-        selectedComponent.settings.connectionDots
-          ? 'border-violet-500 bg-violet-50 text-violet-700'
-          : 'border-slate-300 bg-white text-slate-700'
-      }`}
+      disabled={(selectedComponent.rowSpacing ?? 16) >= 64}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
     >
-      {selectedComponent.settings.connectionDots
-        ? 'Dots On'
-        : 'Dots Off'}
+      +
     </button>
   </div>
-)}
+</div>
 
 {selectedComponent.settings.mode === 'matchColumns' &&
   selectedComponent.settings.activityStyle === 'drawLines' && (
-  <div>
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Example Match
-    </span>
-
-    <button
-      type="button"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          settings: {
-            ...selectedComponent.settings,
-            showFirstMatch:
-              !selectedComponent.settings.showFirstMatch,
-          },
-        })
-      }
-      className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-        selectedComponent.settings.showFirstMatch
-          ? 'border-violet-500 bg-violet-50 text-violet-700'
-          : 'border-slate-300 bg-white text-slate-700'
-      }`}
-    >
-      {selectedComponent.settings.showFirstMatch
-        ? 'Example On'
-        : 'Example Off'}
-    </button>
-  </div>
-)}
-
-{selectedComponent.settings.mode === 'matchColumns' && (
-  <div>
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Choice Order
-    </span>
-
-    <button
-      type="button"
-      disabled={selectedComponent.rightItems.length < 2}
-      onClick={() => {
-        const currentItems = selectedComponent.rightItems;
-
-        if (currentItems.length < 2) {
-          return;
-        }
-
-        let shuffledItems = [...currentItems];
-
-        for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
-          const randomIndex = Math.floor(
-            Math.random() * (index + 1)
-          );
-
-          [shuffledItems[index], shuffledItems[randomIndex]] = [
-            shuffledItems[randomIndex],
-            shuffledItems[index],
-          ];
-        }
-
-        const orderStayedSame = shuffledItems.every(
-          (item, index) => item.id === currentItems[index]?.id
-        );
-
-        if (orderStayedSame) {
-          shuffledItems = [
-            ...shuffledItems.slice(1),
-            shuffledItems[0],
-          ];
-        }
-
-        onUpdateComponent(selectedComponent.id, {
-          rightItems: shuffledItems,
-        });
-      }}
-      className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      Shuffle Choices
-    </button>
-  </div>
-)}
-
-{selectedComponent.settings.mode === 'matchColumns' && (
-  <div>
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Move Selected Choice
-    </span>
-
     <div className="grid grid-cols-2 gap-2">
-      <button
-        type="button"
-        disabled={activeMatchingRightIndex <= 0}
-        onClick={() => {
-          if (activeMatchingRightIndex <= 0) {
-            return;
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Connection Dots
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                ...selectedComponent.settings,
+                connectionDots:
+                  !(selectedComponent.settings.connectionDots ?? false),
+              },
+            })
           }
+          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
+            selectedComponent.settings.connectionDots
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          {selectedComponent.settings.connectionDots
+            ? 'Dots On'
+            : 'Dots Off'}
+        </button>
+      </div>
 
-          const nextItems = [...selectedComponent.rightItems];
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Example Match
+        </span>
 
-          [
-            nextItems[activeMatchingRightIndex - 1],
-            nextItems[activeMatchingRightIndex],
-          ] = [
-            nextItems[activeMatchingRightIndex],
-            nextItems[activeMatchingRightIndex - 1],
-          ];
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                ...selectedComponent.settings,
+                showFirstMatch:
+                  !selectedComponent.settings.showFirstMatch,
+              },
+            })
+          }
+          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
+            selectedComponent.settings.showFirstMatch
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          {selectedComponent.settings.showFirstMatch
+            ? 'Example On'
+            : 'Example Off'}
+        </button>
+      </div>
+    </div>
+  )}
 
-          onUpdateComponent(selectedComponent.id, {
-            rightItems: nextItems,
-          });
-        }}
-        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Move Up
-      </button>
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <>
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Extra Choices
+      </span>
 
-      <button
-        type="button"
-        disabled={
-          activeMatchingRightIndex === -1 ||
-          activeMatchingRightIndex >=
-            selectedComponent.rightItems.length - 1
-        }
-        onClick={() => {
-          if (
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={addMatchingDistractor}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          + Add
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            !matchingItemSelection ||
+            matchingItemSelection.componentId !== selectedComponent.id ||
+            matchingItemSelection.side !== 'right' ||
+            selectedComponent.relationships.some(
+              (relationship) =>
+                relationship.rightItemId ===
+                matchingItemSelection.itemId
+            )
+          }
+          onClick={removeMatchingDistractor}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          − Remove
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choice Order
+      </span>
+
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          disabled={selectedComponent.rightItems.length < 2}
+          onClick={() => {
+            const currentItems = selectedComponent.rightItems;
+
+            if (currentItems.length < 2) {
+              return;
+            }
+
+            let shuffledItems = [...currentItems];
+
+            for (
+              let index = shuffledItems.length - 1;
+              index > 0;
+              index -= 1
+            ) {
+              const randomIndex = Math.floor(
+                Math.random() * (index + 1)
+              );
+
+              [
+                shuffledItems[index],
+                shuffledItems[randomIndex],
+              ] = [
+                shuffledItems[randomIndex],
+                shuffledItems[index],
+              ];
+            }
+
+            const orderStayedSame = shuffledItems.every(
+              (item, index) =>
+                item.id === currentItems[index]?.id
+            );
+
+            if (orderStayedSame) {
+              shuffledItems = [
+                ...shuffledItems.slice(1),
+                shuffledItems[0],
+              ];
+            }
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: shuffledItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Shuffle
+        </button>
+
+        <button
+          type="button"
+          disabled={activeMatchingRightIndex <= 0}
+          onClick={() => {
+            if (activeMatchingRightIndex <= 0) {
+              return;
+            }
+
+            const nextItems = [...selectedComponent.rightItems];
+
+            [
+              nextItems[activeMatchingRightIndex - 1],
+              nextItems[activeMatchingRightIndex],
+            ] = [
+              nextItems[activeMatchingRightIndex],
+              nextItems[activeMatchingRightIndex - 1],
+            ];
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: nextItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Move Up
+        </button>
+
+        <button
+          type="button"
+          disabled={
             activeMatchingRightIndex === -1 ||
             activeMatchingRightIndex >=
               selectedComponent.rightItems.length - 1
-          ) {
-            return;
           }
+          onClick={() => {
+            if (
+              activeMatchingRightIndex === -1 ||
+              activeMatchingRightIndex >=
+                selectedComponent.rightItems.length - 1
+            ) {
+              return;
+            }
 
-          const nextItems = [...selectedComponent.rightItems];
+            const nextItems = [...selectedComponent.rightItems];
 
-          [
-            nextItems[activeMatchingRightIndex],
-            nextItems[activeMatchingRightIndex + 1],
-          ] = [
-            nextItems[activeMatchingRightIndex + 1],
-            nextItems[activeMatchingRightIndex],
-          ];
+            [
+              nextItems[activeMatchingRightIndex],
+              nextItems[activeMatchingRightIndex + 1],
+            ] = [
+              nextItems[activeMatchingRightIndex + 1],
+              nextItems[activeMatchingRightIndex],
+            ];
 
-          onUpdateComponent(selectedComponent.id, {
-            rightItems: nextItems,
-          });
-        }}
-        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Move Down
-      </button>
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: nextItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Move Down
+        </button>
+      </div>
     </div>
-  </div>
-)}
-
-{selectedComponent.settings.mode === 'matchColumns' && (
-  <div>
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Extra Choices
-    </span>
-
-    <div className="grid grid-cols-2 gap-2">
-  <button
-    type="button"
-    onClick={addMatchingDistractor}
-    className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-  >
-    + Add
-  </button>
-
-  <button
-    type="button"
-    disabled={
-      !matchingItemSelection ||
-      matchingItemSelection.componentId !== selectedComponent.id ||
-      matchingItemSelection.side !== 'right' ||
-      selectedComponent.relationships.some(
-        (relationship) =>
-          relationship.rightItemId === matchingItemSelection.itemId
-      )
-    }
-    onClick={removeMatchingDistractor}
-    className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-  >
-    − Remove
-  </button>
-</div>
-  </div>
+  </>
 )}
 
 {activeMatchingItem && matchingItemSelection && (
@@ -1752,81 +1827,7 @@ const activeMatchingItem =
     )}
   </div>
 )}
-
-    <div className="mb-4">
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Row Spacing
-  </span>
-
-  <div className="flex items-center gap-2">
-    <button
-      type="button"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          rowSpacing: Math.max(
-            4,
-            (selectedComponent.rowSpacing ?? 16) - 4
-          ),
-        })
-      }
-      disabled={(selectedComponent.rowSpacing ?? 16) <= 4}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      −
-    </button>
-
-    <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
-      {selectedComponent.rowSpacing ?? 16}
-    </div>
-
-    <button
-      type="button"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          rowSpacing: Math.min(
-            64,
-            (selectedComponent.rowSpacing ?? 16) + 4
-          ),
-        })
-      }
-      disabled={(selectedComponent.rowSpacing ?? 16) >= 64}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      +
-    </button>
-  </div>
-</div>
  
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        {selectedComponent.settings.mode === 'matchColumns'
-          ? 'Pairs'
-          : 'Rows'}
-      </span>
-
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={removeMatchingRelationship}
-          disabled={selectedComponent.relationships.length <= 1}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          −
-        </button>
-
-        <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
-          {selectedComponent.relationships.length}
-        </div>
-
-        <button
-          type="button"
-          onClick={addMatchingRelationship}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-lg font-semibold text-slate-700 hover:bg-slate-50"
-        >
-          +
-        </button>
-      </div>
-    </div>
   </div>
 )}
 
