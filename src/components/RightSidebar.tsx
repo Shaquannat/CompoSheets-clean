@@ -669,274 +669,307 @@ const activeMatchingItem =
     </div>
   )}
 
-<div className="mb-4">
+<div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Row Spacing
+    Item Type
   </span>
 
-  <div className="flex items-center gap-2">
-    <button
-      type="button"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          rowSpacing: Math.max(
-            4,
-            (selectedComponent.rowSpacing ?? 16) - 4
-          ),
-        })
-      }
-      disabled={(selectedComponent.rowSpacing ?? 16) <= 4}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      −
-    </button>
+  <div className="grid grid-cols-2 gap-2">
+    {(
+      selectedComponent.settings.mode === 'matchColumns' &&
+      selectedComponent.settings.activityStyle === 'cutPaste'
+        ? ([
+            ['text', 'Text'],
+            ['image', 'Image'],
+            ['textImage', 'Text + Image'],
+          ] as const)
+        : ([
+            ['text', 'Text'],
+            ['image', 'Image'],
+            ['textImage', 'Text + Image'],
+            ['blank', 'Blank'],
+            ['blankLine', 'Blank Line'],
+          ] as const)
+    ).map(([contentType, label]) => {
+      const isDisabled =
+        !activeMatchingItem || !matchingItemSelection;
 
-    <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
-      {selectedComponent.rowSpacing ?? 16}
-    </div>
+      const isActive =
+        activeMatchingItem?.contentType === contentType;
 
-    <button
-      type="button"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          rowSpacing: Math.min(
-            64,
-            (selectedComponent.rowSpacing ?? 16) + 4
-          ),
-        })
-      }
-      disabled={(selectedComponent.rowSpacing ?? 16) >= 64}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      +
-    </button>
+      return (
+        <button
+          key={contentType}
+          type="button"
+          disabled={isDisabled}
+          onClick={() => {
+            if (!activeMatchingItem || !matchingItemSelection) {
+              return;
+            }
+
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          contentType,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: selectedComponent.rightItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        contentType,
+                      }
+                    : item
+              ),
+            });
+          }}
+          className={`min-h-10 rounded-lg border px-2 text-sm font-semibold ${
+            isDisabled
+              ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
+              : isActive
+                ? 'border-violet-500 bg-violet-50 text-violet-700'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          {label}
+        </button>
+      );
+    })}
   </div>
 </div>
 
-{selectedComponent.settings.mode === 'matchColumns' &&
-  selectedComponent.settings.activityStyle === 'drawLines' && (
-    <div className="grid grid-cols-2 gap-2">
-      <div>
-        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-          Connection Dots
-        </span>
+{activeMatchingItem &&
+  matchingItemSelection &&
+  (activeMatchingItem.contentType === 'blank' ||
+    activeMatchingItem.contentType === 'image' ||
+    activeMatchingItem.contentType === 'blankLine') && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Item Height
+      </span>
 
+      <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            const itemHeight = Math.max(
+              32,
+              (activeMatchingItem.itemHeight ?? 32) - 8
+            );
+
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          itemHeight,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
             onUpdateComponent(selectedComponent.id, {
-              settings: {
-                ...selectedComponent.settings,
-                connectionDots:
-                  !(selectedComponent.settings.connectionDots ?? false),
-              },
-            })
-          }
-          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
-            selectedComponent.settings.connectionDots
-              ? 'border-violet-500 bg-violet-50 text-violet-700'
-              : 'border-slate-300 bg-white text-slate-700'
-          }`}
+              rightItems: selectedComponent.rightItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        itemHeight,
+                      }
+                    : item
+              ),
+            });
+          }}
+          disabled={(activeMatchingItem.itemHeight ?? 32) <= 32}
+          className="flex h-9 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {selectedComponent.settings.connectionDots
-            ? 'Dots On'
-            : 'Dots Off'}
+          −
         </button>
-      </div>
 
-      <div>
-        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-          Example Match
-        </span>
+        <div className="flex h-9 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+          {activeMatchingItem.itemHeight ?? 32}
+        </div>
 
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            const itemHeight = Math.min(
+              240,
+              (activeMatchingItem.itemHeight ?? 32) + 8
+            );
+
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          itemHeight,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
             onUpdateComponent(selectedComponent.id, {
-              settings: {
-                ...selectedComponent.settings,
-                showFirstMatch:
-                  !selectedComponent.settings.showFirstMatch,
-              },
-            })
-          }
-          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
-            selectedComponent.settings.showFirstMatch
-              ? 'border-violet-500 bg-violet-50 text-violet-700'
-              : 'border-slate-300 bg-white text-slate-700'
-          }`}
+              rightItems: selectedComponent.rightItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        itemHeight,
+                      }
+                    : item
+                ),
+              });
+          }}
+          disabled={(activeMatchingItem.itemHeight ?? 32) >= 240}
+          className="flex h-9 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {selectedComponent.settings.showFirstMatch
-            ? 'Example On'
-            : 'Example Off'}
+          +
         </button>
       </div>
     </div>
   )}
 
-{selectedComponent.settings.mode === 'matchColumns' && (
-  <>
+{activeMatchingItem &&
+  matchingItemSelection &&
+  activeMatchingItem.contentType === 'blankLine' && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Extra Choices
-      </span>
-
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={addMatchingDistractor}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-        >
-          + Add
-        </button>
-
-        <button
-          type="button"
-          disabled={
-            !matchingItemSelection ||
-            matchingItemSelection.componentId !== selectedComponent.id ||
-            matchingItemSelection.side !== 'right' ||
-            selectedComponent.relationships.some(
-              (relationship) =>
-                relationship.rightItemId ===
-                matchingItemSelection.itemId
-            )
-          }
-          onClick={removeMatchingDistractor}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          − Remove
-        </button>
-      </div>
-    </div>
-
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Choice Order
+        Line Thickness
       </span>
 
       <div className="grid grid-cols-3 gap-2">
-        <button
-          type="button"
-          disabled={selectedComponent.rightItems.length < 2}
-          onClick={() => {
-            const currentItems = selectedComponent.rightItems;
+        {(
+          [
+            ['thin', 'Thin'],
+            ['medium', 'Medium'],
+            ['thick', 'Thick'],
+          ] as const
+        ).map(([lineThickness, label]) => {
+          const isActive =
+            (activeMatchingItem.lineThickness ?? 'thin') ===
+            lineThickness;
 
-            if (currentItems.length < 2) {
-              return;
-            }
+          return (
+            <button
+              key={lineThickness}
+              type="button"
+              onClick={() => {
+                if (matchingItemSelection.side === 'left') {
+                  onUpdateComponent(selectedComponent.id, {
+                    leftItems: selectedComponent.leftItems.map(
+                      (item) =>
+                        item.id === activeMatchingItem.id
+                          ? {
+                              ...item,
+                              lineThickness,
+                            }
+                          : item
+                    ),
+                  });
 
-            let shuffledItems = [...currentItems];
+                  return;
+                }
 
-            for (
-              let index = shuffledItems.length - 1;
-              index > 0;
-              index -= 1
-            ) {
-              const randomIndex = Math.floor(
-                Math.random() * (index + 1)
-              );
-
-              [
-                shuffledItems[index],
-                shuffledItems[randomIndex],
-              ] = [
-                shuffledItems[randomIndex],
-                shuffledItems[index],
-              ];
-            }
-
-            const orderStayedSame = shuffledItems.every(
-              (item, index) =>
-                item.id === currentItems[index]?.id
-            );
-
-            if (orderStayedSame) {
-              shuffledItems = [
-                ...shuffledItems.slice(1),
-                shuffledItems[0],
-              ];
-            }
-
-            onUpdateComponent(selectedComponent.id, {
-              rightItems: shuffledItems,
-            });
-          }}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Shuffle
-        </button>
-
-        <button
-          type="button"
-          disabled={activeMatchingRightIndex <= 0}
-          onClick={() => {
-            if (activeMatchingRightIndex <= 0) {
-              return;
-            }
-
-            const nextItems = [...selectedComponent.rightItems];
-
-            [
-              nextItems[activeMatchingRightIndex - 1],
-              nextItems[activeMatchingRightIndex],
-            ] = [
-              nextItems[activeMatchingRightIndex],
-              nextItems[activeMatchingRightIndex - 1],
-            ];
-
-            onUpdateComponent(selectedComponent.id, {
-              rightItems: nextItems,
-            });
-          }}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Move Up
-        </button>
-
-        <button
-          type="button"
-          disabled={
-            activeMatchingRightIndex === -1 ||
-            activeMatchingRightIndex >=
-              selectedComponent.rightItems.length - 1
-          }
-          onClick={() => {
-            if (
-              activeMatchingRightIndex === -1 ||
-              activeMatchingRightIndex >=
-                selectedComponent.rightItems.length - 1
-            ) {
-              return;
-            }
-
-            const nextItems = [...selectedComponent.rightItems];
-
-            [
-              nextItems[activeMatchingRightIndex],
-              nextItems[activeMatchingRightIndex + 1],
-            ] = [
-              nextItems[activeMatchingRightIndex + 1],
-              nextItems[activeMatchingRightIndex],
-            ];
-
-            onUpdateComponent(selectedComponent.id, {
-              rightItems: nextItems,
-            });
-          }}
-          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Move Down
-        </button>
+                onUpdateComponent(selectedComponent.id, {
+                  rightItems: selectedComponent.rightItems.map(
+                    (item) =>
+                      item.id === activeMatchingItem.id
+                        ? {
+                            ...item,
+                            lineThickness,
+                          }
+                        : item
+                  ),
+                });
+              }}
+              className={`min-h-10 rounded-lg border px-2 text-sm font-semibold ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </div>
-  </>
-)}
+  )}
 
+  {activeMatchingItem &&
+  matchingItemSelection &&
+  activeMatchingItem.contentType === 'blankLine' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Line Color
+      </span>
+
+      <input
+        type="color"
+        value={activeMatchingItem.lineColor ?? '#334155'}
+        onChange={(event) => {
+          const lineColor = event.target.value;
+
+          if (matchingItemSelection.side === 'left') {
+            onUpdateComponent(selectedComponent.id, {
+              leftItems: selectedComponent.leftItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        lineColor,
+                      }
+                    : item
+              ),
+            });
+
+            return;
+          }
+
+          onUpdateComponent(selectedComponent.id, {
+            rightItems: selectedComponent.rightItems.map(
+              (item) =>
+                item.id === activeMatchingItem.id
+                  ? {
+                      ...item,
+                      lineColor,
+                    }
+                  : item
+            ),
+          });
+        }}
+        className="h-10 w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      />
+    </div>
+  )}
+  
 {activeMatchingItem && matchingItemSelection && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Entry Box
+      Border
     </span>
 
     <select
@@ -985,7 +1018,7 @@ const activeMatchingItem =
   activeMatchingItem.borderStyle === 'dashed') && (
   <div className="mt-3">
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Thickness
+      Border Thickness
     </span>
 
     <div className="grid grid-cols-3 gap-2">
@@ -1418,6 +1451,270 @@ const activeMatchingItem =
       })}
     </div>
   </div>
+)}
+
+<div className="mb-4">
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Row Spacing
+  </span>
+
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          rowSpacing: Math.max(
+            4,
+            (selectedComponent.rowSpacing ?? 16) - 4
+          ),
+        })
+      }
+      disabled={(selectedComponent.rowSpacing ?? 16) <= 4}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      −
+    </button>
+
+    <div className="flex h-10 min-w-14 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+      {selectedComponent.rowSpacing ?? 16}
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          rowSpacing: Math.min(
+            64,
+            (selectedComponent.rowSpacing ?? 16) + 4
+          ),
+        })
+      }
+      disabled={(selectedComponent.rowSpacing ?? 16) >= 64}
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      +
+    </button>
+  </div>
+</div>
+
+{selectedComponent.settings.mode === 'matchColumns' &&
+  selectedComponent.settings.activityStyle === 'drawLines' && (
+    <div className="grid grid-cols-2 gap-2">
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Connection Dots
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                ...selectedComponent.settings,
+                connectionDots:
+                  !(selectedComponent.settings.connectionDots ?? false),
+              },
+            })
+          }
+          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
+            selectedComponent.settings.connectionDots
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          {selectedComponent.settings.connectionDots
+            ? 'Dots On'
+            : 'Dots Off'}
+        </button>
+      </div>
+
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Example Match
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              settings: {
+                ...selectedComponent.settings,
+                showFirstMatch:
+                  !selectedComponent.settings.showFirstMatch,
+              },
+            })
+          }
+          className={`min-h-11 w-full rounded-lg border px-2 text-sm font-semibold ${
+            selectedComponent.settings.showFirstMatch
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          {selectedComponent.settings.showFirstMatch
+            ? 'Example On'
+            : 'Example Off'}
+        </button>
+      </div>
+    </div>
+  )}
+
+{selectedComponent.settings.mode === 'matchColumns' && (
+  <>
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Extra Choices
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={addMatchingDistractor}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          + Add
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            !matchingItemSelection ||
+            matchingItemSelection.componentId !== selectedComponent.id ||
+            matchingItemSelection.side !== 'right' ||
+            selectedComponent.relationships.some(
+              (relationship) =>
+                relationship.rightItemId ===
+                matchingItemSelection.itemId
+            )
+          }
+          onClick={removeMatchingDistractor}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          − Remove
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Choice Order
+      </span>
+
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          disabled={selectedComponent.rightItems.length < 2}
+          onClick={() => {
+            const currentItems = selectedComponent.rightItems;
+
+            if (currentItems.length < 2) {
+              return;
+            }
+
+            let shuffledItems = [...currentItems];
+
+            for (
+              let index = shuffledItems.length - 1;
+              index > 0;
+              index -= 1
+            ) {
+              const randomIndex = Math.floor(
+                Math.random() * (index + 1)
+              );
+
+              [
+                shuffledItems[index],
+                shuffledItems[randomIndex],
+              ] = [
+                shuffledItems[randomIndex],
+                shuffledItems[index],
+              ];
+            }
+
+            const orderStayedSame = shuffledItems.every(
+              (item, index) =>
+                item.id === currentItems[index]?.id
+            );
+
+            if (orderStayedSame) {
+              shuffledItems = [
+                ...shuffledItems.slice(1),
+                shuffledItems[0],
+              ];
+            }
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: shuffledItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Shuffle
+        </button>
+
+        <button
+          type="button"
+          disabled={activeMatchingRightIndex <= 0}
+          onClick={() => {
+            if (activeMatchingRightIndex <= 0) {
+              return;
+            }
+
+            const nextItems = [...selectedComponent.rightItems];
+
+            [
+              nextItems[activeMatchingRightIndex - 1],
+              nextItems[activeMatchingRightIndex],
+            ] = [
+              nextItems[activeMatchingRightIndex],
+              nextItems[activeMatchingRightIndex - 1],
+            ];
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: nextItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Move Up
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            activeMatchingRightIndex === -1 ||
+            activeMatchingRightIndex >=
+              selectedComponent.rightItems.length - 1
+          }
+          onClick={() => {
+            if (
+              activeMatchingRightIndex === -1 ||
+              activeMatchingRightIndex >=
+                selectedComponent.rightItems.length - 1
+            ) {
+              return;
+            }
+
+            const nextItems = [...selectedComponent.rightItems];
+
+            [
+              nextItems[activeMatchingRightIndex],
+              nextItems[activeMatchingRightIndex + 1],
+            ] = [
+              nextItems[activeMatchingRightIndex + 1],
+              nextItems[activeMatchingRightIndex],
+            ];
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: nextItems,
+            });
+          }}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-1 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Move Down
+        </button>
+      </div>
+    </div>
+  </>
 )}
 
   {selectedComponent.settings.mode === 'rowRelationship' && (

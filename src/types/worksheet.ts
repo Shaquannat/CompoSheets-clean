@@ -82,7 +82,8 @@ textColor: string;
   | 'text'
   | 'image'
   | 'textImage'
-  | 'blank';
+  | 'blank'
+  | 'blankLine';
 
 export type MatchingItem = {
   id: string;
@@ -97,6 +98,9 @@ export type MatchingItem = {
   backgroundColor?: string;
   cornerStyle?: 'square' | 'rounded';
   blankBorderStyle?: 'none' | 'dashed' | 'solid';
+  lineThickness?: 'thin' | 'medium' | 'thick';
+lineColor?: string;
+  itemHeight?: number;
 };
 
 export type MatchingRelationship = {

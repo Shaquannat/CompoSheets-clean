@@ -606,9 +606,32 @@ style={{
     ? leftItem.borderColor ?? '#334155'
     : undefined,
     backgroundColor: leftItem.backgroundColor ?? 'transparent',
+    minHeight:
+  leftItem.contentType === 'blank' ||
+  leftItem.contentType === 'image' ||
+  leftItem.contentType === 'blankLine'
+    ? `${leftItem.itemHeight ?? 32}px`
+    : undefined,
 }}
-
   >
+   {leftItem.contentType === 'blankLine' && (
+  <div
+    className="pointer-events-none absolute"
+    style={{
+      left: '8px',
+      right: '8px',
+      bottom: '8px',
+      height:
+        leftItem.lineThickness === 'thick'
+          ? '3px'
+          : leftItem.lineThickness === 'medium'
+            ? '2px'
+            : '1px',
+      backgroundColor: leftItem.lineColor ?? '#334155',
+    }}
+  />
+)}
+
       <span
         data-matching-placeholder="true"
 className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
@@ -631,6 +654,11 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
         data-matching-side="left"
         className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
         style={{
+          display:
+            leftItem.contentType === 'text' ||
+            leftItem.contentType === 'textImage'
+              ? 'block'
+              : 'none',
           color: leftItem.textColor ?? '#334155',
         }}
 
@@ -940,9 +968,33 @@ borderColor: isCutPaste
     : undefined,
 borderRadius: isCutPaste ? '4px' : undefined,
     backgroundColor: rightItem.backgroundColor ?? 'transparent',
+    minHeight:
+  rightItem.contentType === 'blank' ||
+  rightItem.contentType === 'image' ||
+  rightItem.contentType === 'blankLine'
+    ? `${rightItem.itemHeight ?? 32}px`
+    : undefined,
 }}
 
   >
+  {rightItem.contentType === 'blankLine' && (
+  <div
+    className="pointer-events-none absolute"
+    style={{
+      left: '8px',
+      right: '8px',
+      bottom: '8px',
+      height:
+        rightItem.lineThickness === 'thick'
+          ? '3px'
+          : rightItem.lineThickness === 'medium'
+            ? '2px'
+            : '1px',
+      backgroundColor: rightItem.lineColor ?? '#334155',
+    }}
+  />
+)}
+
       <span
         data-matching-placeholder="true"
 className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"        style={{
@@ -989,6 +1041,11 @@ component.settings.activityStyle === 'drawLines'
         data-matching-side="right"
         className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
         style={{
+          display:
+            rightItem.contentType === 'text' ||
+            rightItem.contentType === 'textImage'
+              ? 'block'
+              : 'none',
           color: rightItem.textColor ?? '#334155',
         }}
         onFocus={(event) => {
@@ -1116,6 +1173,8 @@ marginBottom: '-1px',
                       >
                       {isSelected &&
   worksheetView === 'student' &&
+  (item.contentType === 'text' ||
+    item.contentType === 'textImage') &&
   !(item.text ?? '').trim() && (
     <span
     data-cut-paste-placeholder="true"
@@ -1150,6 +1209,13 @@ marginBottom: '-1px',
                           contentEditable
                           suppressContentEditableWarning
                           className="w-full outline-none"
+                          style={{
+  display:
+    item.contentType === 'text' ||
+    item.contentType === 'textImage'
+      ? 'block'
+      : 'none',
+}}
                           onInput={(event) => {
                             const placeholder =
   event.currentTarget.parentElement?.querySelector<HTMLElement>(
