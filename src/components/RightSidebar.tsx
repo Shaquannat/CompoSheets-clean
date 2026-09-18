@@ -6,6 +6,18 @@ import type {
   RichTextStyle,
 } from '../types/worksheet';
 
+function normalizeHexColor(value: string): string | null {
+  const trimmedValue = value.trim();
+
+  const normalizedValue = trimmedValue.startsWith('#')
+    ? trimmedValue
+    : `#${trimmedValue}`;
+
+  return /^#[0-9A-Fa-f]{6}$/.test(normalizedValue)
+    ? normalizedValue.toUpperCase()
+    : null;
+}
+
 function applyStyleToRange(
   segments: RichTextSegment[],
   start: number,
@@ -854,6 +866,75 @@ const activeMatchingItem =
 
 {activeMatchingItem &&
   matchingItemSelection &&
+  (activeMatchingItem.contentType === 'image' ||
+    activeMatchingItem.contentType === 'textImage') && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Image
+      </span>
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          imageSrc,
+                          imageAlt: file.name,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: selectedComponent.rightItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        imageSrc,
+                        imageAlt: file.name,
+                      }
+                    : item
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+        className="block w-full text-sm text-slate-600"
+      />
+    </div>
+  )}
+
+{activeMatchingItem &&
+  matchingItemSelection &&
   activeMatchingItem.contentType === 'blankLine' && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -919,7 +1000,7 @@ const activeMatchingItem =
     </div>
   )}
 
-  {activeMatchingItem &&
+{activeMatchingItem &&
   matchingItemSelection &&
   activeMatchingItem.contentType === 'blankLine' && (
     <div>
@@ -927,15 +1008,38 @@ const activeMatchingItem =
         Line Color
       </span>
 
-      <input
-        type="color"
-        value={activeMatchingItem.lineColor ?? '#334155'}
-        onChange={(event) => {
-          const lineColor = event.target.value;
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) 92px',
+          gap: '8px',
+          alignItems: 'center',
+        }}
+      >
+        <input
+          type="color"
+          value={activeMatchingItem.lineColor ?? '#334155'}
+          onChange={(event) => {
+            const lineColor = event.target.value;
 
-          if (matchingItemSelection.side === 'left') {
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          lineColor,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
             onUpdateComponent(selectedComponent.id, {
-              leftItems: selectedComponent.leftItems.map(
+              rightItems: selectedComponent.rightItems.map(
                 (item) =>
                   item.id === activeMatchingItem.id
                     ? {
@@ -945,27 +1049,83 @@ const activeMatchingItem =
                     : item
               ),
             });
+          }}
+          style={{
+            width: '100%',
+            height: '38px',
+            boxSizing: 'border-box',
+          }}
+          className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+          aria-label="Choose line color"
+        />
 
-            return;
-          }
+        <input
+          key={activeMatchingItem.lineColor ?? '#334155'}
+          type="text"
+          defaultValue={(
+            activeMatchingItem.lineColor ?? '#334155'
+          ).toUpperCase()}
+          maxLength={7}
+          style={{
+            width: '92px',
+            height: '38px',
+            boxSizing: 'border-box',
+          }}
+          className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+          aria-label="Line color hex value"
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.currentTarget.blur();
+            }
+          }}
+          onBlur={(event) => {
+  const normalizedColor = normalizeHexColor(
+    event.currentTarget.value
+  );
 
-          onUpdateComponent(selectedComponent.id, {
-            rightItems: selectedComponent.rightItems.map(
-              (item) =>
-                item.id === activeMatchingItem.id
-                  ? {
-                      ...item,
-                      lineColor,
-                    }
-                  : item
-            ),
-          });
-        }}
-        className="h-10 w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
-      />
+  if (!normalizedColor) {
+    event.currentTarget.value = (
+      activeMatchingItem.lineColor ?? '#334155'
+    ).toUpperCase();
+
+    return;
+  }
+
+  event.currentTarget.value = normalizedColor;
+
+            if (matchingItemSelection.side === 'left') {
+              onUpdateComponent(selectedComponent.id, {
+                leftItems: selectedComponent.leftItems.map(
+                  (item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          lineColor: normalizedColor,
+                        }
+                      : item
+                ),
+              });
+
+              return;
+            }
+
+            onUpdateComponent(selectedComponent.id, {
+              rightItems: selectedComponent.rightItems.map(
+                (item) =>
+                  item.id === activeMatchingItem.id
+                    ? {
+                        ...item,
+                        lineColor: normalizedColor,
+                      }
+                    : item
+              ),
+            });
+          }}
+        />
+      </div>
     </div>
   )}
-  
+
 {activeMatchingItem && matchingItemSelection && (
   <div>
     <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -1141,14 +1301,18 @@ const activeMatchingItem =
         }
       }}
       onBlur={(event) => {
-        const value = event.currentTarget.value.trim();
-
-        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        const normalizedColor = normalizeHexColor(
+          event.currentTarget.value
+        );
+      
+        if (!normalizedColor) {
           event.currentTarget.value =
             (activeMatchingItem.borderColor ?? '#334155').toUpperCase();
-
+      
           return;
         }
+      
+        event.currentTarget.value = normalizedColor;
 
         if (matchingItemSelection.side === 'left') {
           onUpdateComponent(selectedComponent.id, {
@@ -1157,7 +1321,7 @@ const activeMatchingItem =
                 item.id === activeMatchingItem.id
                   ? {
                       ...item,
-                      borderColor: value,
+                      borderColor: normalizedColor,
                     }
                   : item
             ),
@@ -1172,7 +1336,7 @@ const activeMatchingItem =
               item.id === activeMatchingItem.id
                 ? {
                     ...item,
-                    borderColor: value,
+                    borderColor: normalizedColor,
                   }
                 : item
           ),
@@ -1247,14 +1411,18 @@ const activeMatchingItem =
           }
         }}
         onBlur={(event) => {
-          const value = event.currentTarget.value.trim();
-
-          if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          const normalizedColor = normalizeHexColor(
+            event.currentTarget.value
+          );
+        
+          if (!normalizedColor) {
             event.currentTarget.value =
               (activeMatchingItem.textColor ?? '#334155').toUpperCase();
-
+        
             return;
           }
+        
+          event.currentTarget.value = normalizedColor;
 
           if (matchingItemSelection.side === 'left') {
             onUpdateComponent(selectedComponent.id, {
@@ -1263,7 +1431,7 @@ const activeMatchingItem =
                   item.id === activeMatchingItem.id
                     ? {
                         ...item,
-                        textColor: value,
+                        textColor: normalizedColor,
                       }
                     : item
               ),
@@ -1278,7 +1446,7 @@ const activeMatchingItem =
                 item.id === activeMatchingItem.id
                   ? {
                       ...item,
-                      textColor: value,
+                      textColor: normalizedColor,
                     }
                   : item
             ),
@@ -1352,14 +1520,18 @@ const activeMatchingItem =
           }
         }}
         onBlur={(event) => {
-          const value = event.currentTarget.value.trim();
-
-          if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          const normalizedColor = normalizeHexColor(
+            event.currentTarget.value
+          );
+        
+          if (!normalizedColor) {
             event.currentTarget.value =
               (activeMatchingItem.backgroundColor ?? '#FFFFFF').toUpperCase();
-
+        
             return;
           }
+        
+          event.currentTarget.value = normalizedColor;
 
           if (matchingItemSelection.side === 'left') {
             onUpdateComponent(selectedComponent.id, {
@@ -1368,7 +1540,7 @@ const activeMatchingItem =
                   item.id === activeMatchingItem.id
                     ? {
                         ...item,
-                        backgroundColor: value,
+                        backgroundColor: normalizedColor,
                       }
                     : item
               ),
@@ -1383,7 +1555,7 @@ const activeMatchingItem =
                 item.id === activeMatchingItem.id
                   ? {
                       ...item,
-                      backgroundColor: value,
+                      backgroundColor: normalizedColor,
                     }
                   : item
             ),
@@ -1844,27 +2016,33 @@ const activeMatchingItem =
     }
   }}
   onBlur={(event) => {
-    const value = event.currentTarget.value.trim();
+  const normalizedColor = normalizeHexColor(
+    event.currentTarget.value
+  );
 
-    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-      onUpdateComponent(selectedComponent.id, {
-        relationships:
-          selectedComponent.relationships.map(
-            (relationship) =>
-              relationship.leftItemId ===
-              matchingRowSelection.leftItemId
-                ? {
-                    ...relationship,
-                    betweenColor: value,
-                  }
-                : relationship
-          ),
-      });
-    } else {
-      event.currentTarget.value =
-        currentColor.toUpperCase();
-    }
-  }}
+  if (!normalizedColor) {
+    event.currentTarget.value =
+      currentColor.toUpperCase();
+
+    return;
+  }
+
+  event.currentTarget.value = normalizedColor;
+
+  onUpdateComponent(selectedComponent.id, {
+    relationships:
+      selectedComponent.relationships.map(
+        (relationship) =>
+          relationship.leftItemId ===
+          matchingRowSelection.leftItemId
+            ? {
+                ...relationship,
+                betweenColor: normalizedColor,
+              }
+            : relationship
+      ),
+  });
+}}
 />
       </div>
     </div>
@@ -2637,44 +2815,50 @@ onUpdateComponent(
     }
   }}
   onBlur={(event) => {
-    const value = event.currentTarget.value.trim();
+    const normalizedColor = normalizeHexColor(
+      event.currentTarget.value
+    );
   
-    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-      const hasSelection =
-        textSelection?.id === selectedComponent.id &&
-        textSelection.start !== textSelection.end;
-  
-      if (hasSelection) {
-        const baseSegments =
-          selectedComponent.richText.length > 0
-            ? selectedComponent.richText
-            : selectedComponent.text
-              ? [{ text: selectedComponent.text }]
-              : [];
-  
-        const updatedRichText = applyStyleToRange(
-          baseSegments,
-          textSelection.start,
-          textSelection.end,
-          {
-            color: value,
-          }
-        );
-  
-        onUpdateComponent(selectedComponent.id, {
-          richText: updatedRichText,
-        });
-  
-        return;
-      }
-  
-      onUpdateComponent(selectedComponent.id, {
-        textColor: value,
-      });
-    } else {
+    if (!normalizedColor) {
       event.currentTarget.value =
         selectedComponent.textColor.toUpperCase();
+  
+      return;
     }
+  
+    event.currentTarget.value = normalizedColor;
+  
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        {
+          color: normalizedColor,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      textColor: normalizedColor,
+    });
   }}
 />
       </div>
@@ -3266,45 +3450,51 @@ Underline
         }
       }}
       onBlur={(event) => {
-        const value = event.currentTarget.value.trim();
+  const normalizedColor = normalizeHexColor(
+    event.currentTarget.value
+  );
 
-        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-          const hasSelection =
-            questionSelection?.id === selectedComponent.id &&
-            questionSelection.start !== questionSelection.end;
+  if (!normalizedColor) {
+    event.currentTarget.value =
+      selectedComponent.textColor.toUpperCase();
 
-          if (hasSelection) {
-            const baseSegments =
-              selectedComponent.richText.length > 0
-                ? selectedComponent.richText
-                : selectedComponent.question
-                  ? [{ text: selectedComponent.question }]
-                  : [];
+    return;
+  }
 
-            const updatedRichText = applyStyleToRange(
-              baseSegments,
-              questionSelection.start,
-              questionSelection.end,
-              {
-                color: value,
-              }
-            );
+  event.currentTarget.value = normalizedColor;
 
-            onUpdateComponent(selectedComponent.id, {
-              richText: updatedRichText,
-            });
+  const hasSelection =
+    questionSelection?.id === selectedComponent.id &&
+    questionSelection.start !== questionSelection.end;
 
-            return;
-          }
+  if (hasSelection) {
+    const baseSegments =
+      selectedComponent.richText.length > 0
+        ? selectedComponent.richText
+        : selectedComponent.question
+          ? [{ text: selectedComponent.question }]
+          : [];
 
-          onUpdateComponent(selectedComponent.id, {
-            textColor: value,
-          });
-        } else {
-          event.currentTarget.value =
-            selectedComponent.textColor.toUpperCase();
-        }
-      }}
+    const updatedRichText = applyStyleToRange(
+      baseSegments,
+      questionSelection.start,
+      questionSelection.end,
+      {
+        color: normalizedColor,
+      }
+    );
+
+    onUpdateComponent(selectedComponent.id, {
+      richText: updatedRichText,
+    });
+
+    return;
+  }
+
+  onUpdateComponent(selectedComponent.id, {
+    textColor: normalizedColor,
+  });
+}}
     />
   </div>
 </div>
@@ -3313,27 +3503,324 @@ Underline
 )}
 
 {selectedComponent.type === 'answerLines' && (
-  <label className="block">
-    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-      Line style
-    </span>
+  <div className="space-y-4">
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Line style
+      </span>
 
-    <select
-      value={selectedComponent.lineStyle}
-      onChange={(event) =>
-        onUpdateComponent(selectedComponent.id, {
-          lineStyle: event.target.value as
-  | 'standard'
-  | 'primary',
-        })
-      }
-      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-    >
-      <option value="standard">Standard</option>
-      <option value="primary">Primary handwriting</option>
-    </select>
-  </label>
+      <select
+        value={selectedComponent.lineStyle}
+        onChange={(event) =>
+          onUpdateComponent(selectedComponent.id, {
+            lineStyle: event.target.value as
+              | 'standard'
+              | 'primary',
+          })
+        }
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+      >
+        <option value="standard">Standard</option>
+        <option value="primary">Primary handwriting</option>
+      </select>
+    </div>
+
+    {selectedComponent.lineStyle === 'standard' && (
+      <div>
+        <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          Line Color
+        </span>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 92px',
+            gap: '8px',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            type="color"
+            value={selectedComponent.lineColor ?? '#334155'}
+            onChange={(event) =>
+              onUpdateComponent(selectedComponent.id, {
+                lineColor: event.target.value,
+              })
+            }
+            style={{
+              width: '100%',
+              height: '38px',
+              boxSizing: 'border-box',
+            }}
+            className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+            aria-label="Choose answer line color"
+          />
+
+          <input
+            key={selectedComponent.lineColor ?? '#334155'}
+            type="text"
+            defaultValue={(
+              selectedComponent.lineColor ?? '#334155'
+            ).toUpperCase()}
+            maxLength={7}
+            style={{
+              width: '92px',
+              height: '38px',
+              boxSizing: 'border-box',
+            }}
+            className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+            aria-label="Answer line color hex value"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.currentTarget.blur();
+              }
+            }}
+            onBlur={(event) => {
+              const normalizedColor = normalizeHexColor(
+                event.currentTarget.value
+              );
+
+              if (!normalizedColor) {
+                event.currentTarget.value = (
+                  selectedComponent.lineColor ?? '#334155'
+                ).toUpperCase();
+
+                return;
+              }
+
+              event.currentTarget.value = normalizedColor;
+
+              onUpdateComponent(selectedComponent.id, {
+                lineColor: normalizedColor,
+              });
+            }}
+          />
+        </div>
+      </div>
+        )}
+
+    {selectedComponent.lineStyle === 'primary' && (
+      <div className="space-y-4">
+        <div>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+            Top Line Color
+          </span>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) 92px',
+              gap: '8px',
+              alignItems: 'center',
+            }}
+          >
+            <input
+              type="color"
+              value={selectedComponent.topLineColor ?? '#334155'}
+              onChange={(event) =>
+                onUpdateComponent(selectedComponent.id, {
+                  topLineColor: event.target.value,
+                })
+              }
+              style={{
+                width: '100%',
+                height: '38px',
+                boxSizing: 'border-box',
+              }}
+              className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+              aria-label="Choose top handwriting line color"
+            />
+
+            <input
+              key={selectedComponent.topLineColor ?? '#334155'}
+              type="text"
+              defaultValue={(
+                selectedComponent.topLineColor ?? '#334155'
+              ).toUpperCase()}
+              maxLength={7}
+              style={{
+                width: '92px',
+                height: '38px',
+                boxSizing: 'border-box',
+              }}
+              className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+              aria-label="Top handwriting line color hex value"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur();
+                }
+              }}
+              onBlur={(event) => {
+                const normalizedColor = normalizeHexColor(
+                  event.currentTarget.value
+                );
+
+                if (!normalizedColor) {
+                  event.currentTarget.value = (
+                    selectedComponent.topLineColor ?? '#334155'
+                  ).toUpperCase();
+
+                  return;
+                }
+
+                event.currentTarget.value = normalizedColor;
+
+                onUpdateComponent(selectedComponent.id, {
+                  topLineColor: normalizedColor,
+                });
+              }}
+                        />
+          </div>
+        </div>
+
+        <div>
+          <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+            Middle Guide Color
+          </span>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) 92px',
+              gap: '8px',
+              alignItems: 'center',
+            }}
+          >
+            <input
+              type="color"
+              value={selectedComponent.middleGuideColor ?? '#94A3B8'}
+              onChange={(event) =>
+                onUpdateComponent(selectedComponent.id, {
+                  middleGuideColor: event.target.value,
+                })
+              }
+              style={{
+                width: '100%',
+                height: '38px',
+                boxSizing: 'border-box',
+              }}
+              className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+              aria-label="Choose middle handwriting guide color"
+            />
+
+            <input
+              key={selectedComponent.middleGuideColor ?? '#94A3B8'}
+              type="text"
+              defaultValue={(
+                selectedComponent.middleGuideColor ?? '#94A3B8'
+              ).toUpperCase()}
+              maxLength={7}
+              style={{
+                width: '92px',
+                height: '38px',
+                boxSizing: 'border-box',
+              }}
+              className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+              aria-label="Middle handwriting guide color hex value"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur();
+                }
+              }}
+              onBlur={(event) => {
+                const normalizedColor = normalizeHexColor(
+                  event.currentTarget.value
+                );
+
+                if (!normalizedColor) {
+                  event.currentTarget.value = (
+                    selectedComponent.middleGuideColor ?? '#94A3B8'
+                  ).toUpperCase();
+
+                  return;
+                }
+
+                event.currentTarget.value = normalizedColor;
+
+                onUpdateComponent(selectedComponent.id, {
+                  middleGuideColor: normalizedColor,
+                });
+              }}
+              />
+              </div>
+            </div>
+    
+            <div>
+              <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+                Bottom Line Color
+              </span>
+    
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) 92px',
+                  gap: '8px',
+                  alignItems: 'center',
+                }}
+              >
+                <input
+                  type="color"
+                  value={selectedComponent.bottomLineColor ?? '#334155'}
+                  onChange={(event) =>
+                    onUpdateComponent(selectedComponent.id, {
+                      bottomLineColor: event.target.value,
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    boxSizing: 'border-box',
+                  }}
+                  className="cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+                  aria-label="Choose bottom handwriting line color"
+                />
+    
+                <input
+                  key={selectedComponent.bottomLineColor ?? '#334155'}
+                  type="text"
+                  defaultValue={(
+                    selectedComponent.bottomLineColor ?? '#334155'
+                  ).toUpperCase()}
+                  maxLength={7}
+                  style={{
+                    width: '92px',
+                    height: '38px',
+                    boxSizing: 'border-box',
+                  }}
+                  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+                  aria-label="Bottom handwriting line color hex value"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.currentTarget.blur();
+                    }
+                  }}
+                  onBlur={(event) => {
+                    const normalizedColor = normalizeHexColor(
+                      event.currentTarget.value
+                    );
+    
+                    if (!normalizedColor) {
+                      event.currentTarget.value = (
+                        selectedComponent.bottomLineColor ?? '#334155'
+                      ).toUpperCase();
+    
+                      return;
+                    }
+    
+                    event.currentTarget.value = normalizedColor;
+    
+                    onUpdateComponent(selectedComponent.id, {
+                      bottomLineColor: normalizedColor,
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+  </div>
 )}
+
 {selectedComponent.type === 'checkbox' && (
   <div className="space-y-5">
     <div>
@@ -3894,60 +4381,66 @@ Underline
     }
   }}
   onBlur={(event) => {
-    const value = event.currentTarget.value.trim();
-
-    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-      const hasSelection =
-        checkboxSelection?.componentId === selectedComponent.id &&
-        checkboxSelection.start !== checkboxSelection.end;
-
-      if (hasSelection) {
-        const selectedItem =
-          selectedComponent.items.find(
-            (item) =>
-              item.id === checkboxSelection.itemId
-          );
-
-        if (!selectedItem) return;
-
-        const baseSegments =
-          selectedItem.richText.length > 0
-            ? selectedItem.richText
-            : selectedItem.text
-              ? [{ text: selectedItem.text }]
-              : [];
-
-        const updatedRichText = applyStyleToRange(
-          baseSegments,
-          checkboxSelection.start,
-          checkboxSelection.end,
-          {
-            color: value,
-          }
-        );
-
-        onUpdateComponent(selectedComponent.id, {
-          items: selectedComponent.items.map(
-            (item) =>
-              item.id === selectedItem.id
-                ? {
-                    ...item,
-                    richText: updatedRichText,
-                  }
-                : item
-          ),
-        });
-
-        return;
-      }
-
-      onUpdateComponent(selectedComponent.id, {
-        textColor: value,
-      });
-    } else {
+    const normalizedColor = normalizeHexColor(
+      event.currentTarget.value
+    );
+  
+    if (!normalizedColor) {
       event.currentTarget.value =
         selectedComponent.textColor.toUpperCase();
+  
+      return;
     }
+  
+    event.currentTarget.value = normalizedColor;
+  
+    const hasSelection =
+      checkboxSelection?.componentId === selectedComponent.id &&
+      checkboxSelection.start !== checkboxSelection.end;
+  
+    if (hasSelection) {
+      const selectedItem =
+        selectedComponent.items.find(
+          (item) =>
+            item.id === checkboxSelection.itemId
+        );
+  
+      if (!selectedItem) return;
+  
+      const baseSegments =
+        selectedItem.richText.length > 0
+          ? selectedItem.richText
+          : selectedItem.text
+            ? [{ text: selectedItem.text }]
+            : [];
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        checkboxSelection.start,
+        checkboxSelection.end,
+        {
+          color: normalizedColor,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        items: selectedComponent.items.map(
+          (item) =>
+            item.id === selectedItem.id
+              ? {
+                  ...item,
+                  richText: updatedRichText,
+                }
+              : item
+        ),
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      textColor: normalizedColor,
+    });
   }}
 />
     
@@ -3984,35 +4477,41 @@ Underline
   />
 
   <input
-    type="text"
-    value={selectedComponent.markColor.toUpperCase()}
-    onChange={(event) => {
-      const value = event.target.value;
+  key={selectedComponent.markColor}
+  type="text"
+  defaultValue={selectedComponent.markColor.toUpperCase()}
+  maxLength={7}
+  style={{
+    width: '92px',
+    height: '38px',
+    boxSizing: 'border-box',
+  }}
+  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+  aria-label="Mark color hex value"
+  onKeyDown={(event) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  }}
+  onBlur={(event) => {
+    const normalizedColor = normalizeHexColor(
+      event.currentTarget.value
+    );
 
-      if (/^#[0-9A-Fa-f]{0,6}$/.test(value)) {
-        onUpdateComponent(selectedComponent.id, {
-          markColor: value,
-        });
-      }
-    }}
-    onBlur={(event) => {
-      const value = event.target.value;
+    if (!normalizedColor) {
+      event.currentTarget.value =
+        selectedComponent.markColor.toUpperCase();
 
-      if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        onUpdateComponent(selectedComponent.id, {
-          markColor: '#0F172A',
-        });
-      }
-    }}
-    maxLength={7}
-    style={{
-      width: '92px',
-      height: '38px',
-      boxSizing: 'border-box',
-    }}
-    className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
-    aria-label="Mark color hex value"
-  />
+      return;
+    }
+
+    event.currentTarget.value = normalizedColor;
+
+    onUpdateComponent(selectedComponent.id, {
+      markColor: normalizedColor,
+    });
+  }}
+/>
 </div>
   </div>
 </div>
@@ -5811,20 +6310,22 @@ onUpdateComponent(selectedComponent.id, {
         }
       }}
       onBlur={(event) => {
-        const rawValue =
-  event.currentTarget.value.trim();
-
-const value =
-  rawValue.startsWith('#')
-    ? rawValue
-    : `#${rawValue}`;
-
-if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
-  return;
-}
-
-event.currentTarget.value =
-  value.toUpperCase();
+        const normalizedColor = normalizeHexColor(
+          event.currentTarget.value
+        );
+        
+        if (!normalizedColor) {
+          event.currentTarget.value =
+            event.currentTarget.defaultValue.toUpperCase();
+        
+          multipleChoiceHexSelectionRef.current = null;
+        
+          return;
+        }
+        
+        event.currentTarget.value = normalizedColor;
+        
+        const value = normalizedColor;
         const savedSelection =
     multipleChoiceHexSelectionRef.current
       ?.componentId === selectedComponent.id

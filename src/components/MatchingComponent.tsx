@@ -632,6 +632,22 @@ style={{
   />
 )}
 
+{(leftItem.contentType === 'image' ||
+  leftItem.contentType === 'textImage') &&
+  leftItem.imageSrc && (
+    <img
+      src={leftItem.imageSrc}
+      alt={leftItem.imageAlt ?? ''}
+      style={{
+        display: 'block',
+        maxWidth: '100%',
+        maxHeight: `${leftItem.itemHeight ?? 32}px`,
+        objectFit: 'contain',
+        margin: '0 auto',
+      }}
+    />
+  )}
+
       <span
         data-matching-placeholder="true"
 className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
@@ -995,6 +1011,22 @@ borderRadius: isCutPaste ? '4px' : undefined,
   />
 )}
 
+{(rightItem.contentType === 'image' ||
+  rightItem.contentType === 'textImage') &&
+  rightItem.imageSrc && (
+    <img
+      src={rightItem.imageSrc}
+      alt={rightItem.imageAlt ?? ''}
+      style={{
+        display: 'block',
+        maxWidth: '100%',
+        maxHeight: `${rightItem.itemHeight ?? 32}px`,
+        objectFit: 'contain',
+        margin: '0 auto',
+      }}
+    />
+  )}
+  
       <span
         data-matching-placeholder="true"
 className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"        style={{

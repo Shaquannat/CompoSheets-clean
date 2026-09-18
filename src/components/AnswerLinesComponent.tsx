@@ -100,7 +100,9 @@ onMouseLeave={() => setIsHovered(false)}
             left: 0,
             right: 0,
             top: 0,
-            borderTop: '1px solid #64748b',
+            borderTop: `1px solid ${
+  component.topLineColor ?? '#334155'
+}`,
           }}
         />
   
@@ -110,7 +112,9 @@ onMouseLeave={() => setIsHovered(false)}
             left: 0,
             right: 0,
             top: '50%',
-            borderTop: '1px dashed #94a3b8',
+            borderTop: `1px dashed ${
+              component.middleGuideColor ?? '#94A3B8'
+            }`,
           }}
         />
   
@@ -120,7 +124,9 @@ onMouseLeave={() => setIsHovered(false)}
             left: 0,
             right: 0,
             bottom: 0,
-            borderBottom: '1px solid #334155',
+            borderBottom: `1px solid ${
+              component.bottomLineColor ?? '#334155'
+            }`,
           }}
         />
       </div>
@@ -128,14 +134,17 @@ onMouseLeave={() => setIsHovered(false)}
   }
 
   return (
-    <div
-      key={index}
-      className="w-full border-b border-slate-700"
-      style={{
-        height: `${component.lineSpacing}px`,
-      }}
-    />
-  );
+  <div
+    key={index}
+    className="w-full"
+    style={{
+      height: `${component.lineSpacing}px`,
+      borderBottom: `1px solid ${
+        component.lineColor ?? '#334155'
+      }`,
+    }}
+  />
+);
 })}
 </div>
 {isSelected && !isGroupSelected && (

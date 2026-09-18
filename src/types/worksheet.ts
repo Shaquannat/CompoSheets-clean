@@ -216,6 +216,10 @@ export type AnswerLinesComponent = BaseWorksheetComponent & {
   lineCount: number;
   lineSpacing: number;
   lineStyle: 'standard' | 'primary';
+  lineColor?: string;
+topLineColor?: string;
+middleGuideColor?: string;
+bottomLineColor?: string;
 };
 export type CheckboxItem = {
   id: string;
