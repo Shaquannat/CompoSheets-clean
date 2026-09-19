@@ -765,7 +765,6 @@ const activeMatchingItem =
 {activeMatchingItem &&
   matchingItemSelection &&
   (activeMatchingItem.contentType === 'blank' ||
-    activeMatchingItem.contentType === 'image' ||
     activeMatchingItem.contentType === 'blankLine') && (
     <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -873,6 +872,8 @@ const activeMatchingItem =
         Image
       </span>
 
+<label className="inline-flex w-full cursor-pointer items-center justify-center rounded-md border border-violet-300 bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-100">
+  Upload Image
       <input
         type="file"
         accept="image/*"
@@ -928,11 +929,198 @@ const activeMatchingItem =
 
           reader.readAsDataURL(file);
         }}
-        className="block w-full text-sm text-slate-600"
+        style={{ display: 'none' }}
       />
+      </label>
+
+      {activeMatchingItem.imageAlt && (
+  <div
+    className="mt-2 truncate text-xs text-slate-500"
+    title={activeMatchingItem.imageAlt}
+  >
+    {activeMatchingItem.imageAlt}
+  </div>
+)}
+
+{activeMatchingItem.imageSrc && (
+  <button
+    type="button"
+    onClick={() => {
+      if (matchingItemSelection.side === 'left') {
+        onUpdateComponent(selectedComponent.id, {
+          leftItems: selectedComponent.leftItems.map((item) =>
+            item.id === activeMatchingItem.id
+              ? {
+                  ...item,
+                  imageSrc: undefined,
+                  imageAlt: undefined,
+                }
+              : item
+          ),
+        });
+
+        return;
+      }
+
+      onUpdateComponent(selectedComponent.id, {
+        rightItems: selectedComponent.rightItems.map((item) =>
+          item.id === activeMatchingItem.id
+            ? {
+                ...item,
+                imageSrc: undefined,
+                imageAlt: undefined,
+              }
+            : item
+        ),
+      });
+    }}
+    className="mt-3 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+  >
+    Remove Image
+  </button>
+)}
+
+<div style={{ marginTop: '20px' }}>
+<span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+  Image Size
+</span>
+
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={() => {
+        const nextImageHeight = Math.max(
+          32,
+          (activeMatchingItem.imageHeight ?? 32) - 8
+        );
+
+        if (matchingItemSelection.side === 'left') {
+          onUpdateComponent(selectedComponent.id, {
+            leftItems: selectedComponent.leftItems.map((item) =>
+              item.id === activeMatchingItem.id
+                ? { ...item, imageHeight: nextImageHeight }
+                : item
+            ),
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: selectedComponent.rightItems.map((item) =>
+            item.id === activeMatchingItem.id
+              ? { ...item, imageHeight: nextImageHeight }
+              : item
+          ),
+        });
+      }}
+      className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+    >
+      −
+    </button>
+
+    <div className="flex h-9 min-w-16 items-center justify-center rounded-md border border-slate-300 bg-slate-50 px-3 text-sm font-medium text-slate-700">
+    {activeMatchingItem.imageHeight ?? 32}
+    </div>
+
+    <button
+      type="button"
+      onClick={() => {
+        const nextImageHeight = Math.min(
+          240,
+          (activeMatchingItem.imageHeight ?? 32) + 8
+        );
+
+        if (matchingItemSelection.side === 'left') {
+          onUpdateComponent(selectedComponent.id, {
+            leftItems: selectedComponent.leftItems.map((item) =>
+              item.id === activeMatchingItem.id
+                ? { ...item, imageHeight: nextImageHeight }
+                : item
+            ),
+          });
+
+          return;
+        }
+
+        onUpdateComponent(selectedComponent.id, {
+          rightItems: selectedComponent.rightItems.map((item) =>
+            item.id === activeMatchingItem.id
+              ? { ...item, imageHeight: nextImageHeight }
+              : item
+          ),
+        });
+      }}
+      className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+    >
+      +
+    </button>
+  </div>
+</div>
     </div>
   )}
 
+{activeMatchingItem &&
+  matchingItemSelection &&
+  activeMatchingItem.contentType === 'textImage' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Layout
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        {(['vertical', 'horizontal'] as const).map((textImageLayout) => {
+          const isActive =
+            (activeMatchingItem.textImageLayout ?? 'vertical') ===
+            textImageLayout;
+
+          return (
+            <button
+              key={textImageLayout}
+              type="button"
+              onClick={() => {
+                if (matchingItemSelection.side === 'left') {
+                  onUpdateComponent(selectedComponent.id, {
+                    leftItems: selectedComponent.leftItems.map((item) =>
+                      item.id === activeMatchingItem.id
+                        ? {
+                            ...item,
+                            textImageLayout,
+                          }
+                        : item
+                    ),
+                  });
+
+                  return;
+                }
+
+                onUpdateComponent(selectedComponent.id, {
+                  rightItems: selectedComponent.rightItems.map((item) =>
+                    item.id === activeMatchingItem.id
+                      ? {
+                          ...item,
+                          textImageLayout,
+                        }
+                      : item
+                  ),
+                });
+              }}
+              className={`min-h-10 rounded-lg border px-2 text-sm font-semibold ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {textImageLayout === 'vertical'
+                ? 'Vertical'
+                : 'Horizontal'}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
+  
 {activeMatchingItem &&
   matchingItemSelection &&
   activeMatchingItem.contentType === 'blankLine' && (

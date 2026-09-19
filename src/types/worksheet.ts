@@ -91,6 +91,8 @@ export type MatchingItem = {
   text?: string;
   imageSrc?: string;
   imageAlt?: string;
+  imageHeight?: number;
+  textImageLayout?: 'vertical' | 'horizontal';
   borderStyle?: 'none' | 'dashed' | 'solid';
   borderThickness?: 'thin' | 'medium' | 'thick';
   borderColor?: string;

@@ -548,7 +548,30 @@ style={{
   ? cutPastePairsPerRow === 1
     ? 'minmax(0, 1fr) 144px minmax(0, 1fr)'
     : 'minmax(0, 1fr) minmax(0, 1fr)'
-  : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
+  : leftItem?.contentType === 'textImage' &&
+      (leftItem.textImageLayout ?? 'vertical') === 'horizontal' &&
+      !(
+        rightItem?.contentType === 'textImage' &&
+        (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+      )
+    ? 'minmax(0, 1.45fr) 64px minmax(0, 0.75fr)'
+    : rightItem?.contentType === 'textImage' &&
+        (rightItem.textImageLayout ?? 'vertical') === 'horizontal' &&
+        !(
+          leftItem?.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+        )
+      ? 'minmax(0, 0.75fr) 64px minmax(0, 1.45fr)'
+      : (
+          leftItem?.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ) ||
+        (
+          rightItem?.contentType === 'textImage' &&
+          (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+        )
+        ? 'minmax(0, 1fr) 64px minmax(0, 1fr)'
+        : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
   columnGap: '8px',
 }}
                   >
@@ -606,6 +629,42 @@ style={{
     ? leftItem.borderColor ?? '#334155'
     : undefined,
     backgroundColor: leftItem.backgroundColor ?? 'transparent',
+
+    display:
+  leftItem.contentType === 'textImage'
+    ? 'flex'
+    : undefined,
+
+flexDirection:
+  leftItem.contentType === 'textImage'
+    ? (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'row'
+      : 'column'
+    : undefined,
+
+alignItems:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'center'
+    : undefined,
+
+gap:
+  leftItem.contentType === 'textImage'
+    ? '8px'
+    : undefined,
+
+    paddingLeft:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
+
+paddingRight:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
+
     minHeight:
   leftItem.contentType === 'blank' ||
   leftItem.contentType === 'image' ||
@@ -632,6 +691,70 @@ style={{
   />
 )}
 
+{leftItem.contentType === 'textImage' &&
+  !leftItem.imageSrc && (
+    <label
+    className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
+    style={{
+      width:
+        (leftItem.textImageLayout ?? 'vertical') ===
+        'horizontal'
+          ? '56px'
+          : '100%',
+      minHeight:
+        (leftItem.textImageLayout ?? 'vertical') ===
+        'horizontal'
+          ? '48px'
+          : '40px',
+    }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      + Add Image
+
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            onUpdateComponent(component.id, {
+              leftItems: component.leftItems.map((item) =>
+                item.id === leftItem.id
+                  ? {
+                      ...item,
+                      imageSrc,
+                      imageAlt: file.name,
+                    }
+                  : item
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+      />
+    </label>
+  )}
+
 {(leftItem.contentType === 'image' ||
   leftItem.contentType === 'textImage') &&
   leftItem.imageSrc && (
@@ -640,23 +763,51 @@ style={{
       alt={leftItem.imageAlt ?? ''}
       style={{
         display: 'block',
-        maxWidth: '100%',
-        maxHeight: `${leftItem.itemHeight ?? 32}px`,
+        maxWidth:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'calc(100% - 88px)'
+    : '100%',
+    flexShrink: 1,
+        maxHeight: `${
+          leftItem.imageHeight ?? leftItem.itemHeight ?? 32
+        }px`,
         objectFit: 'contain',
-        margin: '0 auto',
+        margin:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '0'
+    : '0 auto',
       }}
     />
   )}
 
+<div
+  className={
+    leftItem.contentType === 'textImage' &&
+    (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
+      : 'relative min-w-0 w-full'
+  }
+>
+
       <span
         data-matching-placeholder="true"
-className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
+        className={
+          leftItem.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+            ? 'pointer-events-none absolute inset-0 flex translate-y-1 items-center justify-center px-1 text-center leading-5 text-slate-400'
+            : 'pointer-events-none absolute left-2 top-1 hidden text-slate-400'
+        }
         style={{
           display:
             (leftItem.contentType === 'text' ||
               leftItem.contentType === 'textImage') &&
             !(leftItem.text ?? '')
-              ? 'block'
+              ? leftItem.contentType === 'textImage' &&
+                (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+                ? 'flex'
+                : 'block'
               : 'none',
         }}
       >
@@ -668,13 +819,21 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
         suppressContentEditableWarning
         data-matching-item-id={leftItem.id}
         data-matching-side="left"
-        className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
+        className={
+          leftItem.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+            ? 'relative flex min-h-16 w-full items-center rounded px-2 py-1 outline-none focus:bg-violet-50'
+            : 'relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50'
+        }
         style={{
           display:
-            leftItem.contentType === 'text' ||
-            leftItem.contentType === 'textImage'
-              ? 'block'
-              : 'none',
+  leftItem.contentType === 'text' ||
+  leftItem.contentType === 'textImage'
+    ? leftItem.contentType === 'textImage' &&
+      (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'flex'
+      : 'block'
+    : 'none',
           color: leftItem.textColor ?? '#334155',
         }}
 
@@ -682,9 +841,13 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
   const placeholder =
     event.currentTarget.previousElementSibling as HTMLElement | null;
 
-  if (!event.currentTarget.innerText.trim() && placeholder) {
-    placeholder.style.display = 'block';
-  }
+    if (!event.currentTarget.innerText.trim() && placeholder) {
+      placeholder.style.display =
+        leftItem.contentType === 'textImage' &&
+        (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+          ? 'flex'
+          : 'block';
+    }
 }}
         onInput={(event) => {
           const placeholder =
@@ -693,22 +856,28 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
             );
 
           if (placeholder) {
-            placeholder.style.display =
-              (event.currentTarget.textContent ?? '').length > 0
-                ? 'none'
-                : 'block';
-          }
+  placeholder.style.display =
+    (event.currentTarget.textContent ?? '').length > 0
+      ? 'none'
+      : leftItem.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'flex'
+        : 'block';
+}
         }}
         onBlur={(event) => {
         const placeholder =
   event.currentTarget.previousElementSibling as HTMLElement | null;
 
   if (placeholder) {
-    placeholder.style.display =
-      (event.currentTarget.textContent ?? '').trim().length > 0
-        ? 'none'
+  placeholder.style.display =
+    (event.currentTarget.textContent ?? '').trim().length > 0
+      ? 'none'
+      : leftItem.contentType === 'textImage' &&
+          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'flex'
         : 'block';
-  }
+}
           const nextText =
             event.currentTarget.textContent ?? '';
 
@@ -731,6 +900,7 @@ className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"
       >
         {leftItem.text ?? ''}
       </span>
+      </div>
     </div>
   )}
 </div>
@@ -984,6 +1154,42 @@ borderColor: isCutPaste
     : undefined,
 borderRadius: isCutPaste ? '4px' : undefined,
     backgroundColor: rightItem.backgroundColor ?? 'transparent',
+
+    display:
+  rightItem.contentType === 'textImage'
+    ? 'flex'
+    : undefined,
+
+flexDirection:
+  rightItem.contentType === 'textImage'
+    ? (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'row'
+      : 'column'
+    : undefined,
+
+alignItems:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'center'
+    : undefined,
+
+gap:
+  rightItem.contentType === 'textImage'
+    ? '8px'
+    : undefined,
+
+    paddingLeft:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
+
+paddingRight:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
+
     minHeight:
   rightItem.contentType === 'blank' ||
   rightItem.contentType === 'image' ||
@@ -1011,6 +1217,70 @@ borderRadius: isCutPaste ? '4px' : undefined,
   />
 )}
 
+{rightItem.contentType === 'textImage' &&
+  !rightItem.imageSrc && (
+    <label
+    className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
+    style={{
+      width:
+        (rightItem.textImageLayout ?? 'vertical') ===
+        'horizontal'
+          ? '56px'
+          : '100%',
+      minHeight:
+        (rightItem.textImageLayout ?? 'vertical') ===
+        'horizontal'
+          ? '48px'
+          : '40px',
+    }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      + Add Image
+
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            onUpdateComponent(component.id, {
+              rightItems: component.rightItems.map((item) =>
+                item.id === rightItem.id
+                  ? {
+                      ...item,
+                      imageSrc,
+                      imageAlt: file.name,
+                    }
+                  : item
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+      />
+    </label>
+  )}
+
 {(rightItem.contentType === 'image' ||
   rightItem.contentType === 'textImage') &&
   rightItem.imageSrc && (
@@ -1019,120 +1289,160 @@ borderRadius: isCutPaste ? '4px' : undefined,
       alt={rightItem.imageAlt ?? ''}
       style={{
         display: 'block',
-        maxWidth: '100%',
-        maxHeight: `${rightItem.itemHeight ?? 32}px`,
+        maxWidth:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'calc(100% - 88px)'
+    : '100%',
+    flexShrink: 1,
+        maxHeight: `${
+          rightItem.imageHeight ?? rightItem.itemHeight ?? 32
+        }px`,
         objectFit: 'contain',
-        margin: '0 auto',
+        margin:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '0'
+    : '0 auto',
       }}
     />
   )}
   
-      <span
-        data-matching-placeholder="true"
-className="pointer-events-none absolute left-2 top-1 hidden text-slate-400"        style={{
-          display:
-            (rightItem.contentType === 'text' ||
-              rightItem.contentType === 'textImage') &&
-            !(rightItem.text ?? '')
-              ? 'block'
-              : 'none',
-        }}
-      >
-        {component.settings.mode === 'matchColumns' &&
-component.settings.activityStyle === 'drawLines'
-  ? (() => {
-      const relationship =
-        component.relationships.find(
-          (relationship) =>
-            relationship.rightItemId === rightItem.id
-        );
-
-      if (!relationship) {
-        return 'Distractor';
-      }
-
-      const leftIndex =
-        component.leftItems.findIndex(
-          (leftItem) =>
-            leftItem.id === relationship.leftItemId
-        );
-
-      return leftIndex >= 0
-        ? `Answer for Item ${leftIndex + 1}`
-        : 'Answer';
-    })()
-    : component.settings.mode === 'rowRelationship'
-    ? `Related Item ${index + 1}`
-    : 'Type match'}
-      </span>
-
-      <span
-        contentEditable
-        suppressContentEditableWarning
-        data-matching-item-id={rightItem.id}
-        data-matching-side="right"
-        className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
-        style={{
-          display:
-            rightItem.contentType === 'text' ||
-            rightItem.contentType === 'textImage'
-              ? 'block'
-              : 'none',
-          color: rightItem.textColor ?? '#334155',
-        }}
-        onFocus={(event) => {
-  const placeholder =
-    event.currentTarget.previousElementSibling as HTMLElement | null;
-
-  if (!event.currentTarget.innerText.trim() && placeholder) {
-    placeholder.style.display = 'block';
+  <div
+  className={
+    rightItem.contentType === 'textImage' &&
+    (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'relative min-h-16 min-w-0 flex-1'
+      : 'relative min-w-0 w-full'
   }
+>
+  <span
+    data-matching-placeholder="true"
+    className={
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'pointer-events-none absolute inset-0 flex translate-y-1 items-center justify-center px-1 text-center leading-5 text-slate-400'
+    : 'pointer-events-none absolute left-2 top-1 hidden text-slate-400'
+}
+    style={{
+  display:
+    (rightItem.contentType === 'text' ||
+      rightItem.contentType === 'textImage') &&
+    !(rightItem.text ?? '')
+      ? rightItem.contentType === 'textImage' &&
+        (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'flex'
+        : 'block'
+      : 'none',
 }}
-        onInput={(event) => {
-          const placeholder =
-            event.currentTarget.parentElement?.querySelector<HTMLElement>(
-              '[data-matching-placeholder="true"]'
+  >
+    {component.settings.mode === 'matchColumns' &&
+    component.settings.activityStyle === 'drawLines'
+      ? (() => {
+          const relationship =
+            component.relationships.find(
+              (relationship) =>
+                relationship.rightItemId === rightItem.id
             );
 
-          if (placeholder) {
-            placeholder.style.display =
-              (event.currentTarget.textContent ?? '').length > 0
-                ? 'none'
-                : 'block';
+          if (!relationship) {
+            return 'Distractor';
           }
-        }}
-        onBlur={(event) => {
-        const placeholder =
-  event.currentTarget.previousElementSibling as HTMLElement | null;
 
-  if (placeholder) {
-    placeholder.style.display =
-      (event.currentTarget.textContent ?? '').trim().length > 0
-        ? 'none'
+          const leftIndex =
+            component.leftItems.findIndex(
+              (leftItem) =>
+                leftItem.id === relationship.leftItemId
+            );
+
+          return leftIndex >= 0
+          ? `Item ${leftIndex + 1} Answer`
+            : 'Answer';
+        })()
+      : component.settings.mode === 'rowRelationship'
+        ? `Related Item ${index + 1}`
+        : 'Type match'}
+  </span>
+
+  <span
+    contentEditable
+    suppressContentEditableWarning
+    data-matching-item-id={rightItem.id}
+    data-matching-side="right"
+    className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
+    style={{
+      display:
+        rightItem.contentType === 'text' ||
+        rightItem.contentType === 'textImage'
+          ? 'block'
+          : 'none',
+      color: rightItem.textColor ?? '#334155',
+    }}
+    onFocus={(event) => {
+      const placeholder =
+        event.currentTarget.previousElementSibling as HTMLElement | null;
+
+      if (!event.currentTarget.innerText.trim() && placeholder) {
+  placeholder.style.display =
+    rightItem.contentType === 'textImage' &&
+    (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'flex'
+      : 'block';
+}
+    }}
+    onInput={(event) => {
+      const placeholder =
+        event.currentTarget.parentElement?.querySelector<HTMLElement>(
+          '[data-matching-placeholder="true"]'
+        );
+
+      if (placeholder) {
+  placeholder.style.display =
+    (event.currentTarget.textContent ?? '').length > 0
+      ? 'none'
+      : rightItem.contentType === 'textImage' &&
+          (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'flex'
         : 'block';
-  }
-          const nextText =
-            event.currentTarget.textContent ?? '';
+}
+    }}
+    onBlur={(event) => {
+      const placeholder =
+        event.currentTarget.previousElementSibling as HTMLElement | null;
 
-          if (nextText === (rightItem.text ?? '')) {
-            return;
-          }
+      if (placeholder) {
+  placeholder.style.display =
+    (event.currentTarget.textContent ?? '').trim().length > 0
+      ? 'none'
+      : rightItem.contentType === 'textImage' &&
+          (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'flex'
+        : 'block';
+}
 
-          onUpdateComponent(component.id, {
-            rightItems: component.rightItems.map(
-              (item) =>
-                item.id === rightItem.id
-                  ? {
-                      ...item,
-                      text: nextText,
-                    }
-                  : item
-            ),
-          });
-        }}
-      >
-        {rightItem.text ?? ''}
-      </span>
+      const nextText =
+        event.currentTarget.textContent ?? '';
+
+      if (nextText === (rightItem.text ?? '')) {
+        return;
+      }
+
+      onUpdateComponent(component.id, {
+        rightItems: component.rightItems.map(
+          (item) =>
+            item.id === rightItem.id
+              ? {
+                  ...item,
+                  text: nextText,
+                }
+              : item
+        ),
+      });
+    }}
+  >
+    {rightItem.text ?? ''}
+  </span>
+</div>   
     </div>
   )}
 </div>
@@ -1232,7 +1542,7 @@ marginBottom: '-1px',
           );
 
         return leftIndex >= 0
-          ? `Answer for Item ${leftIndex + 1}`
+        ? `Item ${leftIndex + 1} Answer`
           : 'Answer';
       })()}
     </span>
