@@ -1536,10 +1536,45 @@ marginBottom: '-1px',
                           boxSizing: 'border-box',
                           backgroundColor:
                             item.backgroundColor ?? 'transparent',
+                            display: 'flex',
+
+flexDirection:
+  item.contentType === 'textImage'
+    ? (item.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'row'
+      : 'column'
+    : undefined,
+
+alignItems:
+  item.contentType === 'textImage' &&
+  (item.textImageLayout ?? 'vertical') === 'horizontal'
+    ? 'center'
+    : undefined,
+
+gap:
+  item.contentType === 'textImage'
+    ? '8px'
+    : undefined,
+
+paddingLeft:
+  item.contentType === 'textImage' &&
+  (item.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
+
+paddingRight:
+  item.contentType === 'textImage' &&
+  (item.textImageLayout ?? 'vertical') === 'horizontal'
+    ? '8px'
+    : undefined,
                           color:
                             item.textColor ?? '#334155',
                         }}
-                        className={`group relative flex shrink-0 items-center justify-center px-2 text-center ${
+                        className={`group relative flex shrink-0 ${
+                          item.contentType === 'textImage'
+                            ? ''
+                            : 'items-center justify-center px-2 text-center'
+                        } ${
                           isSelected &&
                           activeItemId === item.id &&
                           activeItemSide === 'right'
@@ -1547,6 +1582,120 @@ marginBottom: '-1px',
                             : ''
                         }`}
                       >
+                        {isSelected &&
+  worksheetView === 'student' &&
+  item.contentType === 'textImage' &&
+  !item.imageSrc && (
+    <label
+    className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
+    style={{
+      order:
+        (item.textImageOrder ?? 'imageFirst') === 'textFirst'
+          ? 1
+          : 0,
+      width:
+        (item.textImageLayout ?? 'vertical') === 'horizontal'
+          ? '56px'
+          : '100%',
+      minHeight:
+        (item.textImageLayout ?? 'vertical') === 'horizontal'
+          ? '48px'
+          : '40px',
+    }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      + Add Image
+
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            onUpdateComponent(component.id, {
+              rightItems: component.rightItems.map(
+                (rightItem) =>
+                  rightItem.id === item.id
+                    ? {
+                        ...rightItem,
+                        imageSrc,
+                        imageAlt: file.name,
+                      }
+                    : rightItem
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+      />
+    </label>
+  )}
+  {(item.contentType === 'image' ||
+  item.contentType === 'textImage') &&
+  item.imageSrc && (
+    <img
+      src={item.imageSrc}
+      alt={item.imageAlt ?? ''}
+      style={{
+  order:
+    item.contentType === 'textImage' &&
+    (item.textImageOrder ?? 'imageFirst') === 'textFirst'
+      ? 1
+      : 0,
+  display: 'block',
+  maxWidth:
+    item.contentType === 'textImage' &&
+    (item.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'calc(100% - 88px)'
+      : '100%',
+  flexShrink: 1,
+  maxHeight: `${
+    item.imageHeight ?? item.itemHeight ?? 32
+  }px`,
+  objectFit: 'contain',
+  margin:
+    item.contentType === 'textImage' &&
+    (item.textImageLayout ?? 'vertical') === 'horizontal'
+      ? '0'
+      : '0 auto',
+}}
+/>
+)}
+  <div
+  className={
+    item.contentType === 'textImage' &&
+    (item.textImageLayout ?? 'vertical') === 'horizontal'
+      ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
+      : 'relative min-w-0 w-full'
+  }
+  style={{
+    order:
+      item.contentType === 'textImage' &&
+      (item.textImageOrder ?? 'imageFirst') === 'textFirst'
+        ? 0
+        : 1,
+  }}
+>
                       {isSelected &&
   worksheetView === 'student' &&
   (item.contentType === 'text' ||
@@ -1584,14 +1733,24 @@ marginBottom: '-1px',
                         <span
                           contentEditable
                           suppressContentEditableWarning
-                          className="w-full outline-none"
+                          className={
+                            item.contentType === 'textImage' &&
+                            (item.textImageLayout ?? 'vertical') === 'horizontal'
+                              ? 'relative flex min-h-16 w-full items-center rounded px-2 py-1 outline-none focus:bg-violet-50'
+                              : 'relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50'
+                          }
                           style={{
-  display:
-    item.contentType === 'text' ||
-    item.contentType === 'textImage'
-      ? 'block'
-      : 'none',
-}}
+                            display:
+                              item.contentType === 'text' ||
+                              item.contentType === 'textImage'
+                                ? item.contentType === 'textImage' &&
+                                  (item.textImageLayout ?? 'vertical') === 'horizontal'
+                                  ? 'flex'
+                                  : 'block'
+                                : 'none',
+                            color: item.textColor ?? '#334155',
+                            textAlign: item.textAlignment ?? 'left',
+                          }}
                           onInput={(event) => {
                             const placeholder =
   event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -1668,6 +1827,7 @@ onBlur={(event) => {
                         >
                           {item.text ?? ''}
                         </span>
+                        </div>
                       </div>
                     ))}
                   </div>
