@@ -1120,6 +1120,82 @@ const activeMatchingItem =
       </div>
     </div>
   )}
+
+{activeMatchingItem &&
+  matchingItemSelection &&
+  activeMatchingItem.contentType === 'textImage' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Order
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        {(['imageFirst', 'textFirst'] as const).map(
+          (textImageOrder) => {
+            const isActive =
+              (activeMatchingItem.textImageOrder ?? 'imageFirst') ===
+              textImageOrder;
+
+            const isHorizontal =
+              (activeMatchingItem.textImageLayout ?? 'vertical') ===
+              'horizontal';
+
+            const buttonLabel =
+              textImageOrder === 'imageFirst'
+                ? isHorizontal
+                  ? 'Image Left'
+                  : 'Image Above'
+                : isHorizontal
+                  ? 'Image Right'
+                  : 'Text Above';
+
+            return (
+              <button
+                key={textImageOrder}
+                type="button"
+                onClick={() => {
+                  if (matchingItemSelection.side === 'left') {
+                    onUpdateComponent(selectedComponent.id, {
+                      leftItems: selectedComponent.leftItems.map(
+                        (item) =>
+                          item.id === activeMatchingItem.id
+                            ? {
+                                ...item,
+                                textImageOrder,
+                              }
+                            : item
+                      ),
+                    });
+
+                    return;
+                  }
+
+                  onUpdateComponent(selectedComponent.id, {
+                    rightItems: selectedComponent.rightItems.map(
+                      (item) =>
+                        item.id === activeMatchingItem.id
+                          ? {
+                              ...item,
+                              textImageOrder,
+                            }
+                          : item
+                    ),
+                  });
+                }}
+                className={`min-h-10 rounded-lg border px-2 text-sm font-semibold ${
+                  isActive
+                    ? 'border-violet-500 bg-violet-50 text-violet-700'
+                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {buttonLabel}
+              </button>
+            );
+          }
+        )}
+      </div>
+    </div>
+  )}
   
 {activeMatchingItem &&
   matchingItemSelection &&

@@ -93,6 +93,7 @@ export type MatchingItem = {
   imageAlt?: string;
   imageHeight?: number;
   textImageLayout?: 'vertical' | 'horizontal';
+  textImageOrder?: 'imageFirst' | 'textFirst';
   borderStyle?: 'none' | 'dashed' | 'solid';
   borderThickness?: 'thin' | 'medium' | 'thick';
   borderColor?: string;

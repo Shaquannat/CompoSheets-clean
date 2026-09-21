@@ -696,6 +696,10 @@ paddingRight:
     <label
     className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
     style={{
+      order:
+  (leftItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+    ? 1
+    : 0,
       width:
         (leftItem.textImageLayout ?? 'vertical') ===
         'horizontal'
@@ -762,6 +766,11 @@ paddingRight:
       src={leftItem.imageSrc}
       alt={leftItem.imageAlt ?? ''}
       style={{
+        order:
+  leftItem.contentType === 'textImage' &&
+  (leftItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+    ? 1
+    : 0,
         display: 'block',
         maxWidth:
   leftItem.contentType === 'textImage' &&
@@ -788,8 +797,15 @@ paddingRight:
     (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
       ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
       : 'relative min-w-0 w-full'
-  }
->
+    }
+    style={{
+      order:
+        leftItem.contentType === 'textImage' &&
+        (leftItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+          ? 0
+          : 1,
+    }}
+  >
 
       <span
         data-matching-placeholder="true"
@@ -1222,6 +1238,10 @@ paddingRight:
     <label
     className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
     style={{
+      order:
+  (rightItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+    ? 1
+    : 0,
       width:
         (rightItem.textImageLayout ?? 'vertical') ===
         'horizontal'
@@ -1288,6 +1308,11 @@ paddingRight:
       src={rightItem.imageSrc}
       alt={rightItem.imageAlt ?? ''}
       style={{
+        order:
+  rightItem.contentType === 'textImage' &&
+  (rightItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+    ? 1
+    : 0,
         display: 'block',
         maxWidth:
   rightItem.contentType === 'textImage' &&
@@ -1314,8 +1339,15 @@ paddingRight:
     (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
       ? 'relative min-h-16 min-w-0 flex-1'
       : 'relative min-w-0 w-full'
-  }
->
+    }
+    style={{
+      order:
+        rightItem.contentType === 'textImage' &&
+        (rightItem.textImageOrder ?? 'imageFirst') === 'textFirst'
+          ? 0
+          : 1,
+    }}
+  >
   <span
     data-matching-placeholder="true"
     className={
