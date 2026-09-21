@@ -548,30 +548,7 @@ style={{
   ? cutPastePairsPerRow === 1
     ? 'minmax(0, 1fr) 144px minmax(0, 1fr)'
     : 'minmax(0, 1fr) minmax(0, 1fr)'
-  : leftItem?.contentType === 'textImage' &&
-      (leftItem.textImageLayout ?? 'vertical') === 'horizontal' &&
-      !(
-        rightItem?.contentType === 'textImage' &&
-        (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
-      )
-    ? 'minmax(0, 1.45fr) 64px minmax(0, 0.75fr)'
-    : rightItem?.contentType === 'textImage' &&
-        (rightItem.textImageLayout ?? 'vertical') === 'horizontal' &&
-        !(
-          leftItem?.contentType === 'textImage' &&
-          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
-        )
-      ? 'minmax(0, 0.75fr) 64px minmax(0, 1.45fr)'
-      : (
-          leftItem?.contentType === 'textImage' &&
-          (leftItem.textImageLayout ?? 'vertical') === 'horizontal'
-        ) ||
-        (
-          rightItem?.contentType === 'textImage' &&
-          (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
-        )
-        ? 'minmax(0, 1fr) 64px minmax(0, 1fr)'
-        : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
+  : 'minmax(0, 1fr) 144px minmax(0, 1fr)',
   columnGap: '8px',
 }}
                   >
@@ -1493,9 +1470,9 @@ paddingRight:
   className={
     rightItem.contentType === 'textImage' &&
     (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
-      ? 'relative min-h-16 min-w-0 flex-1'
+    ? 'relative flex min-w-0 flex-1 self-stretch items-center'
       : 'relative min-w-0 w-full'
-    }
+  }
     style={{
       order:
         rightItem.contentType === 'textImage' &&
