@@ -851,6 +851,7 @@ paddingRight:
       : 'block'
     : 'none',
           color: leftItem.textColor ?? '#334155',
+          textAlign: leftItem.textAlignment ?? 'left',
         }}
 
         onFocus={(event) => {
@@ -1409,6 +1410,7 @@ paddingRight:
           ? 'block'
           : 'none',
       color: rightItem.textColor ?? '#334155',
+      textAlign: rightItem.textAlignment ?? 'left',
     }}
     onFocus={(event) => {
       const placeholder =

@@ -94,6 +94,7 @@ export type MatchingItem = {
   imageHeight?: number;
   textImageLayout?: 'vertical' | 'horizontal';
   textImageOrder?: 'imageFirst' | 'textFirst';
+  textAlignment?: 'left' | 'center' | 'right' | 'justify';
   borderStyle?: 'none' | 'dashed' | 'solid';
   borderThickness?: 'thin' | 'medium' | 'thick';
   borderColor?: string;

@@ -1196,6 +1196,75 @@ const activeMatchingItem =
       </div>
     </div>
   )}
+
+  {activeMatchingItem &&
+  matchingItemSelection &&
+  activeMatchingItem.contentType === 'textImage' && (
+    <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Text Alignment
+      </span>
+
+      <div className="grid grid-cols-4 gap-2">
+        {(['left', 'center', 'right', 'justify'] as const).map(
+          (textAlignment) => {
+            const isActive =
+              (activeMatchingItem.textAlignment ?? 'left') ===
+              textAlignment;
+
+            return (
+              <button
+                key={textAlignment}
+                type="button"
+                onClick={() => {
+                  if (matchingItemSelection.side === 'left') {
+                    onUpdateComponent(selectedComponent.id, {
+                      leftItems: selectedComponent.leftItems.map(
+                        (item) =>
+                          item.id === activeMatchingItem.id
+                            ? {
+                                ...item,
+                                textAlignment,
+                              }
+                            : item
+                      ),
+                    });
+
+                    return;
+                  }
+
+                  onUpdateComponent(selectedComponent.id, {
+                    rightItems: selectedComponent.rightItems.map(
+                      (item) =>
+                        item.id === activeMatchingItem.id
+                          ? {
+                              ...item,
+                              textAlignment,
+                            }
+                          : item
+                    ),
+                  });
+                }}
+                className={`min-h-10 rounded-lg border px-1 text-xs font-semibold ${
+                  isActive
+                    ? 'border-violet-500 bg-violet-50 text-violet-700'
+                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {textAlignment === 'left'
+                  ? 'Left'
+                  : textAlignment === 'center'
+                    ? 'Center'
+                    : textAlignment === 'right'
+                      ? 'Right'
+                      : 'Justify'}
+              </button>
+            );
+          }
+        )}
+      </div>
+    </div>
+  )}
   
 {activeMatchingItem &&
   matchingItemSelection &&
