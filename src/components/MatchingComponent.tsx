@@ -1018,10 +1018,46 @@ aria-hidden={
 }
 >
   {cutPasteAnswerItem && (
-    <div className="flex h-full w-full items-center justify-center px-2 text-center">
+    <div
+    className="flex h-full w-full justify-center text-center"
+    style={{
+      flexDirection:
+        cutPasteAnswerItem.contentType === 'textImage'
+          ? (cutPasteAnswerItem.textImageLayout ?? 'vertical') ===
+            'horizontal'
+            ? 'row'
+            : 'column'
+          : 'row',
+      alignItems: 'center',
+      gap:
+        cutPasteAnswerItem.contentType === 'textImage'
+          ? '8px'
+          : undefined,
+      paddingLeft: '8px',
+      paddingRight: '8px',
+    }}
+  >
       {(cutPasteAnswerItem.contentType === 'text' ||
         cutPasteAnswerItem.contentType === 'textImage') && (
-        <span>
+          <span
+  className={
+    cutPasteAnswerItem.contentType === 'textImage' &&
+    (cutPasteAnswerItem.textImageLayout ?? 'vertical') ===
+      'horizontal'
+      ? 'relative flex min-h-16 min-w-0 flex-1 items-center px-2 py-1'
+      : 'relative block min-w-0 w-full px-2 py-1'
+  }
+  style={{
+    order:
+      cutPasteAnswerItem.contentType === 'textImage' &&
+      (cutPasteAnswerItem.textImageOrder ?? 'imageFirst') ===
+        'imageFirst'
+        ? 1
+        : 0,
+    textAlign:
+      cutPasteAnswerItem.textAlignment ?? 'left',
+  }}
+>
           {cutPasteAnswerItem.text ?? ''}
         </span>
       )}
@@ -1032,7 +1068,22 @@ aria-hidden={
           <img
             src={cutPasteAnswerItem.imageSrc}
             alt={cutPasteAnswerItem.imageAlt ?? ''}
-            className="max-h-full max-w-full object-contain"
+            style={{
+              display: 'block',
+              maxWidth:
+  cutPasteAnswerItem.contentType === 'textImage' &&
+  (cutPasteAnswerItem.textImageLayout ?? 'vertical') ===
+    'horizontal'
+    ? 'calc(100% - 88px)'
+    : '100%',
+flexShrink: 1,
+              maxHeight: `${
+                cutPasteAnswerItem.imageHeight ??
+                cutPasteAnswerItem.itemHeight ??
+                32
+              }px`,
+              objectFit: 'contain',
+            }}
           />
         )}
     </div>
