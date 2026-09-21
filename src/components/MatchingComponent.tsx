@@ -691,6 +691,58 @@ paddingRight:
   />
 )}
 
+{leftItem.contentType === 'image' &&
+  !leftItem.imageSrc && (
+    <label
+      className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-2 text-center text-xs font-medium text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      + Add Image
+
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            onUpdateComponent(component.id, {
+              leftItems: component.leftItems.map((item) =>
+                item.id === leftItem.id
+                  ? {
+                      ...item,
+                      imageSrc,
+                      imageAlt: file.name,
+                    }
+                  : item
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+      />
+    </label>
+  )}
+
 {leftItem.contentType === 'textImage' &&
   !leftItem.imageSrc && (
     <label
@@ -1234,6 +1286,58 @@ paddingRight:
   />
 )}
 
+{rightItem.contentType === 'image' &&
+  !rightItem.imageSrc && (
+    <label
+      className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-2 text-center text-xs font-medium text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      + Add Image
+
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            const imageSrc =
+              typeof reader.result === 'string'
+                ? reader.result
+                : '';
+
+            if (!imageSrc) {
+              return;
+            }
+
+            onUpdateComponent(component.id, {
+              rightItems: component.rightItems.map((item) =>
+                item.id === rightItem.id
+                  ? {
+                      ...item,
+                      imageSrc,
+                      imageAlt: file.name,
+                    }
+                  : item
+              ),
+            });
+          };
+
+          reader.readAsDataURL(file);
+        }}
+      />
+    </label>
+  )}
+
 {rightItem.contentType === 'textImage' &&
   !rightItem.imageSrc && (
     <label
@@ -1584,7 +1688,8 @@ paddingRight:
                       >
                         {isSelected &&
   worksheetView === 'student' &&
-  item.contentType === 'textImage' &&
+  (item.contentType === 'image' ||
+    item.contentType === 'textImage') &&
   !item.imageSrc && (
     <label
     className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
@@ -1683,10 +1788,12 @@ paddingRight:
 )}
   <div
   className={
-    item.contentType === 'textImage' &&
-    (item.textImageLayout ?? 'vertical') === 'horizontal'
-      ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
-      : 'relative min-w-0 w-full'
+    item.contentType === 'image'
+      ? 'hidden'
+      : item.contentType === 'textImage' &&
+          (item.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
+        : 'relative min-w-0 w-full'
   }
   style={{
     order:
