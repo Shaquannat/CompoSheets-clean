@@ -1470,7 +1470,7 @@ paddingRight:
   className={
     rightItem.contentType === 'textImage' &&
     (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
-    ? 'relative flex min-w-0 flex-1 self-stretch items-center'
+    ? 'relative flex min-h-16 min-w-0 flex-1 self-stretch items-center'
       : 'relative min-w-0 w-full'
   }
     style={{
