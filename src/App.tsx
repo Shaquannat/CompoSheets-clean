@@ -477,7 +477,14 @@ const findMatch =
       italic: false,
       underline: false,
 textColor: '#0F172A',
-      rotation: 0,
+
+borderStyle: 'none',
+borderThickness: 'thin',
+borderColor: '#334155',
+backgroundColor: 'transparent',
+cornerStyle: 'square',
+
+rotation: 0,
       locked: false,
       layer: components.length + 1,
     };

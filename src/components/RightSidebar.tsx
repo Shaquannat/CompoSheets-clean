@@ -2641,6 +2641,248 @@ const activeMatchingItem =
 
           {selectedComponent.type === 'text' && (
   <div className="space-y-4">
+  <div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Border
+  </span>
+
+  <select
+    value={selectedComponent.borderStyle ?? 'none'}
+    onChange={(event) => {
+      const borderStyle = event.target.value as
+        | 'none'
+        | 'solid'
+        | 'dashed';
+
+      onUpdateComponent(selectedComponent.id, {
+        borderStyle,
+      });
+    }}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="none">None</option>
+    <option value="solid">Solid</option>
+    <option value="dashed">Dashed</option>
+  </select>
+  {(selectedComponent.borderStyle === 'solid' ||
+  selectedComponent.borderStyle === 'dashed') && (
+  <div className="mt-3">
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Border Thickness
+    </span>
+
+    <div className="grid grid-cols-3 gap-2">
+      {(['thin', 'medium', 'thick'] as const).map(
+        (borderThickness) => {
+          const isActive =
+            (selectedComponent.borderThickness ?? 'thin') ===
+            borderThickness;
+
+          return (
+            <button
+              key={borderThickness}
+              type="button"
+              onClick={() =>
+                onUpdateComponent(selectedComponent.id, {
+                  borderThickness,
+                })
+              }
+              className={`rounded-lg border px-2 py-2 text-sm font-medium ${
+                isActive
+                  ? 'border-violet-500 bg-violet-50 text-violet-700'
+                  : 'border-slate-300 bg-white text-slate-700'
+              }`}
+            >
+              {borderThickness === 'thin'
+                ? 'Thin'
+                : borderThickness === 'medium'
+                  ? 'Medium'
+                  : 'Thick'}
+            </button>
+          );
+        }
+      )}
+    </div>
+  </div>
+)}
+{(selectedComponent.borderStyle === 'solid' ||
+  selectedComponent.borderStyle === 'dashed') && (
+  <div className="mt-3">
+    <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+      Border Color
+    </span>
+
+    <div className="flex items-center gap-3">
+      <input
+        type="color"
+        value={selectedComponent.borderColor ?? '#334155'}
+        onChange={(event) =>
+          onUpdateComponent(selectedComponent.id, {
+            borderColor: event.target.value,
+          })
+        }
+        className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+        aria-label="Text border color"
+      />
+
+      <input
+        key={selectedComponent.borderColor ?? '#334155'}
+        type="text"
+        defaultValue={(
+          selectedComponent.borderColor ?? '#334155'
+        ).toUpperCase()}
+        maxLength={7}
+        style={{
+          width: '92px',
+          height: '38px',
+          boxSizing: 'border-box',
+        }}
+        className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+        aria-label="Text border color hex value"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.currentTarget.blur();
+          }
+        }}
+        onBlur={(event) => {
+          const normalizedColor = normalizeHexColor(
+            event.currentTarget.value
+          );
+
+          if (!normalizedColor) {
+            event.currentTarget.value = (
+              selectedComponent.borderColor ?? '#334155'
+            ).toUpperCase();
+
+            return;
+          }
+
+          event.currentTarget.value = normalizedColor;
+
+          onUpdateComponent(selectedComponent.id, {
+            borderColor: normalizedColor,
+          });
+        }}
+      />
+        </div>
+  </div>
+)}
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Fill Color
+  </span>
+
+  <div className="flex items-center gap-2">
+    <input
+      type="color"
+      value={
+        selectedComponent.backgroundColor &&
+        selectedComponent.backgroundColor !== 'transparent'
+          ? selectedComponent.backgroundColor
+          : '#FFFFFF'
+      }
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: event.target.value,
+        })
+      }
+      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      aria-label="Text fill color"
+    />
+
+    <input
+      key={selectedComponent.backgroundColor ?? 'transparent'}
+      type="text"
+      defaultValue={
+        selectedComponent.backgroundColor &&
+        selectedComponent.backgroundColor !== 'transparent'
+          ? selectedComponent.backgroundColor.toUpperCase()
+          : '#FFFFFF'
+      }
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Text fill color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const normalizedColor = normalizeHexColor(
+          event.currentTarget.value
+        );
+
+        if (!normalizedColor) {
+          event.currentTarget.value =
+            selectedComponent.backgroundColor &&
+            selectedComponent.backgroundColor !== 'transparent'
+              ? selectedComponent.backgroundColor.toUpperCase()
+              : '#FFFFFF';
+
+          return;
+        }
+
+        event.currentTarget.value = normalizedColor;
+
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: normalizedColor,
+        });
+      }}
+    />
+
+    <button
+      type="button"
+      title="Remove fill"
+      aria-label="Remove fill"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: 'transparent',
+        })
+      }
+      className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700"
+    >
+      Clear
+    </button>
+  </div>
+</div>
+</div>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Corner Style
+  </span>
+
+  <div className="grid grid-cols-2 gap-2">
+    {(['square', 'rounded'] as const).map((cornerStyle) => {
+      const isActive =
+        (selectedComponent.cornerStyle ?? 'square') === cornerStyle;
+
+      return (
+        <button
+          key={cornerStyle}
+          type="button"
+          onClick={() =>
+            onUpdateComponent(selectedComponent.id, {
+              cornerStyle,
+            })
+          }
+          className={`rounded-lg border px-3 py-2 text-sm font-medium ${
+            isActive
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+        >
+          {cornerStyle === 'square' ? 'Square' : 'Rounded'}
+        </button>
+      );
+    })}
+  </div>
+</div>
     <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Font family

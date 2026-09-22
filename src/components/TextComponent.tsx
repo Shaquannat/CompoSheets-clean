@@ -585,6 +585,39 @@ ref={editorRef}
           fontStyle: component.italic ? 'italic' : 'normal',
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
+
+          minHeight: component.height,
+          boxSizing: 'border-box',
+          backgroundColor:
+            component.backgroundColor ?? 'transparent',
+
+            borderRadius:
+  (component.cornerStyle ?? 'square') === 'rounded'
+    ? '8px'
+    : '0px',
+          
+          borderWidth:
+  component.borderStyle === 'solid' ||
+  component.borderStyle === 'dashed'
+    ? component.borderThickness === 'thick'
+      ? '4px'
+      : component.borderThickness === 'medium'
+        ? '2.5px'
+        : '1px'
+    : '0px',
+
+borderStyle:
+  component.borderStyle === 'dashed'
+    ? 'dashed'
+    : component.borderStyle === 'solid'
+      ? 'solid'
+      : 'none',
+
+borderColor:
+  component.borderStyle === 'solid' ||
+  component.borderStyle === 'dashed'
+    ? component.borderColor ?? '#334155'
+    : 'transparent',
           whiteSpace: 'pre-wrap',
           tabSize: 4,
         }}

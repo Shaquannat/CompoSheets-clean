@@ -44,9 +44,15 @@ export type TextComponent = BaseWorksheetComponent & {
   fontSize: number;
   fontFamily: string;
   fontWeight: 'normal' | 'bold';
-  italic: boolean;
+    italic: boolean;
   underline: boolean;
-textColor: string;
+  textColor: string;
+
+  borderStyle?: 'none' | 'solid' | 'dashed';
+borderThickness?: 'thin' | 'medium' | 'thick';
+borderColor?: string;
+backgroundColor?: string;
+cornerStyle?: 'square' | 'rounded';
 };
 
   export type MultipleChoiceTextStyle = {
