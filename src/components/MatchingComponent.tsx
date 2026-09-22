@@ -355,11 +355,12 @@ useLayoutEffect(() => {
           top: component.y,
           width: component.width,
           minHeight: component.height,
-          border: isSelected
-            ? '2px solid rgb(139 92 246)'
-            : isHovered
-              ? '1px solid rgb(196 181 253)'
-              : '2px solid transparent',
+          border:
+  worksheetView === 'student' && isSelected
+    ? '2px solid rgb(139 92 246)'
+    : worksheetView === 'student' && isHovered
+      ? '1px solid rgb(196 181 253)'
+      : '2px solid transparent',
         }}
         onMouseEnter={() =>
           setIsHovered(true)
@@ -372,9 +373,10 @@ useLayoutEffect(() => {
           onSelect(component.id, event);
         }}
       >
-        {isSelected &&
-          !isGroupSelected &&
-          !component.locked && (
+        {worksheetView === 'student' &&
+  isSelected &&
+  !isGroupSelected &&
+  !component.locked && (
             <button
               type="button"
               aria-label="Drag matching"
@@ -583,11 +585,12 @@ className={`relative min-w-0 ${
       ? 'border border-dashed border-slate-700'
       : ''
 } ${
-  isSelected &&
-  activeItemId === leftItem.id &&
-  activeItemSide === 'left'
-    ? 'ring-2 ring-violet-500 ring-offset-1'
-    : ''
+  worksheetView === 'student' &&
+isSelected &&
+activeItemId === leftItem.id &&
+activeItemSide === 'left'
+  ? 'ring-2 ring-violet-500 ring-offset-1'
+  : ''
 }`}
 
 style={{
@@ -1203,11 +1206,12 @@ textDecoration: rowRelationship.customBetweenUnderline
       ? 'border border-dashed border-slate-700'
       : ''
 } ${
-  isSelected &&
-  activeItemId === rightItem.id &&
-  activeItemSide === 'right'
-    ? 'ring-2 ring-violet-500 ring-offset-1'
-    : ''
+  worksheetView === 'student' &&
+isSelected &&
+activeItemId === rightItem.id &&
+activeItemSide === 'right'
+  ? 'ring-2 ring-violet-500 ring-offset-1'
+  : ''
 }`}
 
 style={{
@@ -1984,9 +1988,10 @@ onBlur={(event) => {
               )}
             </div>
     
-            {isSelected &&
-          !isGroupSelected &&
-          !component.locked && (
+            {worksheetView === 'student' &&
+  isSelected &&
+  !isGroupSelected &&
+  !component.locked && (
             <button
               type="button"
               aria-label="Resize matching width"
