@@ -863,7 +863,7 @@ paddingRight:
       </span>
 
       <span
-        contentEditable
+        contentEditable={worksheetView === 'student'}
         suppressContentEditableWarning
         data-matching-item-id={leftItem.id}
         data-matching-side="left"
@@ -1536,7 +1536,7 @@ style={{
   </span>
 
   <span
-    contentEditable
+    contentEditable={worksheetView === 'student'}
     suppressContentEditableWarning
     data-matching-item-id={rightItem.id}
     data-matching-side="right"
