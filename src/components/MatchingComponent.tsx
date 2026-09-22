@@ -1534,12 +1534,20 @@ paddingRight:
     suppressContentEditableWarning
     data-matching-item-id={rightItem.id}
     data-matching-side="right"
-    className="relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50"
+    className={
+      rightItem.contentType === 'textImage' &&
+      (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+        ? 'relative flex min-h-16 w-full items-center rounded px-2 py-1 outline-none focus:bg-violet-50'
+        : 'relative block min-h-[1.5em] w-full rounded px-2 py-1 outline-none focus:bg-violet-50'
+    }
     style={{
       display:
         rightItem.contentType === 'text' ||
         rightItem.contentType === 'textImage'
-          ? 'block'
+          ? rightItem.contentType === 'textImage' &&
+            (rightItem.textImageLayout ?? 'vertical') === 'horizontal'
+            ? 'flex'
+            : 'block'
           : 'none',
       color: rightItem.textColor ?? '#334155',
       textAlign: rightItem.textAlignment ?? 'left',
