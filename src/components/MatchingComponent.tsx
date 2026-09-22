@@ -668,7 +668,8 @@ paddingRight:
   />
 )}
 
-{leftItem.contentType === 'image' &&
+{worksheetView === 'student' &&
+  leftItem.contentType === 'image' &&
   !leftItem.imageSrc && (
     <label
       className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-2 text-center text-xs font-medium text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
@@ -720,7 +721,8 @@ paddingRight:
     </label>
   )}
 
-{leftItem.contentType === 'textImage' &&
+{worksheetView === 'student' &&
+  leftItem.contentType === 'textImage' &&
   !leftItem.imageSrc && (
     <label
     className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
@@ -846,6 +848,7 @@ paddingRight:
         }
         style={{
           display:
+            worksheetView === 'student' &&
             (leftItem.contentType === 'text' ||
               leftItem.contentType === 'textImage') &&
             !(leftItem.text ?? '')
@@ -1314,7 +1317,8 @@ paddingRight:
   />
 )}
 
-{rightItem.contentType === 'image' &&
+{worksheetView === 'student' &&
+  rightItem.contentType === 'image' &&
   !rightItem.imageSrc && (
     <label
       className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-2 text-center text-xs font-medium text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
@@ -1366,7 +1370,8 @@ paddingRight:
     </label>
   )}
 
-{rightItem.contentType === 'textImage' &&
+{worksheetView === 'student' &&
+  rightItem.contentType === 'textImage' &&
   !rightItem.imageSrc && (
     <label
     className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-dashed border-slate-300 px-1 text-center text-xs font-medium leading-tight text-slate-400 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600"
@@ -1489,8 +1494,9 @@ paddingRight:
     ? 'pointer-events-none absolute inset-0 flex translate-y-1 items-center justify-center px-1 text-center leading-5 text-slate-400'
     : 'pointer-events-none absolute left-2 top-1 hidden text-slate-400'
 }
-    style={{
+style={{
   display:
+    worksheetView === 'student' &&
     (rightItem.contentType === 'text' ||
       rightItem.contentType === 'textImage') &&
     !(rightItem.text ?? '')
