@@ -300,9 +300,11 @@ orderedQuestions.forEach((component) => {
   }`}
 >
           <article
+          key={worksheetView}
             ref={pageRef}
             aria-label="Blank US Letter worksheet page"
             className="relative mx-auto w-full touch-none bg-white shadow-xl"
+            
 style={{
   aspectRatio:
     pageOrientation === 'landscape'
@@ -315,6 +317,12 @@ style={{
             onPointerCancel={onPointerEnd}
             onPointerLeave={onPointerEnd}
           >
+            {worksheetView === 'answerKey' && (
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 z-[20000]"
+  />
+)}
             <div className="pointer-events-none absolute inset-[48px] border border-dashed border-violet-300">
               <span className="absolute -top-6 left-0 text-[11px] font-medium text-violet-500">
                 Printable margin
@@ -344,7 +352,9 @@ style={{
     }}
   />
 )}
-            {groupBounds && isGroupSelected && (
+            {worksheetView === 'student' &&
+  groupBounds &&
+  isGroupSelected && (
   <>
     <div
       className="pointer-events-none absolute"
@@ -393,9 +403,10 @@ style={{
         key={component.id}
         component={component}
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
         findMatch={
           findMatch?.componentId === component.id
@@ -446,9 +457,10 @@ style={{
           questionNumberById.get(component.id) ?? null
         }
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
 
         findMatches={findMatches
@@ -489,10 +501,12 @@ style={{
       <MultipleChoiceComponent
         key={component.id}
         component={component}
+        worksheetView={worksheetView}
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
         findMatches={findMatches
           .filter(
@@ -534,9 +548,10 @@ style={{
         component={component}
         worksheetView={worksheetView}
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
 
         activeRowLeftItemId={
@@ -572,9 +587,10 @@ activeItemSide={
         key={component.id}
         component={component}
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
         onSelect={onSelectComponent}
         onStartDragging={onStartDragging}
@@ -591,10 +607,12 @@ activeItemSide={
       <CheckboxComponent
         key={component.id}
         component={component}
+        worksheetView={worksheetView}
         isSelected={
-          component.id === selectedComponentId ||
-          selectedComponentIds.includes(component.id)
-        }
+  worksheetView === 'student' &&
+  (component.id === selectedComponentId ||
+    selectedComponentIds.includes(component.id))
+}
         isGroupSelected={isGroupSelected}
 
         findMatches={findMatches

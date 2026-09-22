@@ -13,6 +13,7 @@ import {
     component: MultipleChoiceComponentType;
     isSelected: boolean;
     isGroupSelected: boolean;
+    worksheetView: 'student' | 'answerKey';
 
     findMatches?: {
       optionId: string;
@@ -57,6 +58,7 @@ import {
     component,
     isSelected,
     isGroupSelected,
+    worksheetView,
     findMatches = [],
 activeFindMatch,
     onUpdateComponent,
@@ -369,10 +371,11 @@ onStartDragging,
   className="pointer-events-none absolute left-0 top-0 text-slate-300"
   style={{
     display:
-      (optionEmptyState[option.id] ??
-        option.text === '')
-        ? 'block'
-        : 'none',
+  worksheetView === 'student' &&
+  (optionEmptyState[option.id] ??
+    option.text === '')
+    ? 'block'
+    : 'none',
   }}
 >
   Choice

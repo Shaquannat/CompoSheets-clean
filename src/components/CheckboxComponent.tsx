@@ -17,6 +17,7 @@ type CheckboxComponentProps = {
   component: CheckboxComponentType;
   isSelected: boolean;
   isGroupSelected: boolean;
+  worksheetView: 'student' | 'answerKey';
   findMatches?: {
     itemId: string;
     start: number;
@@ -60,6 +61,7 @@ export function CheckboxComponent({
   component,
 isSelected,
 isGroupSelected,
+worksheetView,
 findMatches = [],
 activeFindMatch,
 onSelect,
@@ -435,7 +437,11 @@ onMouseLeave={() => setIsHovered(false)}
   contentEditable
   suppressContentEditableWarning
   data-checkbox-item-id={item.id}
-  data-placeholder={item.showPlaceholder ? 'Option' : ''}
+  data-placeholder={
+  worksheetView === 'student' && item.showPlaceholder
+    ? 'Option'
+    : ''
+}
   className="checkbox-item-editor min-w-0 bg-transparent outline-none"
   style={{
     width:
