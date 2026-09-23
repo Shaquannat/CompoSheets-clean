@@ -27,6 +27,7 @@ export type RichTextStyle = {
   italic?: boolean;
   underline?: boolean;
   color?: string;
+  highlightColor?: string;
   fontFamily?: string;
   fontSize?: number;
 };

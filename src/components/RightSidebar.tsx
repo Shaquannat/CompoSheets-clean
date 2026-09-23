@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 import type {
   WorksheetComponent,
@@ -255,6 +255,15 @@ onPageOrientationChange,
   onDuplicate,
   onDelete,
 }: RightSidebarProps) {
+const [highlightColor, setHighlightColor] =
+  useState('#FEF08A');
+
+  const [isHighlighterOpen, setIsHighlighterOpen] =
+  useState(false);
+
+  const [isCustomHighlighterOpen, setIsCustomHighlighterOpen] =
+  useState(false);
+
   function addMatchingRelationship() {
   if (
     !selectedComponent ||
@@ -3649,6 +3658,256 @@ onUpdateComponent(
 />
       </div>
     </div>
+
+    <div>
+  <button
+  type="button"
+  onClick={() =>
+    setIsHighlighterOpen((current) => !current)
+  }
+  aria-expanded={isHighlighterOpen}
+  className={`flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold ${
+    isHighlighterOpen
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+  <span>Highlighter</span>
+</button>
+
+{isHighlighterOpen && (
+  <div className="mt-2">
+  <div className="grid grid-cols-4 gap-2">
+  {[
+    { name: 'Yellow', color: '#FFF200' },
+    { name: 'Lime', color: '#C6FF00' },
+    { name: 'Green', color: '#00FF66' },
+    { name: 'Blue', color: '#40C4FF' },
+    { name: 'Pink', color: '#FF4FA3' },
+    { name: 'Orange', color: '#FFAB40' },
+    { name: 'Purple', color: '#E040FB' },
+{ name: 'Red', color: '#FF1744' },
+  ].map(({ name, color }) => {
+    const isActive =
+      highlightColor.toUpperCase() === color;
+
+    return (
+      <button
+        key={color}
+        type="button"
+        title={name}
+        aria-label={`${name} highlighter`}
+        onClick={() => {
+          setHighlightColor(color);
+
+          const hasSelection =
+            textSelection?.id === selectedComponent.id &&
+            textSelection.start !== textSelection.end;
+
+          if (!hasSelection) {
+            return;
+          }
+
+          const baseSegments =
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [];
+
+          const updatedRichText =
+            applyStyleToRange(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              {
+                highlightColor: color,
+              }
+            );
+
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              richText: updatedRichText,
+            }
+          );
+        }}
+        className={`h-9 rounded-lg border ${
+          isActive
+            ? 'border-violet-500 ring-2 ring-violet-200'
+            : 'border-slate-300'
+        }`}
+        style={{
+          backgroundColor: color,
+        }}
+      />
+    );
+  })}
+</div>
+<div className="mt-3 flex items-center gap-2">
+    <input
+      type="color"
+      value={highlightColor}
+      onChange={(event) => {
+        const newColor = event.target.value;
+      
+        setHighlightColor(newColor);
+      
+        const hasSelection =
+          textSelection?.id === selectedComponent.id &&
+          textSelection.start !== textSelection.end;
+      
+        if (!hasSelection) {
+          return;
+        }
+      
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+      
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            textSelection.start,
+            textSelection.end,
+            {
+              highlightColor: newColor,
+            }
+          );
+      
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            richText: updatedRichText,
+          }
+        );
+      }}
+      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      aria-label="Choose highlight color"
+    />
+
+    <input
+      key={highlightColor}
+      type="text"
+      defaultValue={highlightColor.toUpperCase()}
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Highlight color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const normalizedColor =
+          normalizeHexColor(
+            event.currentTarget.value
+          );
+
+        if (!normalizedColor) {
+          event.currentTarget.value =
+            highlightColor.toUpperCase();
+
+          return;
+        }
+
+        event.currentTarget.value =
+          normalizedColor;
+
+        setHighlightColor(normalizedColor);
+        const hasSelection =
+  textSelection?.id === selectedComponent.id &&
+  textSelection.start !== textSelection.end;
+
+if (!hasSelection) {
+  return;
+}
+
+const baseSegments =
+  selectedComponent.richText.length > 0
+    ? selectedComponent.richText
+    : selectedComponent.text
+      ? [{ text: selectedComponent.text }]
+      : [];
+
+const updatedRichText =
+  applyStyleToRange(
+    baseSegments,
+    textSelection.start,
+    textSelection.end,
+    {
+      highlightColor: normalizedColor,
+    }
+  );
+
+onUpdateComponent(
+  selectedComponent.id,
+  {
+    richText: updatedRichText,
+  }
+);
+      }}
+    />
+  </div>
+
+  <div className="mt-2">
+
+    <button
+      type="button"
+      disabled={
+        !textSelection ||
+        textSelection.id !== selectedComponent.id ||
+        textSelection.start === textSelection.end
+      }
+      onClick={() => {
+        if (
+          !textSelection ||
+          textSelection.id !== selectedComponent.id ||
+          textSelection.start === textSelection.end
+        ) {
+          return;
+        }
+
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            textSelection.start,
+            textSelection.end,
+            {
+              highlightColor: undefined,
+            }
+          );
+
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            richText: updatedRichText,
+          }
+        );
+      }}
+     className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      Clear Highlight
+    </button>
+      </div>
+  </div>
+)}
+</div>
   </div>
 )}
 

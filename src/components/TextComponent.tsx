@@ -457,10 +457,12 @@ return;
                 segment.style?.underline
                   ? 'underline'
                   : undefined,
-              color:
-                segment.style?.color,
-              fontFamily:
-                segment.style?.fontFamily,
+                  color:
+                  segment.style?.color,
+                backgroundColor:
+                  segment.style?.highlightColor,
+                fontFamily:
+                  segment.style?.fontFamily,
             }}
           >
             {renderTextWithFindHighlight(
