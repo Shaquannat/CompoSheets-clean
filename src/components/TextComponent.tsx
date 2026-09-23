@@ -74,6 +74,8 @@ onUpdateComponent,
   } | null>(null);
 
   const [isHovered, setIsHovered] = useState(false);
+const [rotationPreview, setRotationPreview] =
+  useState<number | null>(null);
 
   const editorRef = useRef<HTMLDivElement | null>(null);
   const caretOffsetRef = useRef(0);
@@ -539,6 +541,8 @@ return;
         top: component.y,
         width: component.width,
         minHeight: component.height,
+        transform: `rotate(${component.rotation}deg)`,
+transformOrigin: 'center center',
         border: isSelected
   ? '2px solid rgb(139 92 246)'
   : isHovered
@@ -704,6 +708,256 @@ borderColor:
 >
   ↘
   </button>
+)}
+{isSelected && !isGroupSelected && !component.locked && (
+  <button
+    type="button"
+    aria-label="Rotate component"
+    title="Drag to rotate"
+    onPointerDown={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const wrapper =
+        event.currentTarget.parentElement;
+
+      if (!wrapper) return;
+
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+
+      const rect =
+        wrapper.getBoundingClientRect();
+
+      const centerX =
+        rect.left + rect.width / 2;
+
+      const centerY =
+        rect.top + rect.height / 2;
+
+      const startPointerAngle =
+        Math.atan2(
+          event.clientY - centerY,
+          event.clientX - centerX
+        ) *
+        (180 / Math.PI);
+
+      event.currentTarget.dataset.rotationCenterX =
+        String(centerX);
+
+      event.currentTarget.dataset.rotationCenterY =
+        String(centerY);
+
+      event.currentTarget.dataset.rotationStartAngle =
+        String(startPointerAngle);
+
+      event.currentTarget.dataset.rotationStartValue =
+        String(component.rotation);
+
+      event.currentTarget.dataset.currentRotation =
+        String(component.rotation);
+        setRotationPreview(
+  Math.round(component.rotation)
+);
+    }}
+    onPointerMove={(event) => {
+      if (
+        !event.currentTarget.hasPointerCapture(
+          event.pointerId
+        )
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const centerX = Number(
+        event.currentTarget.dataset.rotationCenterX
+      );
+
+      const centerY = Number(
+        event.currentTarget.dataset.rotationCenterY
+      );
+
+      const startPointerAngle = Number(
+        event.currentTarget.dataset
+          .rotationStartAngle
+      );
+
+      const startRotation = Number(
+        event.currentTarget.dataset
+          .rotationStartValue
+      );
+
+      const pointerAngle =
+        Math.atan2(
+          event.clientY - centerY,
+          event.clientX - centerX
+        ) *
+        (180 / Math.PI);
+
+      let nextRotation =
+        startRotation +
+        (pointerAngle - startPointerAngle);
+
+      nextRotation =
+        ((nextRotation + 180) % 360 + 360) %
+          360 -
+        180;
+
+      const roundedRotation =
+        Math.round(nextRotation);
+
+      event.currentTarget.dataset.currentRotation =
+  String(roundedRotation);
+
+setRotationPreview(roundedRotation);
+
+const wrapper =
+  event.currentTarget.parentElement;
+
+      if (wrapper) {
+        wrapper.style.transform =
+          `rotate(${roundedRotation}deg)`;
+      }
+
+    }}
+    onPointerUp={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const finalRotation = Number(
+        event.currentTarget.dataset
+          .currentRotation ?? component.rotation
+      );
+
+      const wrapper =
+  event.currentTarget.parentElement;
+
+const page =
+  wrapper?.parentElement;
+
+if (wrapper && page) {
+  const width = wrapper.offsetWidth;
+  const height = wrapper.offsetHeight;
+
+  const radians =
+    (finalRotation * Math.PI) / 180;
+
+  const rotatedWidth =
+    Math.abs(width * Math.cos(radians)) +
+    Math.abs(height * Math.sin(radians));
+
+  const rotatedHeight =
+    Math.abs(width * Math.sin(radians)) +
+    Math.abs(height * Math.cos(radians));
+
+  const margin = 48;
+
+  const currentCenterX =
+    component.x + width / 2;
+
+  const currentCenterY =
+    component.y + height / 2;
+
+  const minimumCenterX =
+    margin + rotatedWidth / 2;
+
+  const maximumCenterX =
+    page.clientWidth -
+    margin -
+    rotatedWidth / 2;
+
+  const minimumCenterY =
+    margin + rotatedHeight / 2;
+
+  const maximumCenterY =
+    page.clientHeight -
+    margin -
+    rotatedHeight / 2;
+
+  const correctedCenterX =
+    Math.min(
+      Math.max(
+        currentCenterX,
+        minimumCenterX
+      ),
+      maximumCenterX
+    );
+
+  const correctedCenterY =
+    Math.min(
+      Math.max(
+        currentCenterY,
+        minimumCenterY
+      ),
+      maximumCenterY
+    );
+
+  onUpdateComponent(component.id, {
+    rotation: finalRotation,
+    x: correctedCenterX - width / 2,
+    y: correctedCenterY - height / 2,
+  });
+} else {
+  onUpdateComponent(component.id, {
+    rotation: finalRotation,
+  });
+}
+
+      setRotationPreview(null);
+
+      if (
+        event.currentTarget.hasPointerCapture(
+          event.pointerId
+        )
+      ) {
+        event.currentTarget.releasePointerCapture(
+          event.pointerId
+        );
+      }
+    }}
+    onPointerCancel={(event) => {
+      event.stopPropagation();
+
+      const wrapper =
+        event.currentTarget.parentElement;
+
+      if (wrapper) {
+        wrapper.style.transform =
+          `rotate(${component.rotation}deg)`;
+      }
+
+      setRotationPreview(null);
+    }}
+    className="absolute flex h-6 w-6 cursor-grab items-center justify-center bg-transparent text-lg font-bold text-violet-600 active:cursor-grabbing"
+    style={{
+      left: '50%',
+      top: '-34px',
+      transform: 'translateX(-50%)',
+      zIndex: 9999,
+      touchAction: 'none',
+    }}
+  >
+    ⟳
+  </button>
+)}
+{rotationPreview !== null && (
+  <div
+  className="pointer-events-none absolute whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-[11px] font-medium text-white shadow-sm"
+  style={{
+    right: '6px',
+    top: '6px',
+    transform: `rotate(${-rotationPreview}deg)`,
+    zIndex: 10000,
+    backgroundColor: '#0F172A',
+    color: '#FFFFFF',
+  }}
+>
+  {rotationPreview}°
+</div>
 )}
 </div>
 );
