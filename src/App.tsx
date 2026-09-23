@@ -483,6 +483,8 @@ borderThickness: 'thin',
 borderColor: '#334155',
 backgroundColor: 'transparent',
 cornerStyle: 'square',
+textAlignment: 'left',
+lineSpacing: 1.2,
 
 rotation: 0,
       locked: false,

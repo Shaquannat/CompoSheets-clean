@@ -585,6 +585,8 @@ ref={editorRef}
           fontStyle: component.italic ? 'italic' : 'normal',
           textDecoration: component.underline ? 'underline' : 'none',
           color: component.textColor,
+          textAlign: component.textAlignment ?? 'left',
+          lineHeight: component.lineSpacing ?? 1.2,
 
           minHeight: component.height,
           boxSizing: 'border-box',

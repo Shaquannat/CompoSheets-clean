@@ -53,6 +53,8 @@ borderThickness?: 'thin' | 'medium' | 'thick';
 borderColor?: string;
 backgroundColor?: string;
 cornerStyle?: 'square' | 'rounded';
+textAlignment?: 'left' | 'center' | 'right' | 'justify';
+lineSpacing?: number;
 };
 
   export type MultipleChoiceTextStyle = {

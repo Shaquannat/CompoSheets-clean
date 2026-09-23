@@ -1216,6 +1216,24 @@ const activeMatchingItem =
               <button
                 key={textAlignment}
                 type="button"
+                title={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
+aria-label={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
                 onClick={() => {
                   if (matchingItemSelection.side === 'left') {
                     onUpdateComponent(selectedComponent.id, {
@@ -1245,19 +1263,77 @@ const activeMatchingItem =
                     ),
                   });
                 }}
-                className={`min-h-10 rounded-lg border px-1 text-xs font-semibold ${
+                className={`flex min-h-10 items-center justify-center rounded-lg border px-1 text-xs font-semibold ${
                   isActive
                     ? 'border-violet-500 bg-violet-50 text-violet-700'
                     : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                {textAlignment === 'left'
-                  ? 'Left'
-                  : textAlignment === 'center'
-                    ? 'Center'
-                    : textAlignment === 'right'
-                      ? 'Right'
-                      : 'Justify'}
+                {textAlignment === 'left' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h10" />
+    <path d="M4 14h16" />
+    <path d="M4 18h10" />
+  </svg>
+) : textAlignment === 'center' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M7 10h10" />
+    <path d="M4 14h16" />
+    <path d="M7 18h10" />
+  </svg>
+) : textAlignment === 'right' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M10 10h10" />
+    <path d="M4 14h16" />
+    <path d="M10 18h10" />
+  </svg>
+) : (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h16" />
+    <path d="M4 14h16" />
+    <path d="M4 18h16" />
+  </svg>
+)}
               </button>
             );
           }
@@ -2883,6 +2959,141 @@ const activeMatchingItem =
     })}
   </div>
 </div>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Text Alignment
+  </span>
+
+  <div className="grid grid-cols-4 gap-2">
+    {(['left', 'center', 'right', 'justify'] as const).map(
+      (textAlignment) => {
+        const isActive =
+          (selectedComponent.textAlignment ?? 'left') ===
+          textAlignment;
+
+        return (
+          <button
+            key={textAlignment}
+            type="button"
+            title={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
+aria-label={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
+            onClick={() =>
+              onUpdateComponent(selectedComponent.id, {
+                textAlignment,
+              })
+            }
+            className={`flex min-h-10 items-center justify-center rounded-lg border px-1 text-xs font-semibold ${
+              isActive
+                ? 'border-violet-500 bg-violet-50 text-violet-700'
+                : 'border-slate-300 bg-white text-slate-700'
+            }`}
+          >
+            {textAlignment === 'left' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h10" />
+    <path d="M4 14h16" />
+    <path d="M4 18h10" />
+  </svg>
+) : textAlignment === 'center' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M7 10h10" />
+    <path d="M4 14h16" />
+    <path d="M7 18h10" />
+  </svg>
+) : textAlignment === 'right' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M10 10h10" />
+    <path d="M4 14h16" />
+    <path d="M10 18h10" />
+  </svg>
+) : (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h16" />
+    <path d="M4 14h16" />
+    <path d="M4 18h16" />
+  </svg>
+)}
+          </button>
+        );
+      }
+    )}
+  </div>
+</div>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Line Spacing
+  </span>
+
+  <select
+    value={selectedComponent.lineSpacing ?? 1.2}
+    onChange={(event) =>
+      onUpdateComponent(selectedComponent.id, {
+        lineSpacing: Number(event.target.value),
+      })
+    }
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value={1.2}>Single</option>
+<option value={1.8}>1.5</option>
+<option value={2.4}>Double</option>
+  </select>
+</div>
     <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Font family
@@ -3177,37 +3388,37 @@ const activeMatchingItem =
               return;
             }
 
-            const questionEditor =
+            const textEditor =
   document.querySelector<HTMLElement>(
-    `[data-question-component-id="${selectedComponent.id}"]`
+    `[data-text-component-id="${selectedComponent.id}"]`
   );
 
-const questionText =
-  questionEditor?.innerText
+const currentText =
+  textEditor?.innerText
     .replace(/\r\n/g, '\n')
     .replace(/\n$/, '') ??
-  selectedComponent.question;
+  selectedComponent.text;
 
 const nextIndents =
   changeParagraphIndents(
-    questionText,
+    currentText,
     selectedComponent.paragraphIndents,
-    questionSelection.start,
-    questionSelection.end,
+    textSelection.start,
+    textSelection.end,
     -1
   );
 
-  const questionChanged =
-  questionText !==
-  selectedComponent.question;
+const textChanged =
+  currentText !==
+  selectedComponent.text;
 
 onUpdateComponent(
   selectedComponent.id,
   {
-    question: questionText,
-    richText: questionChanged
-      ? questionText
-        ? [{ text: questionText }]
+    text: currentText,
+    richText: textChanged
+      ? currentText
+        ? [{ text: currentText }]
         : []
       : selectedComponent.richText,
     paragraphIndents: nextIndents,
@@ -3259,42 +3470,42 @@ onUpdateComponent(
               return;
             }
 
-            const questionEditor =
-  document.querySelector<HTMLElement>(
-    `[data-question-component-id="${selectedComponent.id}"]`
-  );
-
-const questionText =
-  questionEditor?.innerText
-    .replace(/\r\n/g, '\n')
-    .replace(/\n$/, '') ??
-  selectedComponent.question;
-
-const nextIndents =
-  changeParagraphIndents(
-    questionText,
-    selectedComponent.paragraphIndents,
-    questionSelection.start,
-    questionSelection.end,
-    1
-  );
-
-  const questionChanged =
-  questionText !==
-  selectedComponent.question;
-
-onUpdateComponent(
-  selectedComponent.id,
-  {
-    question: questionText,
-    richText: questionChanged
-      ? questionText
-        ? [{ text: questionText }]
-        : []
-      : selectedComponent.richText,
-    paragraphIndents: nextIndents,
-  }
-);
+            const textEditor =
+            document.querySelector<HTMLElement>(
+              `[data-text-component-id="${selectedComponent.id}"]`
+            );
+          
+          const currentText =
+            textEditor?.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '') ??
+            selectedComponent.text;
+          
+          const nextIndents =
+            changeParagraphIndents(
+              currentText,
+              selectedComponent.paragraphIndents,
+              textSelection.start,
+              textSelection.end,
+              1
+            );
+          
+          const textChanged =
+            currentText !==
+            selectedComponent.text;
+          
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              text: currentText,
+              richText: textChanged
+                ? currentText
+                  ? [{ text: currentText }]
+                  : []
+                : selectedComponent.richText,
+              paragraphIndents: nextIndents,
+            }
+          );
           }}
           className={`flex min-h-11 items-center justify-center rounded-lg border ${
             textSelection?.id ===
