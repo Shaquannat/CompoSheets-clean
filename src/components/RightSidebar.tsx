@@ -3591,7 +3591,12 @@ aria-label={
   </div>
 </div>
 
-<div className="flex items-end gap-2">
+<div
+  className="grid items-end gap-2"
+  style={{
+    gridTemplateColumns: '96px minmax(0, 1fr)',
+  }}
+>
   <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
         Indent
@@ -3654,12 +3659,18 @@ onUpdateComponent(
   }
 );
           }}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+          className={`flex h-11 w-11 items-center justify-center rounded-lg border ${
             textSelection?.id ===
             selectedComponent.id
               ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
           }`}
+          style={{
+            width: '44px',
+            height: '44px',
+            minWidth: '44px',
+            flexShrink: 0,
+          }}
         >
           <svg
             viewBox="0 0 24 24"
@@ -3736,12 +3747,18 @@ onUpdateComponent(
             }
           );
           }}
-          className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+          className={`flex h-11 w-11 items-center justify-center rounded-lg border ${
             textSelection?.id ===
             selectedComponent.id
               ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
           }`}
+          style={{
+            width: '44px',
+            height: '44px',
+            minWidth: '44px',
+            flexShrink: 0,
+          }}
         >
           <svg
             viewBox="0 0 24 24"
@@ -3873,6 +3890,7 @@ onUpdateComponent(
       </button>
   </div>
 </div>
+<div className="grid grid-cols-2 gap-2">
   <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Border
@@ -4006,37 +4024,21 @@ onUpdateComponent(
     Corners
   </span>
 
-  <div className="grid grid-cols-2 gap-2">
-    {(['square', 'rounded'] as const).map((cornerStyle) => {
-      const isActive =
-        (selectedComponent.cornerStyle ?? 'square') === cornerStyle;
-
-      return (
-        <button
-          key={cornerStyle}
-          type="button"
-          onClick={() =>
-            onUpdateComponent(selectedComponent.id, {
-              cornerStyle,
-            })
-          }
-          className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-            isActive
-              ? 'border-violet-500 bg-violet-50 text-violet-700'
-              : 'border-slate-300 bg-white text-slate-700'
-          }`}
-        >
-          <span
-  className={`inline-block h-5 w-5 border-2 border-current ${
-    cornerStyle === 'square'
-      ? 'rounded-none'
-      : 'rounded-md'
-  }`}
-/>
-        </button>
-      );
-    })}
-  </div>
+  <select
+  value={selectedComponent.cornerStyle ?? 'square'}
+  onChange={(event) =>
+    onUpdateComponent(selectedComponent.id, {
+      cornerStyle: event.target.value as
+        | 'square'
+        | 'rounded',
+    })
+  }
+  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+>
+  <option value="square">Square</option>
+  <option value="rounded">Rounded</option>
+  </select>
+</div>
 </div>
 
   </div>
