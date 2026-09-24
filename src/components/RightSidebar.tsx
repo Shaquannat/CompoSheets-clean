@@ -471,12 +471,9 @@ const activeMatchingItem =
   </div>
 ) : selectedComponent ? (
         <div className="space-y-5">
-          <div>
-            <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-              Selected component
-            </span>
 
-            <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm font-semibold text-violet-800">
+          <div>
+          <div className="w-full rounded-md bg-slate-100 px-3 py-2 text-sm font-bold text-slate-900">
             {selectedComponent.type === 'text'
   ? 'Text'
   : selectedComponent.type === 'question'
@@ -2727,9 +2724,15 @@ aria-label={
           {selectedComponent.type === 'text' && (
   <div className="space-y-4">
 
+<div
+  className="grid gap-2"
+  style={{
+    gridTemplateColumns: 'minmax(0, 1fr) 72px',
+  }}
+>
     <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Font family
+    Font
   </span>
 
   <select
@@ -2781,16 +2784,9 @@ aria-label={
 </div>
 <div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Font size
+        size
       </span>
 
-      <div
-  className="grid gap-2"
-  style={{
-    gridTemplateColumns:
-      'minmax(0, 1fr) 44px 44px 44px',
-  }}
->
         <input
           type="number"
           min="8"
@@ -2882,8 +2878,12 @@ aria-label={
               fontSize: newFontSize,
             });
           }}
-          className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
-        />
+         className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+/>
+</div>
+</div>
+
+<div className="grid grid-cols-4 gap-2">
 
         <button
           type="button"
@@ -2996,7 +2996,7 @@ aria-label={
       italic: !selectedComponent.italic,
     });
   }}
-  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+  className={`flex min-h-11 w-full items-center justify-center rounded-lg border px-3 text-sm font-semibold ${
     (
       textSelection?.id === selectedComponent.id &&
       textSelection.start !== textSelection.end
@@ -3097,13 +3097,37 @@ aria-label={
   title="Underline"
   aria-label="Underline"
 >
-  <span className="underline">U</span>
+    <span className="underline">U</span>
 </button>
-      </div>
-    </div>
-        <div>
+<button
+  type="button"
+  title="Highlighter"
+aria-label="Highlighter"
+  onClick={() =>
+    setIsHighlighterOpen((current) => !current)
+  }
+  aria-expanded={isHighlighterOpen}
+  className={`flex min-h-11 w-full items-center justify-center rounded-lg border ${
+    isHighlighterOpen
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+<span
+  className="flex h-7 w-7 items-center justify-center text-base font-bold leading-none"
+  style={{
+    borderBottom: `4px solid ${highlightColor}`,
+  }}
+  aria-hidden="true"
+>
+  A
+</span>
+</button>
+</div>
+
+<div>
       <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Text color
+        Font color
       </span>
 
       <div className="flex items-center gap-2">
@@ -3213,30 +3237,7 @@ aria-label={
     });
   }}
 />
- <button
-  type="button"
-  title="Highlighter"
-aria-label="Highlighter"
-  onClick={() =>
-    setIsHighlighterOpen((current) => !current)
-  }
-  aria-expanded={isHighlighterOpen}
-  className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
-    isHighlighterOpen
-      ? 'border-violet-500 bg-violet-50 text-violet-700'
-      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-  }`}
->
-<span
-  className="flex h-7 w-7 items-center justify-center text-base font-bold leading-none"
-  style={{
-    borderBottom: `4px solid ${highlightColor}`,
-  }}
-  aria-hidden="true"
->
-  A
-</span>
-</button>
+ 
       </div>
     </div>
 
@@ -3784,6 +3785,94 @@ onUpdateComponent(
     </div>
 </div>
 
+<div>
+  <span className="block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Text Box
+  </span>
+</div>
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Fill
+  </span>
+
+  <div className="flex items-center gap-2">
+    <input
+      type="color"
+      value={
+        selectedComponent.backgroundColor &&
+        selectedComponent.backgroundColor !== 'transparent'
+          ? selectedComponent.backgroundColor
+          : '#FFFFFF'
+      }
+      onChange={(event) =>
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: event.target.value,
+        })
+      }
+      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      aria-label="Text fill color"
+    />
+
+    <input
+      key={selectedComponent.backgroundColor ?? 'transparent'}
+      type="text"
+      defaultValue={
+        selectedComponent.backgroundColor &&
+        selectedComponent.backgroundColor !== 'transparent'
+          ? selectedComponent.backgroundColor.toUpperCase()
+          : '#FFFFFF'
+      }
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Text fill color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const normalizedColor = normalizeHexColor(
+          event.currentTarget.value
+        );
+
+        if (!normalizedColor) {
+          event.currentTarget.value =
+            selectedComponent.backgroundColor &&
+            selectedComponent.backgroundColor !== 'transparent'
+              ? selectedComponent.backgroundColor.toUpperCase()
+              : '#FFFFFF';
+
+          return;
+        }
+
+        event.currentTarget.value = normalizedColor;
+
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: normalizedColor,
+        });
+      }}
+    />
+
+    <button
+      type="button"
+      title="Remove fill"
+      aria-label="Remove fill"
+      onClick={() =>
+        onUpdateComponent(selectedComponent.id, {
+          backgroundColor: 'transparent',
+        })
+      }
+      className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700"
+    >
+      Clear
+      </button>
+  </div>
+</div>
   <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Border
@@ -3910,94 +3999,11 @@ onUpdateComponent(
         </div>
   </div>
 )}
+</div>
 
 <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Fill Color
-  </span>
-
-  <div className="flex items-center gap-2">
-    <input
-      type="color"
-      value={
-        selectedComponent.backgroundColor &&
-        selectedComponent.backgroundColor !== 'transparent'
-          ? selectedComponent.backgroundColor
-          : '#FFFFFF'
-      }
-      onChange={(event) =>
-        onUpdateComponent(selectedComponent.id, {
-          backgroundColor: event.target.value,
-        })
-      }
-      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
-      aria-label="Text fill color"
-    />
-
-    <input
-      key={selectedComponent.backgroundColor ?? 'transparent'}
-      type="text"
-      defaultValue={
-        selectedComponent.backgroundColor &&
-        selectedComponent.backgroundColor !== 'transparent'
-          ? selectedComponent.backgroundColor.toUpperCase()
-          : '#FFFFFF'
-      }
-      maxLength={7}
-      style={{
-        width: '92px',
-        height: '38px',
-        boxSizing: 'border-box',
-      }}
-      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
-      aria-label="Text fill color hex value"
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.currentTarget.blur();
-        }
-      }}
-      onBlur={(event) => {
-        const normalizedColor = normalizeHexColor(
-          event.currentTarget.value
-        );
-
-        if (!normalizedColor) {
-          event.currentTarget.value =
-            selectedComponent.backgroundColor &&
-            selectedComponent.backgroundColor !== 'transparent'
-              ? selectedComponent.backgroundColor.toUpperCase()
-              : '#FFFFFF';
-
-          return;
-        }
-
-        event.currentTarget.value = normalizedColor;
-
-        onUpdateComponent(selectedComponent.id, {
-          backgroundColor: normalizedColor,
-        });
-      }}
-    />
-
-    <button
-      type="button"
-      title="Remove fill"
-      aria-label="Remove fill"
-      onClick={() =>
-        onUpdateComponent(selectedComponent.id, {
-          backgroundColor: 'transparent',
-        })
-      }
-      className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700"
-    >
-      Clear
-    </button>
-  </div>
-</div>
-</div>
-<div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Corner Style
+    Corners
   </span>
 
   <div className="grid grid-cols-2 gap-2">
@@ -4020,7 +4026,13 @@ onUpdateComponent(
               : 'border-slate-300 bg-white text-slate-700'
           }`}
         >
-          {cornerStyle === 'square' ? 'Square' : 'Rounded'}
+          <span
+  className={`inline-block h-5 w-5 border-2 border-current ${
+    cornerStyle === 'square'
+      ? 'rounded-none'
+      : 'rounded-md'
+  }`}
+/>
         </button>
       );
     })}
