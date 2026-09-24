@@ -465,6 +465,8 @@ return;
                   segment.style?.highlightColor,
                 fontFamily:
                   segment.style?.fontFamily,
+                  fontSize:
+  segment.style?.fontSize,
             }}
           >
             {renderTextWithFindHighlight(
@@ -515,6 +517,9 @@ return;
                 }px)`,
                 boxSizing: 'border-box',
                 verticalAlign: 'top',
+                textDecoration: component.underline
+  ? 'underline'
+  : undefined,
               }}
             >
               {renderParagraphContent(

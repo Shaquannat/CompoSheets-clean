@@ -256,7 +256,7 @@ onPageOrientationChange,
   onDelete,
 }: RightSidebarProps) {
 const [highlightColor, setHighlightColor] =
-  useState('#FEF08A');
+useState('#FFF200');
 
   const [isHighlighterOpen, setIsHighlighterOpen] =
   useState(false);
@@ -2726,6 +2726,1064 @@ aria-label={
 
           {selectedComponent.type === 'text' && (
   <div className="space-y-4">
+
+    <div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Font family
+  </span>
+
+  <select
+    value={selectedComponent.fontFamily}
+    onChange={(event) => {
+      const newFontFamily = event.target.value;
+    
+      const hasSelection =
+        textSelection?.id === selectedComponent.id &&
+        textSelection.start !== textSelection.end;
+    
+      if (hasSelection) {
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+    
+        const updatedRichText = applyStyleToRange(
+          baseSegments,
+          textSelection.start,
+          textSelection.end,
+          {
+            fontFamily: newFontFamily,
+          }
+        );
+    
+        onUpdateComponent(selectedComponent.id, {
+          richText: updatedRichText,
+        });
+    
+        return;
+      }
+    
+      onUpdateComponent(selectedComponent.id, {
+        fontFamily: newFontFamily,
+      });
+    }}
+    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+  >
+    <option value="Arial">Arial</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Courier New">Courier New</option>
+  </select>
+</div>
+<div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Font size
+      </span>
+
+      <div
+  className="grid gap-2"
+  style={{
+    gridTemplateColumns:
+      'minmax(0, 1fr) 44px 44px 44px',
+  }}
+>
+        <input
+          type="number"
+          min="8"
+          max="72"
+          value={(() => {
+            const wholeTextSize = selectedComponent.fontSize;
+          
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (!hasSelection) {
+              return wholeTextSize;
+            }
+          
+            const baseSegments =
+              selectedComponent.richText.length > 0
+                ? selectedComponent.richText
+                : selectedComponent.text
+                  ? [{ text: selectedComponent.text }]
+                  : [];
+          
+            let position = 0;
+            let selectedSize: number | null = null;
+          
+            for (const segment of baseSegments) {
+              const segmentStart = position;
+              const segmentEnd =
+                position + segment.text.length;
+          
+              const overlapsSelection =
+                segmentEnd > textSelection.start &&
+                segmentStart < textSelection.end;
+          
+              if (overlapsSelection) {
+                const effectiveSize =
+                  segment.style?.fontSize ??
+                  wholeTextSize;
+          
+                if (selectedSize === null) {
+                  selectedSize = effectiveSize;
+                } else if (
+                  selectedSize !== effectiveSize
+                ) {
+                  return '';
+                }
+              }
+          
+              position = segmentEnd;
+            }
+          
+            return selectedSize ?? wholeTextSize;
+          })()}
+          onChange={(event) => {
+            const newFontSize = Number(event.target.value);
+          
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (hasSelection) {
+              const baseSegments =
+                selectedComponent.richText.length > 0
+                  ? selectedComponent.richText
+                  : selectedComponent.text
+                    ? [{ text: selectedComponent.text }]
+                    : [];
+          
+                    const updatedRichText = applyStyleToRange(
+                      baseSegments,
+                      textSelection.start,
+                      textSelection.end,
+                      {
+                        fontSize:
+                          newFontSize === selectedComponent.fontSize
+                            ? undefined
+                            : newFontSize,
+                      }
+                    );
+          
+              onUpdateComponent(selectedComponent.id, {
+                richText: updatedRichText,
+              });
+          
+              return;
+            }
+          
+            onUpdateComponent(selectedComponent.id, {
+              fontSize: newFontSize,
+            });
+          }}
+          className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+        />
+
+        <button
+          type="button"
+          onClick={() => {
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (hasSelection) {
+              const baseSegments =
+                selectedComponent.richText.length > 0
+                  ? selectedComponent.richText
+                  : selectedComponent.text
+                    ? [{ text: selectedComponent.text }]
+                    : [];
+          
+                    const selectedIsBold = isRangeFullyStyled(
+                      baseSegments,
+                      textSelection.start,
+                      textSelection.end,
+                      'bold'
+                    );
+                    
+                    const updatedRichText = applyStyleToRange(
+                      baseSegments,
+                      textSelection.start,
+                      textSelection.end,
+                      {
+                        bold: !selectedIsBold,
+                      }
+                    );
+          
+              onUpdateComponent(selectedComponent.id, {
+                richText: updatedRichText,
+              });
+          
+              return;
+            }
+          
+            onUpdateComponent(selectedComponent.id, {
+              fontWeight:
+                selectedComponent.fontWeight === 'bold'
+                  ? 'normal'
+                  : 'bold',
+            });
+          }}
+          className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+            (
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end
+                ? isRangeFullyStyled(
+                    selectedComponent.richText.length > 0
+                      ? selectedComponent.richText
+                      : selectedComponent.text
+                        ? [{ text: selectedComponent.text }]
+                        : [],
+                    textSelection.start,
+                    textSelection.end,
+                    'bold'
+                  )
+                : selectedComponent.fontWeight === 'bold'
+            )
+              ? 'border-violet-500 bg-violet-50 text-violet-700'
+              : 'border-slate-300 bg-white text-slate-700'
+          }`}
+          title="Bold"
+  aria-label="Bold"
+>
+  <strong>B</strong>
+</button>
+        <button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+            const selectedIsItalic = isRangeFullyStyled(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              'italic'
+            );
+            
+            const updatedRichText = applyStyleToRange(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              {
+                italic: !selectedIsItalic,
+              }
+            );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      italic: !selectedComponent.italic,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [],
+            textSelection.start,
+            textSelection.end,
+            'italic'
+          )
+        : selectedComponent.italic
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+  title="Italic"
+  aria-label="Italic"
+>
+<svg
+  viewBox="0 0 24 24"
+  width="18"
+  height="18"
+  fill="none"
+  stroke="currentColor"
+  strokeWidth="2"
+  strokeLinecap="round"
+  aria-hidden="true"
+>
+  <path d="M10 5h9" />
+  <path d="M5 19h9" />
+  <path d="M15 5 9 19" />
+</svg>
+</button>
+<button
+  type="button"
+  onClick={() => {
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+      const selectedIsUnderlined = isRangeFullyStyled(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        'underline'
+      );
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        {
+          underline: !selectedIsUnderlined,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      underline: !selectedComponent.underline,
+    });
+  }}
+  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
+    (
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end
+        ? isRangeFullyStyled(
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [],
+            textSelection.start,
+            textSelection.end,
+            'underline'
+          )
+        : selectedComponent.underline
+    )
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700'
+  }`}
+  title="Underline"
+  aria-label="Underline"
+>
+  <span className="underline">U</span>
+</button>
+      </div>
+    </div>
+        <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Text color
+      </span>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={selectedComponent.textColor}
+          onChange={(event) => {
+            const newColor = event.target.value;
+          
+            const hasSelection =
+              textSelection?.id === selectedComponent.id &&
+              textSelection.start !== textSelection.end;
+          
+            if (hasSelection) {
+              const baseSegments =
+                selectedComponent.richText.length > 0
+                  ? selectedComponent.richText
+                  : selectedComponent.text
+                    ? [{ text: selectedComponent.text }]
+                    : [];
+          
+              const updatedRichText = applyStyleToRange(
+                baseSegments,
+                textSelection.start,
+                textSelection.end,
+                {
+                  color: newColor,
+                }
+              );
+          
+              onUpdateComponent(selectedComponent.id, {
+                richText: updatedRichText,
+              });
+          
+              return;
+            }
+          
+            onUpdateComponent(selectedComponent.id, {
+              textColor: newColor,
+            });
+          }}
+          className="h-10 flex-1 cursor-pointer rounded-md border border-slate-300 bg-white p-1"
+          aria-label="Choose text color"
+        />
+
+<input
+  key={selectedComponent.textColor}
+  type="text"
+  defaultValue={selectedComponent.textColor.toUpperCase()}
+  maxLength={7}
+  style={{
+    width: '92px',
+    height: '38px',
+    boxSizing: 'border-box',
+  }}
+  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+  aria-label="Text color hex value"
+  onKeyDown={(event) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  }}
+  onBlur={(event) => {
+    const normalizedColor = normalizeHexColor(
+      event.currentTarget.value
+    );
+  
+    if (!normalizedColor) {
+      event.currentTarget.value =
+        selectedComponent.textColor.toUpperCase();
+  
+      return;
+    }
+  
+    event.currentTarget.value = normalizedColor;
+  
+    const hasSelection =
+      textSelection?.id === selectedComponent.id &&
+      textSelection.start !== textSelection.end;
+  
+    if (hasSelection) {
+      const baseSegments =
+        selectedComponent.richText.length > 0
+          ? selectedComponent.richText
+          : selectedComponent.text
+            ? [{ text: selectedComponent.text }]
+            : [];
+  
+      const updatedRichText = applyStyleToRange(
+        baseSegments,
+        textSelection.start,
+        textSelection.end,
+        {
+          color: normalizedColor,
+        }
+      );
+  
+      onUpdateComponent(selectedComponent.id, {
+        richText: updatedRichText,
+      });
+  
+      return;
+    }
+  
+    onUpdateComponent(selectedComponent.id, {
+      textColor: normalizedColor,
+    });
+  }}
+/>
+ <button
+  type="button"
+  title="Highlighter"
+aria-label="Highlighter"
+  onClick={() =>
+    setIsHighlighterOpen((current) => !current)
+  }
+  aria-expanded={isHighlighterOpen}
+  className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+    isHighlighterOpen
+      ? 'border-violet-500 bg-violet-50 text-violet-700'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+  }`}
+>
+<span
+  className="flex h-7 w-7 items-center justify-center text-base font-bold leading-none"
+  style={{
+    borderBottom: `4px solid ${highlightColor}`,
+  }}
+  aria-hidden="true"
+>
+  A
+</span>
+</button>
+      </div>
+    </div>
+
+{isHighlighterOpen && (
+  <div className="mt-2">
+  <div className="grid grid-cols-4 gap-2">
+  {[
+    { name: 'Yellow', color: '#FFF200' },
+    { name: 'Lime', color: '#C6FF00' },
+    { name: 'Green', color: '#00FF66' },
+    { name: 'Blue', color: '#40C4FF' },
+    { name: 'Pink', color: '#FF4FA3' },
+    { name: 'Orange', color: '#FFAB40' },
+    { name: 'Purple', color: '#E040FB' },
+{ name: 'Red', color: '#FF1744' },
+  ].map(({ name, color }) => {
+    const isActive =
+      highlightColor.toUpperCase() === color;
+
+    return (
+      <button
+        key={color}
+        type="button"
+        title={name}
+        aria-label={`${name} highlighter`}
+        onClick={() => {
+          setHighlightColor(color);
+
+          const hasSelection =
+            textSelection?.id === selectedComponent.id &&
+            textSelection.start !== textSelection.end;
+
+          if (!hasSelection) {
+            return;
+          }
+
+          const baseSegments =
+            selectedComponent.richText.length > 0
+              ? selectedComponent.richText
+              : selectedComponent.text
+                ? [{ text: selectedComponent.text }]
+                : [];
+
+          const updatedRichText =
+            applyStyleToRange(
+              baseSegments,
+              textSelection.start,
+              textSelection.end,
+              {
+                highlightColor: color,
+              }
+            );
+
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              richText: updatedRichText,
+            }
+          );
+        }}
+        className={`h-9 rounded-lg border ${
+          isActive
+            ? 'border-violet-500 ring-2 ring-violet-200'
+            : 'border-slate-300'
+        }`}
+        style={{
+          backgroundColor: color,
+        }}
+      />
+    );
+  })}
+</div>
+<div className="mt-3 flex items-center gap-2">
+    <input
+      type="color"
+      value={highlightColor}
+      onChange={(event) => {
+        const newColor = event.target.value;
+      
+        setHighlightColor(newColor);
+      
+        const hasSelection =
+          textSelection?.id === selectedComponent.id &&
+          textSelection.start !== textSelection.end;
+      
+        if (!hasSelection) {
+          return;
+        }
+      
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+      
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            textSelection.start,
+            textSelection.end,
+            {
+              highlightColor: newColor,
+            }
+          );
+      
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            richText: updatedRichText,
+          }
+        );
+      }}
+      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+      aria-label="Choose highlight color"
+    />
+
+    <input
+      key={highlightColor}
+      type="text"
+      defaultValue={highlightColor.toUpperCase()}
+      maxLength={7}
+      style={{
+        width: '92px',
+        height: '38px',
+        boxSizing: 'border-box',
+      }}
+      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
+      aria-label="Highlight color hex value"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      onBlur={(event) => {
+        const normalizedColor =
+          normalizeHexColor(
+            event.currentTarget.value
+          );
+
+        if (!normalizedColor) {
+          event.currentTarget.value =
+            highlightColor.toUpperCase();
+
+          return;
+        }
+
+        event.currentTarget.value =
+          normalizedColor;
+
+        setHighlightColor(normalizedColor);
+        const hasSelection =
+  textSelection?.id === selectedComponent.id &&
+  textSelection.start !== textSelection.end;
+
+if (!hasSelection) {
+  return;
+}
+
+const baseSegments =
+  selectedComponent.richText.length > 0
+    ? selectedComponent.richText
+    : selectedComponent.text
+      ? [{ text: selectedComponent.text }]
+      : [];
+
+const updatedRichText =
+  applyStyleToRange(
+    baseSegments,
+    textSelection.start,
+    textSelection.end,
+    {
+      highlightColor: normalizedColor,
+    }
+  );
+
+onUpdateComponent(
+  selectedComponent.id,
+  {
+    richText: updatedRichText,
+  }
+);
+      }}
+    />
+  </div>
+
+  <div className="mt-2">
+
+    <button
+      type="button"
+      disabled={
+        !textSelection ||
+        textSelection.id !== selectedComponent.id ||
+        textSelection.start === textSelection.end
+      }
+      onClick={() => {
+        if (
+          !textSelection ||
+          textSelection.id !== selectedComponent.id ||
+          textSelection.start === textSelection.end
+        ) {
+          return;
+        }
+
+        const baseSegments =
+          selectedComponent.richText.length > 0
+            ? selectedComponent.richText
+            : selectedComponent.text
+              ? [{ text: selectedComponent.text }]
+              : [];
+
+        const updatedRichText =
+          applyStyleToRange(
+            baseSegments,
+            textSelection.start,
+            textSelection.end,
+            {
+              highlightColor: undefined,
+            }
+          );
+
+        onUpdateComponent(
+          selectedComponent.id,
+          {
+            richText: updatedRichText,
+          }
+        );
+      }}
+     className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      Clear Highlight
+    </button>
+      </div>
+        </div>
+)}
+
+<div>
+  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+    Paragraph
+  </span>
+
+  <div className="grid grid-cols-4 gap-2">
+    {(['left', 'center', 'right', 'justify'] as const).map(
+      (textAlignment) => {
+        const isActive =
+          (selectedComponent.textAlignment ?? 'left') ===
+          textAlignment;
+
+        return (
+          <button
+            key={textAlignment}
+            type="button"
+            title={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
+aria-label={
+  textAlignment === 'left'
+    ? 'Align left'
+    : textAlignment === 'center'
+      ? 'Align center'
+      : textAlignment === 'right'
+        ? 'Align right'
+        : 'Justify'
+}
+            onClick={() =>
+              onUpdateComponent(selectedComponent.id, {
+                textAlignment,
+              })
+            }
+            className={`flex min-h-10 items-center justify-center rounded-lg border px-1 text-xs font-semibold ${
+              isActive
+                ? 'border-violet-500 bg-violet-50 text-violet-700'
+                : 'border-slate-300 bg-white text-slate-700'
+            }`}
+          >
+            {textAlignment === 'left' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h10" />
+    <path d="M4 14h16" />
+    <path d="M4 18h10" />
+  </svg>
+) : textAlignment === 'center' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M7 10h10" />
+    <path d="M4 14h16" />
+    <path d="M7 18h10" />
+  </svg>
+) : textAlignment === 'right' ? (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M10 10h10" />
+    <path d="M4 14h16" />
+    <path d="M10 18h10" />
+  </svg>
+) : (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M4 6h16" />
+    <path d="M4 10h16" />
+    <path d="M4 14h16" />
+    <path d="M4 18h16" />
+  </svg>
+)}
+          </button>
+        );
+      }
+    )}
+  </div>
+</div>
+
+<div className="flex items-end gap-2">
+  <div>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Indent
+      </span>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          title="Decrease indent"
+          aria-label="Decrease indent"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
+          disabled={
+            textSelection?.id !==
+            selectedComponent.id
+          }
+          onClick={() => {
+            if (
+              textSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const textEditor =
+  document.querySelector<HTMLElement>(
+    `[data-text-component-id="${selectedComponent.id}"]`
+  );
+
+const currentText =
+  textEditor?.innerText
+    .replace(/\r\n/g, '\n')
+    .replace(/\n$/, '') ??
+  selectedComponent.text;
+
+const nextIndents =
+  changeParagraphIndents(
+    currentText,
+    selectedComponent.paragraphIndents,
+    textSelection.start,
+    textSelection.end,
+    -1
+  );
+
+const textChanged =
+  currentText !==
+  selectedComponent.text;
+
+onUpdateComponent(
+  selectedComponent.id,
+  {
+    text: currentText,
+    richText: textChanged
+      ? currentText
+        ? [{ text: currentText }]
+        : []
+      : selectedComponent.richText,
+    paragraphIndents: nextIndents,
+  }
+);
+          }}
+          className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+            textSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m7 7-3 3 3 3" />
+          </svg>
+        </button>
+
+        <button
+  type="button"
+  title="Increase indent"
+  aria-label="Increase indent"
+  onMouseDown={(event) => {
+    event.preventDefault();
+  }}
+  disabled={
+    textSelection?.id !==
+    selectedComponent.id
+  }
+          onClick={() => {
+            if (
+              textSelection?.id !==
+              selectedComponent.id
+            ) {
+              return;
+            }
+
+            const textEditor =
+            document.querySelector<HTMLElement>(
+              `[data-text-component-id="${selectedComponent.id}"]`
+            );
+          
+          const currentText =
+            textEditor?.innerText
+              .replace(/\r\n/g, '\n')
+              .replace(/\n$/, '') ??
+            selectedComponent.text;
+          
+          const nextIndents =
+            changeParagraphIndents(
+              currentText,
+              selectedComponent.paragraphIndents,
+              textSelection.start,
+              textSelection.end,
+              1
+            );
+          
+          const textChanged =
+            currentText !==
+            selectedComponent.text;
+          
+          onUpdateComponent(
+            selectedComponent.id,
+            {
+              text: currentText,
+              richText: textChanged
+                ? currentText
+                  ? [{ text: currentText }]
+                  : []
+                : selectedComponent.richText,
+              paragraphIndents: nextIndents,
+            }
+          );
+          }}
+          className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+            textSelection?.id ===
+            selectedComponent.id
+              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
+          }`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 6h10" />
+            <path d="M10 10h10" />
+            <path d="M4 14h16" />
+            <path d="M4 18h16" />
+            <path d="m4 7 3 3-3 3" />
+          </svg>
+        </button>
+                    </div>
+    </div>
+
+    <div className="min-w-0 flex-1">
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+        Line Spacing
+      </span>
+
+      <select
+        value={selectedComponent.lineSpacing ?? 1.2}
+        onChange={(event) =>
+          onUpdateComponent(selectedComponent.id, {
+            lineSpacing: Number(event.target.value),
+          })
+        }
+        className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
+      >
+        <option value={1.2}>Single</option>
+        <option value={1.8}>1.5</option>
+        <option value={2.4}>Double</option>
+      </select>
+    </div>
+</div>
+
   <div>
   <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
     Border
@@ -2968,946 +4026,7 @@ aria-label={
     })}
   </div>
 </div>
-<div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Text Alignment
-  </span>
 
-  <div className="grid grid-cols-4 gap-2">
-    {(['left', 'center', 'right', 'justify'] as const).map(
-      (textAlignment) => {
-        const isActive =
-          (selectedComponent.textAlignment ?? 'left') ===
-          textAlignment;
-
-        return (
-          <button
-            key={textAlignment}
-            type="button"
-            title={
-  textAlignment === 'left'
-    ? 'Align left'
-    : textAlignment === 'center'
-      ? 'Align center'
-      : textAlignment === 'right'
-        ? 'Align right'
-        : 'Justify'
-}
-aria-label={
-  textAlignment === 'left'
-    ? 'Align left'
-    : textAlignment === 'center'
-      ? 'Align center'
-      : textAlignment === 'right'
-        ? 'Align right'
-        : 'Justify'
-}
-            onClick={() =>
-              onUpdateComponent(selectedComponent.id, {
-                textAlignment,
-              })
-            }
-            className={`flex min-h-10 items-center justify-center rounded-lg border px-1 text-xs font-semibold ${
-              isActive
-                ? 'border-violet-500 bg-violet-50 text-violet-700'
-                : 'border-slate-300 bg-white text-slate-700'
-            }`}
-          >
-            {textAlignment === 'left' ? (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <path d="M4 6h16" />
-    <path d="M4 10h10" />
-    <path d="M4 14h16" />
-    <path d="M4 18h10" />
-  </svg>
-) : textAlignment === 'center' ? (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <path d="M4 6h16" />
-    <path d="M7 10h10" />
-    <path d="M4 14h16" />
-    <path d="M7 18h10" />
-  </svg>
-) : textAlignment === 'right' ? (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <path d="M4 6h16" />
-    <path d="M10 10h10" />
-    <path d="M4 14h16" />
-    <path d="M10 18h10" />
-  </svg>
-) : (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <path d="M4 6h16" />
-    <path d="M4 10h16" />
-    <path d="M4 14h16" />
-    <path d="M4 18h16" />
-  </svg>
-)}
-          </button>
-        );
-      }
-    )}
-  </div>
-</div>
-<div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Line Spacing
-  </span>
-
-  <select
-    value={selectedComponent.lineSpacing ?? 1.2}
-    onChange={(event) =>
-      onUpdateComponent(selectedComponent.id, {
-        lineSpacing: Number(event.target.value),
-      })
-    }
-    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
-  >
-    <option value={1.2}>Single</option>
-<option value={1.8}>1.5</option>
-<option value={2.4}>Double</option>
-  </select>
-</div>
-    <div>
-  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-    Font family
-  </span>
-
-  <select
-    value={selectedComponent.fontFamily}
-    onChange={(event) => {
-      const newFontFamily = event.target.value;
-    
-      const hasSelection =
-        textSelection?.id === selectedComponent.id &&
-        textSelection.start !== textSelection.end;
-    
-      if (hasSelection) {
-        const baseSegments =
-          selectedComponent.richText.length > 0
-            ? selectedComponent.richText
-            : selectedComponent.text
-              ? [{ text: selectedComponent.text }]
-              : [];
-    
-        const updatedRichText = applyStyleToRange(
-          baseSegments,
-          textSelection.start,
-          textSelection.end,
-          {
-            fontFamily: newFontFamily,
-          }
-        );
-    
-        onUpdateComponent(selectedComponent.id, {
-          richText: updatedRichText,
-        });
-    
-        return;
-      }
-    
-      onUpdateComponent(selectedComponent.id, {
-        fontFamily: newFontFamily,
-      });
-    }}
-    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
-  >
-    <option value="Arial">Arial</option>
-    <option value="Verdana">Verdana</option>
-    <option value="Georgia">Georgia</option>
-    <option value="Times New Roman">Times New Roman</option>
-    <option value="Trebuchet MS">Trebuchet MS</option>
-    <option value="Courier New">Courier New</option>
-  </select>
-</div>
-<div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Font size
-      </span>
-
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          type="number"
-          min="8"
-          max="72"
-          value={selectedComponent.fontSize}
-          onChange={(event) =>
-            onUpdateComponent(selectedComponent.id, {
-              fontSize: Number(event.target.value),
-            })
-          }
-          className="min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
-        />
-
-        <button
-          type="button"
-          onClick={() => {
-            const hasSelection =
-              textSelection?.id === selectedComponent.id &&
-              textSelection.start !== textSelection.end;
-          
-            if (hasSelection) {
-              const baseSegments =
-                selectedComponent.richText.length > 0
-                  ? selectedComponent.richText
-                  : selectedComponent.text
-                    ? [{ text: selectedComponent.text }]
-                    : [];
-          
-                    const selectedIsBold = isRangeFullyStyled(
-                      baseSegments,
-                      textSelection.start,
-                      textSelection.end,
-                      'bold'
-                    );
-                    
-                    const updatedRichText = applyStyleToRange(
-                      baseSegments,
-                      textSelection.start,
-                      textSelection.end,
-                      {
-                        bold: !selectedIsBold,
-                      }
-                    );
-          
-              onUpdateComponent(selectedComponent.id, {
-                richText: updatedRichText,
-              });
-          
-              return;
-            }
-          
-            onUpdateComponent(selectedComponent.id, {
-              fontWeight:
-                selectedComponent.fontWeight === 'bold'
-                  ? 'normal'
-                  : 'bold',
-            });
-          }}
-          className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-            (
-              textSelection?.id === selectedComponent.id &&
-              textSelection.start !== textSelection.end
-                ? isRangeFullyStyled(
-                    selectedComponent.richText.length > 0
-                      ? selectedComponent.richText
-                      : selectedComponent.text
-                        ? [{ text: selectedComponent.text }]
-                        : [],
-                    textSelection.start,
-                    textSelection.end,
-                    'bold'
-                  )
-                : selectedComponent.fontWeight === 'bold'
-            )
-              ? 'border-violet-500 bg-violet-50 text-violet-700'
-              : 'border-slate-300 bg-white text-slate-700'
-          }`}
-        >
-          Bold
-        </button>
-        <button
-  type="button"
-  onClick={() => {
-    const hasSelection =
-      textSelection?.id === selectedComponent.id &&
-      textSelection.start !== textSelection.end;
-  
-    if (hasSelection) {
-      const baseSegments =
-        selectedComponent.richText.length > 0
-          ? selectedComponent.richText
-          : selectedComponent.text
-            ? [{ text: selectedComponent.text }]
-            : [];
-  
-            const selectedIsItalic = isRangeFullyStyled(
-              baseSegments,
-              textSelection.start,
-              textSelection.end,
-              'italic'
-            );
-            
-            const updatedRichText = applyStyleToRange(
-              baseSegments,
-              textSelection.start,
-              textSelection.end,
-              {
-                italic: !selectedIsItalic,
-              }
-            );
-  
-      onUpdateComponent(selectedComponent.id, {
-        richText: updatedRichText,
-      });
-  
-      return;
-    }
-  
-    onUpdateComponent(selectedComponent.id, {
-      italic: !selectedComponent.italic,
-    });
-  }}
-  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-    (
-      textSelection?.id === selectedComponent.id &&
-      textSelection.start !== textSelection.end
-        ? isRangeFullyStyled(
-            selectedComponent.richText.length > 0
-              ? selectedComponent.richText
-              : selectedComponent.text
-                ? [{ text: selectedComponent.text }]
-                : [],
-            textSelection.start,
-            textSelection.end,
-            'italic'
-          )
-        : selectedComponent.italic
-    )
-      ? 'border-violet-500 bg-violet-50 text-violet-700'
-      : 'border-slate-300 bg-white text-slate-700'
-  }`}
->
-  Italic
-</button>
-<button
-  type="button"
-  onClick={() => {
-    const hasSelection =
-      textSelection?.id === selectedComponent.id &&
-      textSelection.start !== textSelection.end;
-  
-    if (hasSelection) {
-      const baseSegments =
-        selectedComponent.richText.length > 0
-          ? selectedComponent.richText
-          : selectedComponent.text
-            ? [{ text: selectedComponent.text }]
-            : [];
-  
-      const selectedIsUnderlined = isRangeFullyStyled(
-        baseSegments,
-        textSelection.start,
-        textSelection.end,
-        'underline'
-      );
-  
-      const updatedRichText = applyStyleToRange(
-        baseSegments,
-        textSelection.start,
-        textSelection.end,
-        {
-          underline: !selectedIsUnderlined,
-        }
-      );
-  
-      onUpdateComponent(selectedComponent.id, {
-        richText: updatedRichText,
-      });
-  
-      return;
-    }
-  
-    onUpdateComponent(selectedComponent.id, {
-      underline: !selectedComponent.underline,
-    });
-  }}
-  className={`min-h-11 w-full rounded-lg border px-3 text-sm font-semibold ${
-    (
-      textSelection?.id === selectedComponent.id &&
-      textSelection.start !== textSelection.end
-        ? isRangeFullyStyled(
-            selectedComponent.richText.length > 0
-              ? selectedComponent.richText
-              : selectedComponent.text
-                ? [{ text: selectedComponent.text }]
-                : [],
-            textSelection.start,
-            textSelection.end,
-            'underline'
-          )
-        : selectedComponent.underline
-    )
-      ? 'border-violet-500 bg-violet-50 text-violet-700'
-      : 'border-slate-300 bg-white text-slate-700'
-  }`}
->
-  Underline
-</button>
-      </div>
-    </div>
-
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Paragraph indent
-      </span>
-
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          title="Decrease indent"
-          aria-label="Decrease indent"
-          onMouseDown={(event) => {
-            event.preventDefault();
-          }}
-          disabled={
-            textSelection?.id !==
-            selectedComponent.id
-          }
-          onClick={() => {
-            if (
-              textSelection?.id !==
-              selectedComponent.id
-            ) {
-              return;
-            }
-
-            const textEditor =
-  document.querySelector<HTMLElement>(
-    `[data-text-component-id="${selectedComponent.id}"]`
-  );
-
-const currentText =
-  textEditor?.innerText
-    .replace(/\r\n/g, '\n')
-    .replace(/\n$/, '') ??
-  selectedComponent.text;
-
-const nextIndents =
-  changeParagraphIndents(
-    currentText,
-    selectedComponent.paragraphIndents,
-    textSelection.start,
-    textSelection.end,
-    -1
-  );
-
-const textChanged =
-  currentText !==
-  selectedComponent.text;
-
-onUpdateComponent(
-  selectedComponent.id,
-  {
-    text: currentText,
-    richText: textChanged
-      ? currentText
-        ? [{ text: currentText }]
-        : []
-      : selectedComponent.richText,
-    paragraphIndents: nextIndents,
-  }
-);
-          }}
-          className={`flex min-h-11 items-center justify-center rounded-lg border ${
-            textSelection?.id ===
-            selectedComponent.id
-              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
-          }`}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M10 6h10" />
-            <path d="M10 10h10" />
-            <path d="M4 14h16" />
-            <path d="M4 18h16" />
-            <path d="m7 7-3 3 3 3" />
-          </svg>
-        </button>
-
-        <button
-  type="button"
-  title="Increase indent"
-  aria-label="Increase indent"
-  onMouseDown={(event) => {
-    event.preventDefault();
-  }}
-  disabled={
-    textSelection?.id !==
-    selectedComponent.id
-  }
-          onClick={() => {
-            if (
-              textSelection?.id !==
-              selectedComponent.id
-            ) {
-              return;
-            }
-
-            const textEditor =
-            document.querySelector<HTMLElement>(
-              `[data-text-component-id="${selectedComponent.id}"]`
-            );
-          
-          const currentText =
-            textEditor?.innerText
-              .replace(/\r\n/g, '\n')
-              .replace(/\n$/, '') ??
-            selectedComponent.text;
-          
-          const nextIndents =
-            changeParagraphIndents(
-              currentText,
-              selectedComponent.paragraphIndents,
-              textSelection.start,
-              textSelection.end,
-              1
-            );
-          
-          const textChanged =
-            currentText !==
-            selectedComponent.text;
-          
-          onUpdateComponent(
-            selectedComponent.id,
-            {
-              text: currentText,
-              richText: textChanged
-                ? currentText
-                  ? [{ text: currentText }]
-                  : []
-                : selectedComponent.richText,
-              paragraphIndents: nextIndents,
-            }
-          );
-          }}
-          className={`flex min-h-11 items-center justify-center rounded-lg border ${
-            textSelection?.id ===
-            selectedComponent.id
-              ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              : 'cursor-not-allowed border-slate-200 bg-white text-slate-300'
-          }`}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M10 6h10" />
-            <path d="M10 10h10" />
-            <path d="M4 14h16" />
-            <path d="M4 18h16" />
-            <path d="m4 7 3 3-3 3" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div>
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-        Text color
-      </span>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={selectedComponent.textColor}
-          onChange={(event) => {
-            const newColor = event.target.value;
-          
-            const hasSelection =
-              textSelection?.id === selectedComponent.id &&
-              textSelection.start !== textSelection.end;
-          
-            if (hasSelection) {
-              const baseSegments =
-                selectedComponent.richText.length > 0
-                  ? selectedComponent.richText
-                  : selectedComponent.text
-                    ? [{ text: selectedComponent.text }]
-                    : [];
-          
-              const updatedRichText = applyStyleToRange(
-                baseSegments,
-                textSelection.start,
-                textSelection.end,
-                {
-                  color: newColor,
-                }
-              );
-          
-              onUpdateComponent(selectedComponent.id, {
-                richText: updatedRichText,
-              });
-          
-              return;
-            }
-          
-            onUpdateComponent(selectedComponent.id, {
-              textColor: newColor,
-            });
-          }}
-          className="h-10 flex-1 cursor-pointer rounded-md border border-slate-300 bg-white p-1"
-          aria-label="Choose text color"
-        />
-
-<input
-  key={selectedComponent.textColor}
-  type="text"
-  defaultValue={selectedComponent.textColor.toUpperCase()}
-  maxLength={7}
-  style={{
-    width: '92px',
-    height: '38px',
-    boxSizing: 'border-box',
-  }}
-  className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
-  aria-label="Text color hex value"
-  onKeyDown={(event) => {
-    if (event.key === 'Enter') {
-      event.currentTarget.blur();
-    }
-  }}
-  onBlur={(event) => {
-    const normalizedColor = normalizeHexColor(
-      event.currentTarget.value
-    );
-  
-    if (!normalizedColor) {
-      event.currentTarget.value =
-        selectedComponent.textColor.toUpperCase();
-  
-      return;
-    }
-  
-    event.currentTarget.value = normalizedColor;
-  
-    const hasSelection =
-      textSelection?.id === selectedComponent.id &&
-      textSelection.start !== textSelection.end;
-  
-    if (hasSelection) {
-      const baseSegments =
-        selectedComponent.richText.length > 0
-          ? selectedComponent.richText
-          : selectedComponent.text
-            ? [{ text: selectedComponent.text }]
-            : [];
-  
-      const updatedRichText = applyStyleToRange(
-        baseSegments,
-        textSelection.start,
-        textSelection.end,
-        {
-          color: normalizedColor,
-        }
-      );
-  
-      onUpdateComponent(selectedComponent.id, {
-        richText: updatedRichText,
-      });
-  
-      return;
-    }
-  
-    onUpdateComponent(selectedComponent.id, {
-      textColor: normalizedColor,
-    });
-  }}
-/>
-      </div>
-    </div>
-
-    <div>
-  <button
-  type="button"
-  onClick={() =>
-    setIsHighlighterOpen((current) => !current)
-  }
-  aria-expanded={isHighlighterOpen}
-  className={`flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold ${
-    isHighlighterOpen
-      ? 'border-violet-500 bg-violet-50 text-violet-700'
-      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-  }`}
->
-  <span>Highlighter</span>
-</button>
-
-{isHighlighterOpen && (
-  <div className="mt-2">
-  <div className="grid grid-cols-4 gap-2">
-  {[
-    { name: 'Yellow', color: '#FFF200' },
-    { name: 'Lime', color: '#C6FF00' },
-    { name: 'Green', color: '#00FF66' },
-    { name: 'Blue', color: '#40C4FF' },
-    { name: 'Pink', color: '#FF4FA3' },
-    { name: 'Orange', color: '#FFAB40' },
-    { name: 'Purple', color: '#E040FB' },
-{ name: 'Red', color: '#FF1744' },
-  ].map(({ name, color }) => {
-    const isActive =
-      highlightColor.toUpperCase() === color;
-
-    return (
-      <button
-        key={color}
-        type="button"
-        title={name}
-        aria-label={`${name} highlighter`}
-        onClick={() => {
-          setHighlightColor(color);
-
-          const hasSelection =
-            textSelection?.id === selectedComponent.id &&
-            textSelection.start !== textSelection.end;
-
-          if (!hasSelection) {
-            return;
-          }
-
-          const baseSegments =
-            selectedComponent.richText.length > 0
-              ? selectedComponent.richText
-              : selectedComponent.text
-                ? [{ text: selectedComponent.text }]
-                : [];
-
-          const updatedRichText =
-            applyStyleToRange(
-              baseSegments,
-              textSelection.start,
-              textSelection.end,
-              {
-                highlightColor: color,
-              }
-            );
-
-          onUpdateComponent(
-            selectedComponent.id,
-            {
-              richText: updatedRichText,
-            }
-          );
-        }}
-        className={`h-9 rounded-lg border ${
-          isActive
-            ? 'border-violet-500 ring-2 ring-violet-200'
-            : 'border-slate-300'
-        }`}
-        style={{
-          backgroundColor: color,
-        }}
-      />
-    );
-  })}
-</div>
-<div className="mt-3 flex items-center gap-2">
-    <input
-      type="color"
-      value={highlightColor}
-      onChange={(event) => {
-        const newColor = event.target.value;
-      
-        setHighlightColor(newColor);
-      
-        const hasSelection =
-          textSelection?.id === selectedComponent.id &&
-          textSelection.start !== textSelection.end;
-      
-        if (!hasSelection) {
-          return;
-        }
-      
-        const baseSegments =
-          selectedComponent.richText.length > 0
-            ? selectedComponent.richText
-            : selectedComponent.text
-              ? [{ text: selectedComponent.text }]
-              : [];
-      
-        const updatedRichText =
-          applyStyleToRange(
-            baseSegments,
-            textSelection.start,
-            textSelection.end,
-            {
-              highlightColor: newColor,
-            }
-          );
-      
-        onUpdateComponent(
-          selectedComponent.id,
-          {
-            richText: updatedRichText,
-          }
-        );
-      }}
-      className="h-10 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
-      aria-label="Choose highlight color"
-    />
-
-    <input
-      key={highlightColor}
-      type="text"
-      defaultValue={highlightColor.toUpperCase()}
-      maxLength={7}
-      style={{
-        width: '92px',
-        height: '38px',
-        boxSizing: 'border-box',
-      }}
-      className="rounded-md border border-slate-300 px-2 font-mono text-sm uppercase outline-none focus:border-violet-500"
-      aria-label="Highlight color hex value"
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.currentTarget.blur();
-        }
-      }}
-      onBlur={(event) => {
-        const normalizedColor =
-          normalizeHexColor(
-            event.currentTarget.value
-          );
-
-        if (!normalizedColor) {
-          event.currentTarget.value =
-            highlightColor.toUpperCase();
-
-          return;
-        }
-
-        event.currentTarget.value =
-          normalizedColor;
-
-        setHighlightColor(normalizedColor);
-        const hasSelection =
-  textSelection?.id === selectedComponent.id &&
-  textSelection.start !== textSelection.end;
-
-if (!hasSelection) {
-  return;
-}
-
-const baseSegments =
-  selectedComponent.richText.length > 0
-    ? selectedComponent.richText
-    : selectedComponent.text
-      ? [{ text: selectedComponent.text }]
-      : [];
-
-const updatedRichText =
-  applyStyleToRange(
-    baseSegments,
-    textSelection.start,
-    textSelection.end,
-    {
-      highlightColor: normalizedColor,
-    }
-  );
-
-onUpdateComponent(
-  selectedComponent.id,
-  {
-    richText: updatedRichText,
-  }
-);
-      }}
-    />
-  </div>
-
-  <div className="mt-2">
-
-    <button
-      type="button"
-      disabled={
-        !textSelection ||
-        textSelection.id !== selectedComponent.id ||
-        textSelection.start === textSelection.end
-      }
-      onClick={() => {
-        if (
-          !textSelection ||
-          textSelection.id !== selectedComponent.id ||
-          textSelection.start === textSelection.end
-        ) {
-          return;
-        }
-
-        const baseSegments =
-          selectedComponent.richText.length > 0
-            ? selectedComponent.richText
-            : selectedComponent.text
-              ? [{ text: selectedComponent.text }]
-              : [];
-
-        const updatedRichText =
-          applyStyleToRange(
-            baseSegments,
-            textSelection.start,
-            textSelection.end,
-            {
-              highlightColor: undefined,
-            }
-          );
-
-        onUpdateComponent(
-          selectedComponent.id,
-          {
-            richText: updatedRichText,
-          }
-        );
-      }}
-     className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      Clear Highlight
-    </button>
-      </div>
-  </div>
-)}
-</div>
   </div>
 )}
 
