@@ -548,6 +548,7 @@ return;
         minHeight: component.height,
         transform: `rotate(${component.rotation}deg)`,
 transformOrigin: 'center center',
+zIndex: component.layer ?? 1,
         border: isSelected
   ? '2px solid rgb(139 92 246)'
   : isHovered

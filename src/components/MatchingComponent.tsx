@@ -355,6 +355,7 @@ useLayoutEffect(() => {
           top: component.y,
           width: component.width,
           minHeight: component.height,
+          zIndex: component.layer ?? 1,
           border:
   worksheetView === 'student' && isSelected
     ? '2px solid rgb(139 92 246)'

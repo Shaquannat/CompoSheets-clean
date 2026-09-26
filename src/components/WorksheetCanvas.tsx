@@ -124,6 +124,13 @@ onComponentContextMenu?: (
   clientX: number,
   clientY: number
 ) => void;
+
+onPageContextMenu?: (
+  clientX: number,
+  clientY: number,
+  pageX: number,
+  pageY: number
+) => void;
 };
 
 export function WorksheetCanvas({
@@ -158,6 +165,7 @@ onMatchingRowSelect,
 onMatchingItemSelect,
 onUpdateComponent,
 onComponentContextMenu,
+onPageContextMenu,
 }: WorksheetCanvasProps) {
   const selectedComponents = components.filter((component) =>
   selectedComponentIds.includes(component.id)
@@ -343,6 +351,23 @@ style={{
                 !componentElement ||
                 !event.currentTarget.contains(componentElement)
               ) {
+                if (!onPageContextMenu) {
+                  return;
+                }
+              
+                const pageRect =
+                  event.currentTarget.getBoundingClientRect();
+              
+                event.preventDefault();
+                event.stopPropagation();
+              
+                onPageContextMenu(
+                  event.clientX,
+                  event.clientY,
+                  event.clientX - pageRect.left,
+                  event.clientY - pageRect.top
+                );
+              
                 return;
               }
             
@@ -362,8 +387,10 @@ style={{
               event.preventDefault();
               event.stopPropagation();
             
-              onSelectComponent(component.id);
-            
+              if (!selectedComponentIds.includes(component.id)) {
+                onSelectComponent(component.id);
+              }
+              
               onComponentContextMenu(
                 component.id,
                 event.clientX,

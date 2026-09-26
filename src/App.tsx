@@ -77,6 +77,13 @@ const [worksheetView, setWorksheetView] = useState<
     y: number;
   } | null>(null);
 
+  const [pageContextMenu, setPageContextMenu] = useState<{
+  x: number;
+  y: number;
+  pageX: number;
+  pageY: number;
+} | null>(null);
+
 const [findQuery, setFindQuery] = useState('');
 
 const [findMatches, setFindMatches] = useState<
@@ -131,9 +138,10 @@ const findMatch =
   } | null>(null);
 
   useEffect(() => {
-  function closeComponentContextMenu() {
-    setComponentContextMenu(null);
-  }
+    function closeComponentContextMenu() {
+      setComponentContextMenu(null);
+      setPageContextMenu(null);
+    }
 
   window.addEventListener('click', closeComponentContextMenu);
 
@@ -715,7 +723,7 @@ bottomLineColor: '#334155',
       height: 48,
       rotation: 0,
       locked: false,
-      layer: components.length,
+      layer: components.length + 1,
       items: [
         {
           id: crypto.randomUUID(),
@@ -943,6 +951,98 @@ setComponents((currentComponents) => [
         : null
     );
   }
+
+  function pasteCopiedComponentAt(
+  pageX: number,
+  pageY: number
+) {
+  const copiedComponents = componentClipboard.current;
+  const page = pageRef.current;
+
+  if (copiedComponents.length === 0 || !page) {
+    return;
+  }
+
+  const pageRect = page.getBoundingClientRect();
+
+  const minimumX = Math.min(
+    ...copiedComponents.map(
+      (component) => component.x
+    )
+  );
+
+  const minimumY = Math.min(
+    ...copiedComponents.map(
+      (component) => component.y
+    )
+  );
+
+  const maximumRight = Math.max(
+    ...copiedComponents.map(
+      (component) =>
+        component.x + component.width
+    )
+  );
+
+  const maximumBottom = Math.max(
+    ...copiedComponents.map(
+      (component) =>
+        component.y + component.height
+    )
+  );
+
+  const groupWidth = maximumRight - minimumX;
+  const groupHeight = maximumBottom - minimumY;
+
+  const pastedGroupX = Math.min(
+    Math.max(pageX, 48),
+    Math.max(
+      48,
+      pageRect.width - 48 - groupWidth
+    )
+  );
+
+  const pastedGroupY = Math.min(
+    Math.max(pageY, 48),
+    Math.max(
+      48,
+      pageRect.height - 48 - groupHeight
+    )
+  );
+
+  const deltaX = pastedGroupX - minimumX;
+  const deltaY = pastedGroupY - minimumY;
+
+  const pastedComponents = copiedComponents.map(
+    (copiedComponent, index) => ({
+      ...structuredClone(copiedComponent),
+      id: crypto.randomUUID(),
+      locked: false,
+      x: copiedComponent.x + deltaX,
+      y: copiedComponent.y + deltaY,
+      layer: components.length + index + 1,
+    })
+  );
+
+  saveHistory(components);
+
+  setComponents((currentComponents) => [
+    ...currentComponents,
+    ...pastedComponents,
+  ]);
+
+  const pastedIds = pastedComponents.map(
+    (component) => component.id
+  );
+
+  setSelectedComponentIds(pastedIds);
+
+  setSelectedComponentId(
+    pastedIds.length === 1
+      ? pastedIds[0]
+      : null
+  );
+}
 
   function cutSelectedComponent() {
     if (selectedComponentIds.length > 0) {
@@ -2166,6 +2266,9 @@ resizeState.current = {
   }
 
   function startSelectionBox(event: ReactPointerEvent<HTMLElement>) {
+    if (event.button !== 0) {
+  return;
+}
     const page = pageRef.current;
   
     if (!page) return;
@@ -2356,24 +2459,92 @@ resizeState.current = {
 
 <button
   type="button"
+  disabled={(() => {
+    const targetIds =
+      selectedComponentIds.length > 1
+        ? selectedComponentIds
+        : [componentContextMenu.componentId];
+  
+    const orderedComponents = [...components].sort(
+      (a, b) =>
+        (a.layer ?? 1) - (b.layer ?? 1)
+    );
+  
+    return !orderedComponents.some(
+      (component, index) =>
+        targetIds.includes(component.id) &&
+        index < orderedComponents.length - 1 &&
+        !targetIds.includes(
+          orderedComponents[index + 1].id
+        )
+    );
+  })()}
   onClick={() => {
     setComponents((currentComponents) => {
-      const currentIndex = currentComponents.findIndex(
-        (component) =>
-          component.id === componentContextMenu.componentId
-      );
-
+      if (selectedComponentIds.length > 1) {
+        const nextComponents = [...currentComponents];
+        let didMove = false;
+  
+        for (
+          let index = nextComponents.length - 2;
+          index >= 0;
+          index--
+        ) {
+          const currentIsSelected =
+            selectedComponentIds.includes(
+              nextComponents[index].id
+            );
+  
+          const nextIsSelected =
+            selectedComponentIds.includes(
+              nextComponents[index + 1].id
+            );
+  
+          if (currentIsSelected && !nextIsSelected) {
+            [
+              nextComponents[index],
+              nextComponents[index + 1],
+            ] = [
+              nextComponents[index + 1],
+              nextComponents[index],
+            ];
+  
+            didMove = true;
+          }
+        }
+  
+        if (!didMove) {
+          return currentComponents;
+        }
+  
+        saveHistory(currentComponents);
+  
+        return nextComponents.map(
+          (component, index) => ({
+            ...component,
+            layer: index + 1,
+          })
+        );
+      }
+  
+      const currentIndex =
+        currentComponents.findIndex(
+          (component) =>
+            component.id ===
+            componentContextMenu.componentId
+        );
+  
       if (
         currentIndex === -1 ||
         currentIndex === currentComponents.length - 1
       ) {
         return currentComponents;
       }
-
+  
       saveHistory(currentComponents);
-
+  
       const nextComponents = [...currentComponents];
-
+  
       [
         nextComponents[currentIndex],
         nextComponents[currentIndex + 1],
@@ -2381,24 +2552,166 @@ resizeState.current = {
         nextComponents[currentIndex + 1],
         nextComponents[currentIndex],
       ];
-
-      return nextComponents.map((component, index) => ({
-        ...component,
-        layer: index + 1,
-      }));
+  
+      return nextComponents.map(
+        (component, index) => ({
+          ...component,
+          layer: index + 1,
+        })
+      );
     });
-
+  
     setComponentContextMenu(null);
   }}
-  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
 >
   Bring Forward
 </button>
 
 <button
   type="button"
+  disabled={(() => {
+    const targetIds =
+      selectedComponentIds.length > 1
+        ? selectedComponentIds
+        : [componentContextMenu.componentId];
+
+    const targetLayers = components
+      .filter((component) =>
+        targetIds.includes(component.id)
+      )
+      .map((component) => component.layer ?? 1);
+
+    const otherLayers = components
+      .filter((component) =>
+        !targetIds.includes(component.id)
+      )
+      .map((component) => component.layer ?? 1);
+
+    if (
+      targetLayers.length === 0 ||
+      otherLayers.length === 0
+    ) {
+      return true;
+    }
+
+    return (
+      Math.min(...targetLayers) >
+      Math.max(...otherLayers)
+    );
+  })()}
   onClick={() => {
     setComponents((currentComponents) => {
+      const targetIds =
+        selectedComponentIds.length > 1
+          ? selectedComponentIds
+          : [componentContextMenu.componentId];
+
+      const selectedComponents =
+        currentComponents.filter((component) =>
+          targetIds.includes(component.id)
+        );
+
+      const unselectedComponents =
+        currentComponents.filter(
+          (component) =>
+            !targetIds.includes(component.id)
+        );
+
+      const nextComponents = [
+        ...unselectedComponents,
+        ...selectedComponents,
+      ];
+
+      const didMove = nextComponents.some(
+        (component, index) =>
+          component.id !==
+          currentComponents[index]?.id
+      );
+
+      if (!didMove) {
+        return currentComponents;
+      }
+
+      saveHistory(currentComponents);
+
+      return nextComponents.map(
+        (component, index) => ({
+          ...component,
+          layer: index + 1,
+        })
+      );
+    });
+
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
+>
+  Bring to Front
+</button>
+
+<button
+  type="button"
+  disabled={(() => {
+    const targetIds =
+      selectedComponentIds.length > 1
+        ? selectedComponentIds
+        : [componentContextMenu.componentId];
+  
+    const orderedComponents = [...components].sort(
+      (a, b) =>
+        (a.layer ?? 1) - (b.layer ?? 1)
+    );
+  
+    return !orderedComponents.some(
+      (component, index) =>
+        targetIds.includes(component.id) &&
+        index > 0 &&
+        !targetIds.includes(
+          orderedComponents[index - 1].id
+        )
+    );
+  })()}
+  onClick={() => {
+    setComponents((currentComponents) => {
+      if (selectedComponentIds.length > 1) {
+        const nextComponents = [...currentComponents];
+        let didMove = false;
+
+        for (let index = 1; index < nextComponents.length; index++) {
+          const currentIsSelected = selectedComponentIds.includes(
+            nextComponents[index].id
+          );
+
+          const previousIsSelected = selectedComponentIds.includes(
+            nextComponents[index - 1].id
+          );
+
+          if (currentIsSelected && !previousIsSelected) {
+            [
+              nextComponents[index],
+              nextComponents[index - 1],
+            ] = [
+              nextComponents[index - 1],
+              nextComponents[index],
+            ];
+
+            didMove = true;
+          }
+        }
+
+        if (!didMove) {
+          return currentComponents;
+        }
+
+        saveHistory(currentComponents);
+
+        return nextComponents.map((component, index) => ({
+          ...component,
+          layer: index + 1,
+        }));
+      }
+
       const currentIndex = currentComponents.findIndex(
         (component) =>
           component.id === componentContextMenu.componentId
@@ -2428,41 +2741,162 @@ resizeState.current = {
 
     setComponentContextMenu(null);
   }}
-  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
 >
   Send Backward
 </button>
 
 <button
   type="button"
-  onClick={() => {
-    const component = components.find(
-      (currentComponent) =>
-        currentComponent.id === componentContextMenu.componentId
+  disabled={(() => {
+    const targetIds =
+      selectedComponentIds.length > 1
+        ? selectedComponentIds
+        : [componentContextMenu.componentId];
+
+    const targetLayers = components
+      .filter((component) =>
+        targetIds.includes(component.id)
+      )
+      .map((component) => component.layer ?? 1);
+
+    const otherLayers = components
+      .filter((component) =>
+        !targetIds.includes(component.id)
+      )
+      .map((component) => component.layer ?? 1);
+
+    if (
+      targetLayers.length === 0 ||
+      otherLayers.length === 0
+    ) {
+      return true;
+    }
+
+    return (
+      Math.max(...targetLayers) <
+      Math.min(...otherLayers)
     );
+  })()}
+  onClick={() => {
+    setComponents((currentComponents) => {
+      const targetIds =
+        selectedComponentIds.length > 1
+          ? selectedComponentIds
+          : [componentContextMenu.componentId];
 
-    if (!component) return;
+      const selectedComponents =
+        currentComponents.filter((component) =>
+          targetIds.includes(component.id)
+        );
 
-    updateComponent(component.id, {
-      locked: !component.locked,
+      const unselectedComponents =
+        currentComponents.filter(
+          (component) =>
+            !targetIds.includes(component.id)
+        );
+
+      const nextComponents = [
+        ...selectedComponents,
+        ...unselectedComponents,
+      ];
+
+      const didMove = nextComponents.some(
+        (component, index) =>
+          component.id !==
+          currentComponents[index]?.id
+      );
+
+      if (!didMove) {
+        return currentComponents;
+      }
+
+      saveHistory(currentComponents);
+
+      return nextComponents.map(
+        (component, index) => ({
+          ...component,
+          layer: index + 1,
+        })
+      );
+    });
+
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
+>
+  Send to Back
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    setComponents((currentComponents) => {
+      const targetIds =
+        selectedComponentIds.length > 1
+          ? selectedComponentIds
+          : [componentContextMenu.componentId];
+
+      const targetComponents =
+        currentComponents.filter((component) =>
+          targetIds.includes(component.id)
+        );
+
+      if (targetComponents.length === 0) {
+        return currentComponents;
+      }
+
+      const allLocked =
+        targetComponents.every(
+          (component) => component.locked
+        );
+
+      saveHistory(currentComponents);
+
+      return currentComponents.map((component) =>
+        targetIds.includes(component.id)
+          ? {
+              ...component,
+              locked: !allLocked,
+            }
+          : component
+      );
     });
 
     setComponentContextMenu(null);
   }}
   className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
 >
-  {components.find(
-    (component) =>
-      component.id === componentContextMenu.componentId
-  )?.locked
-    ? 'Unlock'
-    : 'Lock'}
+  {(() => {
+    const targetIds =
+      selectedComponentIds.length > 1
+        ? selectedComponentIds
+        : [componentContextMenu.componentId];
+
+    const targetComponents =
+      components.filter((component) =>
+        targetIds.includes(component.id)
+      );
+
+    const allLocked =
+      targetComponents.length > 0 &&
+      targetComponents.every(
+        (component) => component.locked
+      );
+
+    return allLocked ? 'Unlock' : 'Lock';
+  })()}
 </button>
 
 <button
   type="button"
   onClick={() => {
-    deleteSelectedComponent();
+    if (selectedComponentIds.length > 1) {
+      deleteSelectedComponents();
+    } else {
+      deleteSelectedComponent();
+    }
+  
     setComponentContextMenu(null);
   }}
   className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
@@ -2475,6 +2909,38 @@ resizeState.current = {
   </div>
 )}
  
+ {pageContextMenu && (
+  <div
+    className="fixed z-[30000] min-w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-xl"
+    style={{
+      left: pageContextMenu.x,
+      top: pageContextMenu.y,
+      zIndex: 30000,
+    }}
+  >
+    <button
+      type="button"
+      disabled={componentClipboard.current.length === 0}
+      onClick={() => {
+        pasteCopiedComponentAt(
+          pageContextMenu.pageX,
+          pageContextMenu.pageY
+        );
+
+        setPageContextMenu(null);
+      }}
+      className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
+    >
+      <span className="flex w-full items-center justify-between gap-6">
+        <span>Paste</span>
+        <span className="text-xs text-slate-400">
+          Ctrl+V
+        </span>
+      </span>
+    </button>
+  </div>
+)}
+
       {isFindOpen && (
   <div className="fixed right-4 top-20 z-[20000] flex items-center gap-2 rounded-lg border border-slate-300 bg-white p-2 shadow-lg">
     <input
@@ -2654,6 +3120,28 @@ activeFindMatch={findMatch}
             });
           }}
 
+          onPageContextMenu={(clientX, clientY, pageX, pageY) => {
+            if (selectedComponentIds.length > 0) {
+              setPageContextMenu(null);
+          
+              setComponentContextMenu({
+                componentId: selectedComponentIds[0],
+                x: clientX,
+                y: clientY,
+              });
+          
+              return;
+            }
+          
+            setComponentContextMenu(null);
+          
+            setPageContextMenu({
+              x: clientX,
+              y: clientY,
+              pageX,
+              pageY,
+            });
+          }}
           onTextSelectionChange={(id, range) => {
             setTextSelection(
               range
@@ -2731,12 +3219,6 @@ activeFindMatch={findMatch}
   matchingRowSelection={matchingRowSelection}
   matchingItemSelection={matchingItemSelection}
   onUpdateComponent={updateComponent}
-  onDuplicate={duplicateSelectedComponent}
-  onDelete={
-    selectedComponentIds.length > 1
-      ? deleteSelectedComponents
-      : deleteSelectedComponent
-  }
 />
       </main>
 

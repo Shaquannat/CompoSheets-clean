@@ -350,6 +350,7 @@ const skipNextBlurCommitRef = useRef(false);
         top: component.y,
         width: component.width,
         minHeight: component.height,
+        zIndex: component.layer ?? 1,
         border: isSelected
   ? '2px solid rgb(139 92 246)'
   : isHovered

@@ -235,8 +235,7 @@ onPageOrientationChange: (
     id: string,
     changes: Partial<WorksheetComponent>,
   ) => void
-  onDuplicate: () => void
-  onDelete: () => void
+  
 }
 
 export function RightSidebar({
@@ -252,8 +251,7 @@ worksheetView,
 pageOrientation,
 onPageOrientationChange,
   onUpdateComponent,
-  onDuplicate,
-  onDelete,
+  
 }: RightSidebarProps) {
 const [highlightColor, setHighlightColor] =
 useState('#FFF200');
@@ -453,21 +451,6 @@ const activeMatchingItem =
       </div>
     </div>
 
-    <button
-      type="button"
-      onClick={onDelete}
-      className="min-h-11 w-full rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 hover:bg-red-100"
-    >
-      Delete selected
-    </button>
-
-    <button
-  type="button"
-  onClick={onDuplicate}
-  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
->
-  Duplicate selected
-</button>
   </div>
 ) : selectedComponent ? (
         <div className="space-y-5">
