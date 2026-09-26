@@ -7711,58 +7711,6 @@ onUpdateComponent(selectedComponent.id, {
   </div>
 )}
 
-          <label className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
-            <span className="text-sm font-semibold text-slate-800">
-              Lock component
-            </span>
-
-            <input
-              type="checkbox"
-              checked={selectedComponent.locked}
-              onChange={(event) =>
-                onUpdateComponent(selectedComponent.id, {
-                  locked: event.target.checked,
-                })
-              }
-              className="h-4 w-4 accent-violet-600"
-            />
-          </label>
-
-          <div
-  style={{
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px',
-  }}
->
-
-          <button
-            type="button"
-            onClick={onDuplicate}
-            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Duplicate
-          </button>
-
-          <button
-  type="button"
-  onClick={onDelete}
-  disabled={selectedComponent.locked}
-  title={
-    selectedComponent.locked
-      ? 'Unlock component to delete'
-      : 'Delete component'
-  }
-  className={`min-h-11 w-full rounded-lg border px-4 text-sm font-semibold ${
-    selectedComponent.locked
-      ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-      : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-  }`}
->
-  Delete
-</button>
-        </div>
-
         </div>
       ) : (
         <div className="space-y-5">

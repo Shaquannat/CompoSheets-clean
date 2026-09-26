@@ -70,6 +70,13 @@ const [worksheetView, setWorksheetView] = useState<
 
   const [isFindOpen, setIsFindOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  const [componentContextMenu, setComponentContextMenu] = useState<{
+    componentId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
 const [findQuery, setFindQuery] = useState('');
 
 const [findMatches, setFindMatches] = useState<
@@ -122,6 +129,18 @@ const findMatch =
     itemId: string;
     side: 'left' | 'right';
   } | null>(null);
+
+  useEffect(() => {
+  function closeComponentContextMenu() {
+    setComponentContextMenu(null);
+  }
+
+  window.addEventListener('click', closeComponentContextMenu);
+
+  return () => {
+    window.removeEventListener('click', closeComponentContextMenu);
+  };
+}, []);
 
   const selectedComponent =
     components.find((component) => component.id === selectedComponentId) ??
@@ -2270,6 +2289,192 @@ resizeState.current = {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-100">
+      {componentContextMenu && (
+  <div
+    className="fixed z-[30000] min-w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-xl"
+    style={{
+      left: componentContextMenu.x,
+      top: componentContextMenu.y,
+      zIndex: 30000,
+    }}
+  >
+    <button
+  type="button"
+  onClick={() => {
+    cutSelectedComponent();
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+<span className="flex w-full items-center justify-between gap-6">
+  <span>Cut</span>
+  <span className="text-xs text-slate-400">Ctrl+X</span>
+</span>
+</button>
+
+    <button
+  type="button"
+  onClick={() => {
+    copySelectedComponent();
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+<span className="flex w-full items-center justify-between gap-6">
+  <span>Copy</span>
+  <span className="text-xs text-slate-400">Ctrl+C</span>
+</span>
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    pasteCopiedComponent();
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+<span className="flex w-full items-center justify-between gap-6">
+  <span>Paste</span>
+  <span className="text-xs text-slate-400">Ctrl+V</span>
+</span>
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    duplicateSelectedComponent();
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+<span className="flex w-full items-center justify-between gap-6">
+  <span>Duplicate</span>
+  <span className="text-xs text-slate-400">Ctrl+D</span>
+</span>
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    setComponents((currentComponents) => {
+      const currentIndex = currentComponents.findIndex(
+        (component) =>
+          component.id === componentContextMenu.componentId
+      );
+
+      if (
+        currentIndex === -1 ||
+        currentIndex === currentComponents.length - 1
+      ) {
+        return currentComponents;
+      }
+
+      saveHistory(currentComponents);
+
+      const nextComponents = [...currentComponents];
+
+      [
+        nextComponents[currentIndex],
+        nextComponents[currentIndex + 1],
+      ] = [
+        nextComponents[currentIndex + 1],
+        nextComponents[currentIndex],
+      ];
+
+      return nextComponents.map((component, index) => ({
+        ...component,
+        layer: index + 1,
+      }));
+    });
+
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+  Bring Forward
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    setComponents((currentComponents) => {
+      const currentIndex = currentComponents.findIndex(
+        (component) =>
+          component.id === componentContextMenu.componentId
+      );
+
+      if (currentIndex <= 0) {
+        return currentComponents;
+      }
+
+      saveHistory(currentComponents);
+
+      const nextComponents = [...currentComponents];
+
+      [
+        nextComponents[currentIndex],
+        nextComponents[currentIndex - 1],
+      ] = [
+        nextComponents[currentIndex - 1],
+        nextComponents[currentIndex],
+      ];
+
+      return nextComponents.map((component, index) => ({
+        ...component,
+        layer: index + 1,
+      }));
+    });
+
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+  Send Backward
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    const component = components.find(
+      (currentComponent) =>
+        currentComponent.id === componentContextMenu.componentId
+    );
+
+    if (!component) return;
+
+    updateComponent(component.id, {
+      locked: !component.locked,
+    });
+
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+>
+  {components.find(
+    (component) =>
+      component.id === componentContextMenu.componentId
+  )?.locked
+    ? 'Unlock'
+    : 'Lock'}
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    deleteSelectedComponent();
+    setComponentContextMenu(null);
+  }}
+  className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+>
+<span className="flex w-full items-center justify-between gap-6">
+<span style={{ color: '#dc2626' }}>Delete</span>
+  <span className="text-xs text-slate-400">Delete</span>
+  </span>
+</button>
+  </div>
+)}
+ 
       {isFindOpen && (
   <div className="fixed right-4 top-20 z-[20000] flex items-center gap-2 rounded-lg border border-slate-300 bg-white p-2 shadow-lg">
     <input
@@ -2441,6 +2646,13 @@ activeFindMatch={findMatch}
           onQuestionInput={recordQuestionInputHistory}
           onCheckboxInput={recordCheckboxInputHistory}
           onUpdateComponent={updateComponent}
+          onComponentContextMenu={(componentId, clientX, clientY) => {
+            setComponentContextMenu({
+              componentId,
+              x: clientX,
+              y: clientY,
+            });
+          }}
 
           onTextSelectionChange={(id, range) => {
             setTextSelection(

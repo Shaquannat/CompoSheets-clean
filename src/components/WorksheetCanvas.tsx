@@ -114,10 +114,16 @@ type WorksheetCanvasProps = {
   side: 'left' | 'right'
 ) => void;
 
-  onUpdateComponent: (
-    id: string,
-    changes: Partial<WorksheetComponent>
-  ) => void;
+onUpdateComponent: (
+  id: string,
+  changes: Partial<WorksheetComponent>
+) => void;
+
+onComponentContextMenu?: (
+  componentId: string,
+  clientX: number,
+  clientY: number
+) => void;
 };
 
 export function WorksheetCanvas({
@@ -151,6 +157,7 @@ onMultipleChoiceSelectionChange,
 onMatchingRowSelect,
 onMatchingItemSelect,
 onUpdateComponent,
+onComponentContextMenu,
 }: WorksheetCanvasProps) {
   const selectedComponents = components.filter((component) =>
   selectedComponentIds.includes(component.id)
@@ -316,6 +323,53 @@ style={{
             onPointerUp={onPointerEnd}
             onPointerCancel={onPointerEnd}
             onPointerLeave={onPointerEnd}
+            onContextMenu={(event) => {
+              if (
+                worksheetView !== 'student' ||
+                !onComponentContextMenu
+              ) {
+                return;
+              }
+            
+              const target = event.target;
+            
+              if (!(target instanceof Element)) return;
+            
+              const componentElement = target.closest(
+                '[data-worksheet-component="true"]'
+              );
+            
+              if (
+                !componentElement ||
+                !event.currentTarget.contains(componentElement)
+              ) {
+                return;
+              }
+            
+              const componentElements = Array.from(
+                event.currentTarget.querySelectorAll(
+                  '[data-worksheet-component="true"]'
+                )
+              );
+            
+              const componentIndex =
+                componentElements.indexOf(componentElement);
+            
+              const component = components[componentIndex];
+            
+              if (!component) return;
+            
+              event.preventDefault();
+              event.stopPropagation();
+            
+              onSelectComponent(component.id);
+            
+              onComponentContextMenu(
+                component.id,
+                event.clientX,
+                event.clientY
+              );
+            }}
           >
             {worksheetView === 'answerKey' && (
   <div
